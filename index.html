@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍵 효원다회 (曉原茶會) - 공식 웹사이트</title>
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { 
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Noto Serif KR', serif; 
+      background-color: #fcfbf9; 
+      color: #2c2c2c; 
+      line-height: 1.8; 
+      word-break: keep-all;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* 📌 Header Navigation */
+    header { 
+      background-color: rgba(255, 255, 255, 0.95); 
+      backdrop-filter: blur(8px);
+      color: #1b382b; 
+      padding: 1.2rem 2rem; 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky; 
+      top: 0; 
+      z-index: 100; 
+      border-bottom: 1px solid #eae6df;
+    }
+    
+    header .brand-logo { 
+      font-size: 1.2rem; 
+      font-weight: 800; 
+      letter-spacing: 2px; 
+      text-decoration: none; 
+      color: #1b382b; 
+      cursor: pointer; 
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    /* PC 드롭다운 네비게이션 스타일 */
+    nav ul { display: flex; list-style: none; gap: 30px; align-items: center; }
+    nav ul li { position: relative; }
+    nav ul li a, nav ul li .nav-link-text { 
+      color: #4a5568; 
+      text-decoration: none; 
+      font-weight: 600; 
+      font-size: 0.95rem; 
+      transition: color 0.2s ease; 
+      cursor: pointer; 
+      padding: 10px 0;
+      display: block;
+    }
+    nav ul li a:hover, nav ul li a.active, nav ul li .nav-link-text:hover { color: #1b382b; font-weight: 700; }
+
+    /* 서브메뉴(드롭다운 박스) - 세로형 정렬 */
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #ffffff;
+      min-width: 170px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      border: 1px solid #eae6df;
+      border-radius: 8px;
+      padding: 8px 0;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+      list-style: none;
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+    }
+    nav ul li:hover .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .dropdown-menu li { width: 100%; text-align: left; }
+    .dropdown-menu li a {
+      padding: 10px 18px;
+      font-size: 0.88rem;
+      color: #4a5568;
+      font-weight: 500;
+      display: block;
+    }
+    .dropdown-menu li a:hover {
+      background-color: #f4f1ea;
+      color: #1b382b;
+      padding-left: 22px;
+    }
+
+    .sub-hangul {
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: #718096;
+      margin-left: 3px;
+      letter-spacing: 0px;
+    }
+
+    /* 햄버거 메뉴 버튼 (모바일 전용) */
+    .hamburger-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 24px;
+      height: 18px;
+      z-index: 200;
+    }
+    .hamburger-btn span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background-color: #1b382b;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    /* 모바일 우측 슬라이드 드로어 메뉴 */
+    .mobile-drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(3px);
+      z-index: 150;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .mobile-drawer-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .mobile-drawer {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100%;
+      background: #ffffff;
+      z-index: 160;
+      box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+      transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+      overflow-y: auto;
+    }
+    .mobile-drawer.open {
+      right: 0;
+    }
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eae6df;
+      padding-bottom: 15px;
+    }
+    .drawer-title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #1b382b;
+      font-family: 'Noto Serif KR', serif;
+    }
+    .drawer-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #4a5568;
+    }
+    .drawer-nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .drawer-nav-list li a, .drawer-nav-list .drawer-toggle-link {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #2c2c2c;
+      text-decoration: none;
+      display: block;
+      padding: 8px 0;
+      border-bottom: 1px solid #f7f5f0;
+      cursor: pointer;
+    }
+    .drawer-nav-list li a:hover, .drawer-nav-list .drawer-toggle-link:hover {
+      color: #1b382b;
+    }
+    .drawer-sub-list {
+      list-style: none;
+      padding-left: 15px;
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .drawer-sub-list li a {
+      font-size: 0.92rem;
+      font-weight: 400;
+      color: #64748b;
+      border: none;
+      padding: 6px 0;
+    }
+
+    main { width: 100%; flex: 1; }
+
+    /* 🖼️ 1. Main Hero Area */
+    .main-hero {
+      position: relative;
+      width: 100%;
+      height: 80vh;
+      min-height: 500px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background-color: #1b2620;
+      overflow: hidden;
+      color: #f4f1ea;
+    }
+
+    .hero-bg-video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.45);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .hero-content { position: relative; z-index: 3; padding: 0 20px; }
+    .hero-kanji {
+      font-size: 3.8rem;
+      font-weight: 900;
+      letter-spacing: 12px;
+      margin-bottom: 15px;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      font-family: 'Noto Serif KR', serif;
+    }
+    .hero-slogan { font-size: 1.35rem; font-weight: 300; letter-spacing: 4px; color: #d1dcd5; margin-top: 10px; }
+
+    /* 📜 2. 메인 페이지 동적 소개글 섹션 */
+    .intro-section {
+      padding: 100px 20px;
+      display: flex;
+      justify-content: center;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .intro-section.bg-light { background-color: #f7f5f0; color: #2c2c2c; }
+    .intro-section.bg-light .intro-sub-title { color: #2d4a3e; }
+    .intro-section.bg-light .intro-main-content h2 { color: #1b382b; }
+    .intro-section.bg-light .intro-main-content p { color: #4a4a4a; }
+
+    .intro-section.bg-warm { background-color: #e8e3d9; color: #1f1f1f; }
+    .intro-section.bg-warm .intro-sub-title { color: #3b443f; }
+    .intro-section.bg-warm .intro-main-content h2 { color: #1b2e25; }
+    .intro-section.bg-warm .intro-main-content p { color: #2d2d2d; }
+
+    .intro-section.bg-muted { background-color: #f0ede6; color: #1f1f1f; }
+    .intro-section.bg-muted .intro-sub-title { color: #2d4a3e; }
+    .intro-section.bg-muted .intro-main-content h2 { color: #1b382b; }
+    .intro-section.bg-muted .intro-main-content p { color: #4a4a4a; }
+
+    .intro-container {
+      max-width: 1050px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 50px;
+    }
+
+    .intro-sub-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+
+    .intro-main-content h2 { font-size: 1.95rem; font-weight: 900; margin-bottom: 25px; letter-spacing: -0.5px; }
+    .intro-main-content p { font-size: 1.05rem; margin-bottom: 20px; white-space: pre-line; }
+    .intro-media { width: 100%; max-height: 400px; object-fit: cover; margin-top: 25px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+    /* 📚 茶書 허브 페이지 스타일 */
+    .hub-page-wrapper {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+    
+    .hub-page-title-area {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .hub-page-title-area h2 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #1b382b;
+      font-family: 'Noto Serif KR', serif;
+      margin-bottom: 10px;
+    }
+    .hub-page-title-area p {
+      color: #718096;
+      font-size: 1rem;
+    }
+
+    .hub-item-row {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 40px;
+      align-items: center;
+      padding: 60px 0;
+      border-bottom: 1px solid #eae6df;
+    }
+    .hub-item-row:last-child {
+      border-bottom: none;
+    }
+
+    .hub-item-row.reverse {
+      grid-template-columns: 1.2fr 1fr;
+    }
+    .hub-item-row.reverse .hub-text-col {
+      order: 1;
+    }
+    .hub-item-row.reverse .hub-media-col {
+      order: 2;
+    }
+
+    .hub-media-col video, .hub-media-col img {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    }
+
+    .hub-tag {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #2d4a3e;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .hub-text-col h3 {
+      font-size: 1.7rem;
+      font-weight: 900;
+      color: #1b382b;
+      margin-bottom: 15px;
+      letter-spacing: -0.5px;
+      font-family: 'Noto Serif KR', serif;
+    }
+
+    .hub-text-col p {
+      font-size: 1.02rem;
+      color: #4a4a4a;
+      line-height: 1.7;
+      margin-bottom: 25px;
+    }
+
+    .hub-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      background-color: #1b382b;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.92rem;
+      border-radius: 30px;
+      text-decoration: none;
+      transition: background-color 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .hub-action-btn:hover {
+      background-color: #2d5a45;
+      transform: translateY(-2px);
+    }
+
+    /* 📜 3. 가로 1자 선 연혁 */
+    .history-section-wrapper {
+      padding: 60px 20px;
+      background-color: #f4f1ea;
+      border-top: 1px solid #eae6df;
+    }
+
+    .history-header { text-align: center; margin-bottom: 30px; }
+    .history-header h2 { font-size: 1.8rem; font-weight: 800; color: #1b382b; }
+    .history-header p { color: #718096; font-size: 0.9rem; margin-top: 4px; }
+
+    .timeline-scroll-container {
+      width: 100%;
+      overflow-x: auto;
+      padding: 20px 20px;
+      scroll-behavior: smooth;
+    }
+    .timeline-scroll-container::-webkit-scrollbar { height: 6px; }
+    .timeline-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+    .zigzag-timeline {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-width: max-content;
+      height: 220px;
+      padding: 0 40px;
+    }
+
+    .zigzag-timeline::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #1b382b;
+      transform: translateY(-50%);
+      z-index: 1;
+    }
+
+    .timeline-node {
+      position: relative;
+      min-width: 240px;
+      margin-right: 50px;
+      z-index: 2;
+    }
+
+    .timeline-node.top { align-self: flex-start; padding-bottom: 25px; text-align: left; }
+    .timeline-node.bottom { align-self: flex-end; padding-top: 25px; text-align: left; }
+
+    .timeline-dot {
+      position: absolute;
+      left: 0;
+      width: 12px;
+      height: 12px;
+      background-color: #1b382b;
+      border-radius: 50%;
+      border: 3px solid #f4f1ea;
+      box-shadow: 0 0 0 1px #1b382b;
+      z-index: 3;
+    }
+    
+    .timeline-node.top .timeline-dot { bottom: -6px; }
+    .timeline-node.bottom .timeline-dot { top: -6px; }
+
+    .node-year { font-size: 1.35rem; font-weight: 900; color: #1b382b; margin-bottom: 2px; font-family: 'Noto Serif KR', serif; }
+    .node-content { font-size: 0.9rem; color: #4a5568; line-height: 1.4; }
+
+    /* 📅 4. 동아리 일정 캘린더 섹션 */
+    .main-schedule-section {
+      padding: 100px 20px;
+      background-color: #fcfbf9;
+      border-top: 1px solid #eae6df;
+    }
+    .main-schedule-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .schedule-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 30px;
+      margin-top: 40px;
+      align-items: start;
+    }
+
+    .calendar-card {
+      background: #ffffff;
+      border: 1px solid #eae6df;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .calendar-header h3 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #1b382b;
+      font-family: 'Noto Serif KR', serif;
+    }
+    .cal-nav-btn {
+      background: #f4f1ea;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+      color: #1b382b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .cal-nav-btn:hover { background: #1b382b; color: white; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .cal-day-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #718096;
+      padding-bottom: 8px;
+    }
+    
+    .cal-day {
+      min-height: 65px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      background: #fcfbf9;
+      border: 1px solid #eee;
+      padding: 4px 2px;
+    }
+    .cal-day:hover { background: #f0f7f4; border-color: #1b382b; }
+    .cal-day.empty { background: transparent; cursor: default; border: none; }
+    .cal-day.selected { background: #1b382b !important; color: white !important; border-color: #1b382b !important; }
+    
+    .cal-day-num {
+      font-weight: 700;
+      font-size: 0.82rem;
+      margin-bottom: 2px;
+      text-align: center;
+    }
+    .cal-day.selected .cal-day-num { color: #ffffff; }
+
+    .cal-event-badge {
+      background: #e6f4ea;
+      color: #1b382b;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 3px;
+      border-radius: 3px;
+      margin-top: 1px;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cal-day.selected .cal-event-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    .schedule-detail-card {
+      background: #ffffff;
+      border: 1px solid #eae6df;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .detail-date-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #1b382b;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #1b382b;
+      padding-bottom: 8px;
+    }
+    .detail-content-box {
+      font-size: 0.98rem;
+      color: #4a5568;
+      line-height: 1.7;
+    }
+
+    /* 📄 서브 페이지 공통 */
+    .sub-page { display: none; padding: 60px 20px; max-width: 1000px; margin: 0 auto; flex: 1; }
+    .sub-page.active { display: block; }
+    .main-scroll-view.hidden { display: none; }
+
+    /* 🍵 차 도감 스타일 */
+    .filter-container { margin-top: 20px; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; }
+    .filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn { padding: 8px 16px; border: 1px solid #e2e8f0; background: white; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.88rem; color: #4a5568; transition: all 0.2s; }
+    .filter-btn.active { background: #1b382b; color: white; border-color: #1b382b; }
+    
+    .search-input { max-width: 320px; padding: 9px 16px; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 0.9rem; outline: none; }
+    .search-input:focus { border-color: #1b382b; }
+
+    .tea-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .tea-card { border: 1px solid #eae6df; border-radius: 12px; padding: 22px; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+    
+    .tea-name { 
+      color: #1b382b; 
+      font-size: 1.35rem; 
+      margin-bottom: 8px; 
+      font-weight: 900 !important; 
+      letter-spacing: -0.5px;
+      font-family: 'Noto Serif KR', 'Pretendard', serif;
+    }
+    
+    .badge-container { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .badge { display: inline-block; background: #e6f4ea; color: #1b382b; font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
+    .badge.status-open { background: #e0f2fe; color: #0369a1; }
+    .badge.status-closed { background: #f1f5f9; color: #475569; }
+    .tea-card p { font-size: 0.92rem; color: #4a5568; line-height: 1.6; }
+
+    /* 📌 Footer Style */
+    footer {
+      background-color: #162920;
+      color: #cbd5e1;
+      padding: 40px 20px;
+      border-top: 1px solid #233f31;
+      margin-top: auto;
+    }
+    .footer-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+    .footer-info h3 {
+      color: #f4f1ea;
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      font-family: 'Noto Serif KR', serif;
+      letter-spacing: 1px;
+    }
+    .footer-info p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      line-height: 1.35;
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .footer-links a {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.35;
+    }
+    .footer-links a:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+    .footer-bottom {
+      max-width: 1000px;
+      margin: 20px auto 0 auto;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.78rem;
+      color: #64748b;
+      text-align: center;
+    }
+
+    /* 📱 모바일 화면 최적화 (768px 이하) */
+    @media (max-width: 768px) {
+      header { padding: 0.8rem 1rem; }
+      header .brand-logo .pc-logo-text { display: none; }
+      header .brand-logo .mo-kanji-logo {
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        background: transparent; color: #1b382b; border: none; font-size: 1.1rem; font-weight: 900;
+        font-family: 'Noto Serif KR', serif; line-height: 1.2; letter-spacing: 1px;
+      }
+      nav { display: none; }
+      .hamburger-btn { display: flex; }
+
+      .intro-container { grid-template-columns: 1fr; gap: 20px; }
+      .hub-item-row, .hub-item-row.reverse { grid-template-columns: 1fr; gap: 20px; }
+      .hub-item-row.reverse .hub-text-col { order: 2; }
+      .hub-item-row.reverse .hub-media-col { order: 1; }
+      
+      .schedule-layout { grid-template-columns: 1fr; }
+      .search-input { max-width: 100%; }
+      .footer-container { flex-direction: column; gap: 20px; }
+      .cal-day { min-height: 55px; font-size: 0.75rem; }
+    }
+
+    @media (min-width: 769px) {
+      header .brand-logo .mo-kanji-logo { display: none; }
+      .mobile-drawer-overlay, .mobile-drawer { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 📌 Header Navigation -->
+  <header>
+    <!-- 좌측 상단 한자 로고 클릭 시 다도/차 소개로 전환 후 상단으로 이동 -->
+    <a onclick="switchToIntroType('tea'); scrollToTop();" class="brand-logo">
+      <span class="pc-logo-text">曉原茶會</span>
+      <div class="mo-kanji-logo"><span>曉原茶會</span></div>
+    </a>
+    
+    <!-- PC 버전 네비게이션 -->
+    <nav>
+      <ul>
+        <li>
+          <!-- 상단바 소개 버튼 클릭 시 동아리 소개 기본 노출 및 스크롤 -->
+          <a class="nav-link" onclick="switchToIntroType('club'); scrollToSection('intro-sections-container');">소개</a>
+          <ul class="dropdown-menu">
+            <li><a onclick="switchToIntroType('club'); scrollToSection('intro-sections-container');">동아리 소개</a></li>
+            <li><a onclick="scrollToSection('history-section')">연혁 보기</a></li>
+          </ul>
+        </li>
+        <li>
+          <a class="nav-link" onclick="scrollToSection('schedule-section')">일정</a>
+        </li>
+        <li>
+          <a class="nav-link" onclick="showSubPage('dasho-hub-page', this)">茶書<span class="sub-hangul">(다서)</span></a>
+          <ul class="dropdown-menu">
+            <li><a onclick="showSubPage('tea-list-page', null)">차 도감</a></li>
+            <li><a onclick="showSubPage('dasho-hub-page', null)">차 지도</a></li>
+            <li><a onclick="showSubPage('dasho-hub-page', null)">다구 사용법</a></li>
+          </ul>
+        </li>
+        <li>
+          <a class="nav-link" href="admin.html" style="color: #888;">🔒 집행부</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- 모바일 햄버거 버튼 -->
+    <button class="hamburger-btn" onclick="toggleMobileDrawer()" aria-label="메뉴 열기">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <!-- 모바일 우측 슬라이드 드로어 및 배경 오버레이 -->
+  <div id="drawerOverlay" class="mobile-drawer-overlay" onclick="toggleMobileDrawer()"></div>
+  <div id="mobileDrawer" class="mobile-drawer">
+    <div class="drawer-header">
+      <span class="drawer-title">曉原茶會 메뉴</span>
+      <button class="drawer-close-btn" onclick="toggleMobileDrawer()">&times;</button>
+    </div>
+    <ul class="drawer-nav-list">
+      <li>
+        <!-- 햄버거 메뉴 동아리 소개 -->
+        <a class="drawer-toggle-link" onclick="switchToIntroType('club'); scrollToSection('intro-sections-container'); toggleMobileDrawer();">소개</a>
+        <ul class="drawer-sub-list">
+          <li><a onclick="mobileNavigateToIntro('club', true)">동아리 소개</a></li>
+          <li><a onclick="mobileNavigate('history-section', true)">연혁 보기</a></li>
+        </ul>
+      </li>
+      <li><a onclick="mobileNavigate('schedule-section', true)">동아리 일정</a></li>
+      <li>
+        <a class="drawer-toggle-link" onclick="toggleDrawerSub(this)">茶書<span class="sub-hangul">(다서)</span></a>
+        <ul class="drawer-sub-list" style="display:none;">
+          <li><a onclick="mobileNavigate('tea-list-page', false)">차 도감</a></li>
+          <li><a onclick="mobileNavigate('dasho-hub-page', false)">차 지도</a></li>
+          <li><a onclick="mobileNavigate('dasho-hub-page', false)">다구 사용법</a></li>
+        </ul>
+      </li>
+      <li><a href="admin.html" style="color: #888;">🔒 집행부 페이지</a></li>
+    </ul>
+  </div>
+
+  <main>
+    <!-- 🏠 메인 스크롤 뷰 -->
+    <div id="main-scroll-view" class="main-scroll-view">
+      
+      <!-- 1. 히어로 영역 -->
+      <section class="main-hero">
+        <video autoplay muted loop playsinline class="hero-bg-video">
+          <source src="./hero-bg.mp4" type="video/mp4">
+          동영상을 지원하지 않는 브라우저입니다.
+        </video>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <h1 class="hero-kanji">曉原茶會</h1>
+          <p class="hero-slogan">"차가 좋아서, 사람이 좋아서"</p>
+        </div>
+      </section>
+
+      <!-- 2. 동적 소개글 목록 (기본은 동아리 소개, 한자 로고 클릭 시 다도/차 소개로 전환) -->
+      <div id="intro-sections-container">
+        <p style="text-align: center; padding: 50px;">소개글을 불러오는 중...</p>
+      </div>
+
+      <!-- 3. 연혁 섹션 (동아리 소개 모드에서만 노출) -->
+      <section id="history-section" class="history-section-wrapper">
+        <div class="history-header">
+          <h2>📜 효원다회 발자취</h2>
+          <p>가로 스크롤을 통해 효원다회의 역사를 살펴보세요.</p>
+        </div>
+        <div class="timeline-scroll-container">
+          <div id="zigzag-timeline-container" class="zigzag-timeline">
+            <p>연혁 데이터를 불러오는 중...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 동아리 일정 캘린더 섹션 (동아리 소개 모드에서만 노출) -->
+      <section id="schedule-section" class="main-schedule-section">
+        <div class="main-schedule-container">
+          <div style="text-align: center; margin-bottom: 10px;">
+            <h2 style="color: #1b382b; font-size: 2rem; font-weight: 800;">📅 동아리 일정</h2>
+            <p style="color: #718096; font-size: 0.95rem; margin-top: 6px;">날짜를 클릭하여 해당 일자의 모임 및 다회 정보를 확인하세요.</p>
+          </div>
+
+          <div class="schedule-layout">
+            <!-- 왼쪽: 달력 컴포넌트 -->
+            <div class="calendar-card">
+              <div class="calendar-header">
+                <button class="cal-nav-btn" onclick="changeMonth(-1)">&lt;</button>
+                <h3 id="calendar-month-title">2026년 4월</h3>
+                <button class="cal-nav-btn" onclick="changeMonth(1)">&gt;</button>
+              </div>
+              <div class="calendar-grid">
+                <div class="cal-day-name" style="color: #e53e3e;">일</div>
+                <div class="cal-day-name">월</div>
+                <div class="cal-day-name">화</div>
+                <div class="cal-day-name">수</div>
+                <div class="cal-day-name">목</div>
+                <div class="cal-day-name">금</div>
+                <div class="cal-day-name" style="color: #3182ce;">토</div>
+              </div>
+              <div id="calendar-days-container" class="calendar-grid" style="margin-top: 8px;">
+                <!-- JS로 동적 생성 -->
+              </div>
+            </div>
+
+            <!-- 오른쪽: 선택된 날짜 일정 상세 패널 -->
+            <div class="schedule-detail-card">
+              <div id="detail-date-title" class="detail-date-title">날짜를 선택해주세요</div>
+              <div id="detail-content-box" class="detail-content-box">
+                달력의 날짜를 클릭하시면 해당 일자에 등록된 상세 일정이 이 곳에 표시됩니다.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 📚 茶書(다서) 허브 페이지 -->
+    <section id="dasho-hub-page" class="sub-page">
+      <div class="hub-page-wrapper">
+        
+        <div class="hub-page-title-area">
+          <h2>茶書 아카이브</h2>
+          <p>효원다회가 기록하고 수집한 차와 다구에 관한 지식 공간입니다.</p>
+        </div>
+
+        <!-- 1. 차 도감 항목 -->
+        <div class="hub-item-row">
+          <div class="hub-media-col">
+            <video autoplay muted loop playsinline>
+              <source src="./tea-intro-video.mp4" type="video/mp4">
+              동영상을 지원하지 않는 브라우저입니다.
+            </video>
+          </div>
+          <div class="hub-text-col">
+            <div class="hub-tag">TEA DICTIONARY</div>
+            <h3>차 도감</h3>
+            <p>효원다회가 소장하고 있는 다양한 찻잎들의 정보와 개봉 여부, 그리고 각 차에 알맞은 적정 우림 온도를 확인하실 수 있습니다. 엄선된 찻잎들의 특색을 살펴보세요.</p>
+            <a class="hub-action-btn" onclick="showSubPage('tea-list-page', null)">차 도감 보기 &rarr;</a>
+          </div>
+        </div>
+
+        <!-- 2. 차 지도 항목 -->
+        <div class="hub-item-row reverse">
+          <div class="hub-media-col">
+            <video autoplay muted loop playsinline>
+              <source src="./tea-map-video.mp4" type="video/mp4">
+              동영상을 지원하지 않는 브라우저입니다.
+            </video>
+          </div>
+          <div class="hub-text-col">
+            <div class="hub-tag">TEA MAP</div>
+            <h3>차 지도</h3>
+            <p>세계 각국의 유명 다산지(茶産地)와 고유의 제다 특성을 한눈에 살펴볼 수 있는 공간입니다. 지역별 차의 역사와 지리적 특징을 탐구해 보세요.</p>
+            <a class="hub-action-btn" onclick="alert('차 지도 페이지는 준비 중입니다!')">차 지도 보기 &rarr;</a>
+          </div>
+        </div>
+
+        <!-- 3. 다구 사용법 항목 -->
+        <div class="hub-item-row">
+          <div class="hub-media-col">
+            <video autoplay muted loop playsinline>
+              <source src="./tea-utensils-video.mp4" type="video/mp4">
+              동영상을 지원하지 않는 브라우저입니다.
+            </video>
+          </div>
+          <div class="hub-text-col">
+            <div class="hub-tag">TEA UTENSILS</div>
+            <h3>다구 사용법</h3>
+            <p>개완, 차사발, 다호 등 전통 차 도구들의 올바른 사용법과 관리 요령을 안내합니다. 정성스러운 다구 다루기를 통해 온전한 차 한 잔의 여유를 즐겨보세요.</p>
+            <a class="hub-action-btn" onclick="alert('다구 사용법 페이지는 준비 중입니다!')">다구 사용법 보기 &rarr;</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 🍵 서브 페이지: 실제 차 도감 리스트 -->
+    <section id="tea-list-page" class="sub-page">
+      <div style="margin-bottom: 20px;">
+        <a onclick="showSubPage('dasho-hub-page', null)" style="cursor: pointer; color: #1b382b; font-weight: 700; font-size: 0.9rem;">&larr; 茶書 허브로 돌아가기</a>
+      </div>
+      <h2 style="color: #1b382b; font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px;">🍵 효원다회 차 도감</h2>
+      <p style="color: #718096; margin-top: 5px;">등록된 차 종류별로 필터링하거나 검색해 보세요.</p>
+      
+      <div class="filter-container">
+        <div id="category-buttons" class="filter-buttons">
+          <button class="filter-btn active" onclick="selectCategory('전체', this)">전체</button>
+        </div>
+        <input type="text" id="tea-search-input" class="search-input" oninput="applyTeaFilters()" placeholder="🔍 차 이름 검색...">
+      </div>
+
+      <div id="tea-container" class="tea-grid">
+        <p>차 도감을 불러오는 중...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 📌 Footer 영역 -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-info">
+        <h3>曉原茶會 (효원다회)</h3>
+        <p>부산대학교 전통 차 문화 동아리<br>차가 좋아서, 사람이 좋아서 함께 모이는 공간입니다.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://instagram.com/hyowon_daho" target="_blank">📷 인스타그램 (@hyowon_daho)</a>
+        <a href="mailto:contact@hyowondaho.com">✉️ 이메일 문의 (contact@hyowondaho.com)</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 효원다회 (Hyowon Daho). All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = 'https://cjstjbgfpotajryepqcs.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqc3RqYmdmcG90YWpyeWVwcWNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4Njg2NTEsImV4cCI6MjEwMDQ0NDY1MX0.KkkUgghQhSWGQEn1ES4j19Uk0T_0tQAyDuPWH3NgNbo';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allTeas = [];
+    let currentCategory = '전체';
+
+    let schedulesData = [];
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let selectedDateStr = null;
+
+    // 기본값을 동아리 소개('club')로 설정
+    let currentIntroType = 'club';
+    let introSectionsCache = [];
+
+    /* 📱 모바일 우측 슬라이드 메뉴(Drawer) 제어 함수 */
+    function toggleMobileDrawer() {
+      const drawer = document.getElementById('mobileDrawer');
+      const overlay = document.getElementById('drawerOverlay');
+      drawer.classList.toggle('open');
+      overlay.classList.toggle('open');
+    }
+
+    function toggleDrawerSub(element) {
+      const subList = element.nextElementSibling;
+      if (subList.style.display === 'none' || !subList.style.display) {
+        subList.style.display = 'flex';
+      } else {
+        subList.style.display = 'none';
+      }
+    }
+
+    function mobileNavigate(targetIdOrPage, isSection) {
+      toggleMobileDrawer();
+      if (isSection) {
+        scrollToSection(targetIdOrPage);
+      } else {
+        showSubPage(targetIdOrPage, null);
+      }
+    }
+
+    function mobileNavigateToIntro(type, isSection) {
+      toggleMobileDrawer();
+      switchToIntroType(type);
+      if (isSection) {
+        scrollToSection('intro-sections-container');
+      }
+    }
+
+    function scrollToTop() {
+      document.getElementById('main-scroll-view').classList.remove('hidden');
+      document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollToSection(sectionId) {
+      document.getElementById('main-scroll-view').classList.remove('hidden');
+      document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      
+      const target = document.getElementById(sectionId);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showSubPage(pageId, element) {
+      document.getElementById('main-scroll-view').classList.add('hidden');
+      document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      if (element) element.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'source' in window ? 0 : 'smooth' });
+    }
+
+    // 💡 소개글 타입 전환 함수 (다도/차 소개 vs 동아리 소개)
+    function switchToIntroType(type) {
+      currentIntroType = type;
+      renderIntroSections();
+    }
+
+    async function fetchIntroSections() {
+      const { data, error } = await _supabase.from('intro_sections').select('*').order('section_order', { ascending: true });
+      if (error || !data) {
+        introSectionsCache = [];
+      } else {
+        introSectionsCache = data;
+      }
+      renderIntroSections();
+    }
+
+    function renderIntroSections() {
+      const container = document.getElementById('intro-sections-container');
+      const historySection = document.getElementById('history-section');
+      const scheduleSection = document.getElementById('schedule-section');
+      
+      if (currentIntroType === 'tea') {
+        // 다도/차 소개 모드일 때: 연혁 및 일정 섹션 숨기기
+        if (historySection) historySection.style.display = 'none';
+        if (scheduleSection) scheduleSection.style.display = 'none';
+
+        if (!introSectionsCache || introSectionsCache.length === 0) {
+          container.innerHTML = '<p style="text-align: center; padding: 50px;">등록된 다도 소개글이 없습니다.</p>';
+          return;
+        }
+        container.innerHTML = introSectionsCache.map((sec, idx) => {
+          let bgClass = sec.bg_type ? `bg-${sec.bg_type}` : ((idx % 2 === 1) ? 'bg-warm' : 'bg-light');
+          return `
+            <section class="intro-section ${bgClass}">
+              <div class="intro-container">
+                <div class="intro-sub-title">${sec.subtitle_en || 'TEA CULTURE'}</div>
+                <div class="intro-main-content">
+                  <h2>${sec.title_kr || '다도 및 차 문화 소개'}</h2>
+                  <p>${sec.content || ''}</p>
+                  ${sec.image_url ? `<img src="${sec.image_url}" class="intro-media" alt="소개 이미지">` : ''}
+                </div>
+              </div>
+            </section>
+          `;
+        }).join('');
+      } else {
+        // 동아리 소개 모드일 때: 연혁 및 일정 섹션 보이기
+        if (historySection) historySection.style.display = 'block';
+        if (scheduleSection) scheduleSection.style.display = 'block';
+
+        container.innerHTML = `
+          <section class="intro-section bg-light">
+            <div class="intro-container">
+              <div class="intro-sub-title">ABOUT US</div>
+              <div class="intro-main-content">
+                <h2>효원다회 동아리 소개</h2>
+                <p>부산대학교 전통 차 문화 동아리 '효원다회'는 차를 사랑하는 사람들이 모여 따뜻한 온기를 나누는 공간입니다.\n\n일상 속에서 바쁘게 살아가는 이들에게 차 한 잔의 여유를 전하고, 전통 다도를 함께 배우며 깊이 있는 교류를 이어가고 있습니다.</p>
+              </div>
+            </div>
+          </section>
+          <section class="intro-section bg-warm">
+            <div class="intro-container">
+              <div class="intro-sub-title">ACTIVITIES</div>
+              <div class="intro-main-content">
+                <h2>주요 활동 및 모임 안내</h2>
+                <p>정기 다회, 야외 찻자리, 전통 다구 실습 등 차 문화를 오감으로 느낄 수 있는 다채로운 활동을 진행합니다. 초보자도 환영하며, 차를 통해 진정한 소통과 쉼을 얻어갈 수 있습니다.</p>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+    }
+
+    async function fetchHistory() {
+      const container = document.getElementById('zigzag-timeline-container');
+      const { data, error } = await _supabase.from('history').select('*').order('year', { ascending: true });
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<p>등록된 연혁이 없습니다.</p>';
+        return;
+      }
+      container.innerHTML = data.map((item, idx) => {
+        const positionClass = (idx % 2 === 0) ? 'top' : 'bottom';
+        return `
+          <div class="timeline-node ${positionClass}">
+            <div class="timeline-dot"></div>
+            <div class="node-year">${item.year}</div>
+            <div class="node-content">${item.content}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function fetchTeas() {
+      const container = document.getElementById('tea-container');
+      const { data, error } = await _supabase.from('teas').select('*, tea_categories ( categories ( name ) )');
+      if (error) {
+        container.innerHTML = '<p>차 목록을 불러오지 못했습니다.</p>';
+        return;
+      }
+      allTeas = data || [];
+      setupCategoryButtons(allTeas);
+      renderTeas(allTeas);
+    }
+
+    function setupCategoryButtons(teaList) {
+      let categoriesSet = new Set();
+      teaList.forEach(tea => {
+        if (tea.tea_categories) {
+          tea.tea_categories.forEach(tc => { if (tc.categories && tc.categories.name) categoriesSet.add(tc.categories.name); });
+        }
+      });
+      const fixedLeft = ['백차', '녹차', '청차', '황차', '홍차', '흑차', '보이차'];
+      let leftList = [], middleList = [], rightList = [];
+      categoriesSet.forEach(catName => {
+        if (fixedLeft.includes(catName)) leftList.push(catName);
+        else if (catName === '기타') rightList.push(catName);
+        else middleList.push(catName);
+      });
+      leftList.sort((a, b) => fixedLeft.indexOf(a) - fixedLeft.indexOf(b));
+      middleList.sort((a, b) => a.localeCompare(b));
+      let finalCategories = ['전체', ...leftList, ...middleList, ...rightList];
+      document.getElementById('category-buttons').innerHTML = finalCategories.map((cat, idx) => `
+        <button class="filter-btn ${idx === 0 ? 'active' : ''}" onclick="selectCategory('${cat}', this)">${cat}</button>
+      `).join('');
+    }
+
+    function renderTeas(teaList) {
+      const container = document.getElementById('tea-container');
+      if (!teaList || teaList.length === 0) {
+        container.innerHTML = '<p style="grid-column: 1/-1; padding: 20px;">검색/필터 조건에 맞는 차가 없습니다.</p>';
+        return;
+      }
+      container.innerHTML = teaList.map(tea => {
+        let catBadges = tea.tea_categories && tea.tea_categories.length > 0 
+          ? tea.tea_categories.map(tc => `<span class="badge">${tc.categories ? tc.categories.name : '기타'}</span>`).join('')
+          : '<span class="badge">기타</span>';
+
+        let statusBadge = '';
+        const sVal = tea.status || tea.is_opened;
+        if (sVal === '개봉' || sVal === true || sVal === 'open') statusBadge = `<span class="badge status-open">개봉</span>`;
+        else if (sVal === '미개봉' || sVal === false || sVal === 'closed') statusBadge = `<span class="badge status-closed">미개봉</span>`;
+
+        return `
+          <div class="tea-card">
+            ${tea.image_url ? `<img src="${tea.image_url}" alt="${tea.name}" style="width:100%; height:160px; object-fit:cover; border-radius:6px; margin-bottom:12px;">` : ''}
+            <div class="tea-name">${tea.name || '이름 없음'}</div>
+            <div class="badge-container">${catBadges}${statusBadge}</div>
+            ${tea.temp ? `<p style="font-size:0.85rem; color:#2d5a45; font-weight:bold; margin-bottom:6px;">적정 온도: ${tea.temp}</p>` : ''}
+            <p>${tea.desc || tea.description || ''}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectCategory(category, element) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+      currentCategory = category;
+      applyTeaFilters();
+    }
+
+    function applyTeaFilters() {
+      const searchKeyword = document.getElementById('tea-search-input').value.toLowerCase().trim();
+      const filtered = allTeas.filter(tea => {
+        let teaCategoryNames = tea.tea_categories ? tea.tea_categories.map(tc => tc.categories ? tc.categories.name : '') : [];
+        const matchesCategory = (currentCategory === '전체' || teaCategoryNames.includes(currentCategory));
+        const matchesSearch = (tea.name || '').toLowerCase().includes(searchKeyword);
+        return matchesCategory && matchesSearch;
+      });
+      renderTeas(filtered);
+    }
+
+    async function fetchSchedules() {
+      const { data, error } = await _supabase.from('schedules').select('*');
+      if (error || !data) {
+        schedulesData = [];
+      } else {
+        schedulesData = data;
+      }
+      renderCalendar();
+    }
+
+    function changeMonth(direction) {
+      currentMonth += direction;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      } else if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const titleEl = document.getElementById('calendar-month-title');
+      const daysContainer = document.getElementById('calendar-days-container');
+
+      titleEl.textContent = `${currentYear}년 ${currentMonth + 1}월`;
+
+      const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+      const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      let daysHtml = '';
+
+      for (let i = 0; i < firstDayIndex; i++) {
+        daysHtml += `<div class="cal-day empty"></div>`;
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const mm = String(currentMonth + 1).padStart(2, '0');
+        const dd = String(day).padStart(2, '0');
+        const dateStr = `${currentYear}-${mm}-${dd}`;
+
+        const matchedSchedules = schedulesData.filter(sch => sch.date === dateStr);
+        const isSelected = (selectedDateStr === dateStr) ? 'selected' : '';
+
+        let eventBadgesHtml = '';
+        if (matchedSchedules.length > 0) {
+          matchedSchedules.forEach((sch, idx) => {
+            if (idx < 2) {
+              eventBadgesHtml += `<div class="cal-event-badge" title="${sch.title}">${sch.title}</div>`;
+            } else if (idx === 2) {
+              eventBadgesHtml += `<div class="cal-event-badge" style="background:#ddd; color:#333;">외 더보기</div>`;
+            }
+          });
+        }
+
+        daysHtml += `
+          <div class="cal-day ${isSelected}" onclick="onSelectDate('${dateStr}')">
+            <div class="cal-day-num">${day}</div>
+            ${eventBadgesHtml}
+          </div>
+        `;
+      }
+
+      daysContainer.innerHTML = daysHtml;
+    }
+
+    function onSelectDate(dateStr) {
+      selectedDateStr = dateStr;
+      renderCalendar();
+
+      const titleEl = document.getElementById('detail-date-title');
+      const contentEl = document.getElementById('detail-content-box');
+
+      titleEl.textContent = `${dateStr} 일정`;
+
+      const matchedEvents = schedulesData.filter(sch => sch.date === dateStr);
+
+      if (matchedEvents.length === 0) {
+        contentEl.innerHTML = `<p style="color: #718096;">해당 일자에 등록된 일정이 없습니다.</p>`;
+      } else {
+        contentEl.innerHTML = matchedEvents.map(sch => `
+          <div style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #eae6df;">
+            <div style="font-weight: 800; font-size: 1.05rem; color: #1b382b; margin-bottom: 4px;">📌 ${sch.title}</div>
+            ${sch.location ? `<div style="font-size: 0.88rem; color: #4a5568; margin-bottom: 2px;">📍 장소: ${sch.location}</div>` : ''}
+            ${sch.desc ? `<div style="font-size: 0.9rem; color: #666;">${sch.desc}</div>` : ''}
+          </div>
+        `).join('');
+      }
+    }
+
+    fetchIntroSections();
+    fetchHistory();
+    fetchTeas();
+    fetchSchedules();
+  </script>
+</body>
+</html>

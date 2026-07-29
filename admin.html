@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔑 집행부 전용 관리자 센터</title>
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #f0f4f8; color: #2d3748; line-height: 1.6; }
+
+    /* 🔒 로그인 화면 */
+    .login-container { max-width: 380px; margin: 100px auto; background: white; padding: 35px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
+    .login-container h2 { color: #1b382b; margin-bottom: 20px; font-size: 1.4rem; }
+    .login-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; }
+    .login-input:focus { border-color: #2d5a45; }
+    .login-btn { width: 100%; padding: 12px; background: #2d5a45; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .login-btn:hover { background: #1b382b; }
+   
+    .login-back-btn { display: inline-block; margin-top: 15px; color: #64748b; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: color 0.2s; }
+    .login-back-btn:hover { color: #1b382b; text-decoration: underline; }
+
+    /* 🔑 어드민 대시보드 */
+    header { background-color: #1b382b; color: white; padding: 1rem; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    header h1 { font-size: 1.3rem; margin-bottom: 12px; }
+   
+    .header-actions { position: absolute; right: 15px; top: 15px; display: flex; gap: 8px; }
+    .home-btn { background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 12px; cursor: pointer; font-size: 0.8rem; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; }
+    .home-btn:hover { background: #334155; }
+    .logout-btn { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 12px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+    .logout-btn:hover { background: #b91c1c; }
+
+    nav ul { display: flex; justify-content: center; list-style: none; gap: 8px; flex-wrap: wrap; }
+    nav ul li a { color: #cbd5e1; text-decoration: none; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    nav ul li a:hover, nav ul li a.active { background-color: #2d5a45; color: white; }
+
+    main { max-width: 900px; margin: 25px auto; padding: 0 15px; }
+    .admin-section { display: none; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .admin-section.active { display: block; }
+
+    .form-card { background: #f8faf9; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .form-group label { display: block; font-weight: bold; font-size: 0.8rem; margin-bottom: 4px; color: #4a5568; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; }
+
+    /* 🏷️ 카테고리와 개봉 여부 인라인 배치 및 작고 컴팩트한 체크박스 스타일 */
+    .tea-category-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
+    .tea-category-row .form-group { flex: 1; margin-bottom: 0; }
+    .checkbox-group-inline { display: flex; align-items: center; gap: 6px; background: #fff; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; height: 38px; white-space: nowrap; }
+    .checkbox-group-inline input[type="checkbox"] { width: 15px; height: 15px; accent-color: #2d5a45; cursor: pointer; }
+    .checkbox-group-inline label { margin-bottom: 0; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: #1b382b; }
+
+    /* 📸 이미지 업로드 필드 스타일 (글자 색상 하양 명시) */
+    .image-upload-box { display: flex; gap: 8px; align-items: center; }
+    .image-upload-box input[type="text"] { flex: 1; }
+    .file-upload-btn-label { background: #475569; color: white !important; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; transition: background 0.2s; }
+    .file-upload-btn-label:hover { background: #334155; }
+    .file-upload-btn-label input { display: none; }
+
+    .submit-btn { background: #2d5a45; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
+    .submit-btn:hover { background: #1b382b; }
+    .cancel-btn { background: #64748b; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 6px; width: 100%; }
+
+    .filter-container { background: #f8faf9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .admin-filter-btn { padding: 6px 14px; border: 1px solid #cbd5e1; background: white; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: #4a5568; transition: all 0.2s; }
+    .admin-filter-btn.active { background: #2d5a45; color: white; border-color: #2d5a45; }
+   
+    .search-input { width: 100%; max-width: 320px; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 0.9rem; outline: none; }
+    .search-input:focus { border-color: #2d5a45; }
+
+    .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; margin-top: 15px; }
+    .item-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; background: white; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-actions { display: flex; gap: 6px; margin-top: 12px; }
+    .edit-btn { background: #2563eb; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+    .edit-btn:hover { background: #1d4ed8; }
+    .delete-btn { background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+    .delete-btn:hover { background: #b91c1c; }
+
+    /* 🏷️ 상태 뱃지 디자인 */
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 6px; }
+    .status-opened { background: #dcfce7; color: #166534; }
+    .status-unopened { background: #fee2e2; color: #991b1b; }
+
+    @media (max-width: 600px) {
+      .header-actions { position: static; justify-content: center; margin-bottom: 10px; }
+      .tea-category-row { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. 로그인 화면 -->
+  <div id="login-box" class="login-container">
+    <h2>🔒 집행부 로그인</h2>
+    <form onsubmit="handleLogin(event)">
+      <input type="text" id="admin-email" class="login-input" placeholder="집행부 아이디" required>
+      <input type="password" id="admin-password" class="login-input" placeholder="비밀번호" required>
+      <button type="submit" class="login-btn">로그인</button>
+    </form>
+    <a href="index.html" class="login-back-btn">← 메인 페이지로 돌아가기</a>
+  </div>
+
+  <!-- 2. 관리자 대시보드 -->
+  <div id="admin-dashboard" style="display: none;">
+    <header>
+      <div class="header-actions">
+        <a href="index.html" class="home-btn">← 메인으로</a>
+        <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
+      </div>
+
+      <h1>🔑 집행부 데이터 관리 센터</h1>
+      <nav>
+        <ul>
+          <li><a class="tab-link active" onclick="switchTab('tea-tab', this)">🍵 차 관리</a></li>
+          <li><a class="tab-link" onclick="switchTab('intro-tab', this)">📜 소개글 관리</a></li>
+          <li><a class="tab-link" onclick="switchTab('history-tab', this)">🚩 연혁 관리</a></li>
+          <li><a class="tab-link" onclick="switchTab('schedule-tab', this)">📅 일정 관리</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <!-- 🍵 차 관리 -->
+      <section id="tea-tab" class="admin-section active">
+        <h2 id="tea-form-title">🍵 새 차 등록</h2>
+        <div class="form-card">
+          <form id="tea-form" onsubmit="saveTea(event)">
+            <input type="hidden" id="tea-id">
+           
+            <div class="form-grid">
+              <div class="form-group"><label>차 이름</label><input type="text" id="tea-name" required placeholder="예: 우전"></div>
+              <div class="form-group"><label>적정 온도</label><input type="text" id="tea-temp" required placeholder="예: 7070℃"></div>
+            </div>
+
+            <!-- ✨ 카테고리 입력란과 개봉 여부 체크박스를 오른쪽에 작게 나란히 배치 -->
+            <div class="tea-category-row">
+              <div class="form-group">
+                <label>카테고리 (쉼표로 구분하여 여러 개 입력 가능)</label>
+                <input type="text" id="tea-categories-input" required placeholder="예: 녹차, 백차">
+              </div>
+              <div class="checkbox-group-inline">
+                <input type="checkbox" id="tea-is-opened">
+                <label for="tea-is-opened">개봉</label>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:12px;"><label>설명</label><textarea id="tea-desc" rows="2" placeholder="차에 대한 설명을 적어주세요."></textarea></div>
+           
+            <button type="submit" id="tea-submit-btn" class="submit-btn">DB에 차 추가하기</button>
+            <button type="button" id="tea-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetTeaForm()">수정 취소</button>
+          </form>
+        </div>
+
+        <h2>등록된 차 목록</h2>
+        <div class="filter-container">
+          <div id="admin-category-buttons" class="filter-buttons">
+            <button class="admin-filter-btn active" onclick="selectAdminCategory('전체', this)">전체</button>
+          </div>
+          <input type="text" id="admin-search-input" class="search-input" oninput="applyAdminFilters()" placeholder="🔍 차 이름 검색...">
+        </div>
+
+        <div id="admin-tea-list" class="item-grid"></div>
+      </section>
+
+      <!-- 📜 소개글 관리 -->
+      <section id="intro-tab" class="admin-section">
+        <h2 id="intro-form-title">📜 새 소개글 등록</h2>
+        <div class="form-card">
+          <form id="intro-form" onsubmit="saveIntro(event)">
+            <input type="hidden" id="intro-id">
+            <div class="form-grid">
+              <div class="form-group"><label>표시 순서(숫자)</label><input type="number" id="intro-order" required placeholder="예: 1"></div>
+              <div class="form-group"><label>서브 제목</label><input type="text" id="intro-sub-en" placeholder="예: 차 어렵지 않아요."></div>
+              <div class="form-group"><label>메인 제목</label><input type="text" id="intro-title-kr" placeholder="예: 차 향으로 이어지는 우리"></div>
+              <div class="form-group">
+                <label>배경 스타일</label>
+                <select id="intro-bg-type">
+                  <option value="light">밝은색 (Light)</option>
+                  <option value="warm">따뜻한 베이지 (Warm)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>본문 내용</label>
+              <textarea id="intro-content" rows="4" required placeholder="소개글 본문을 입력하세요."></textarea>
+            </div>
+           
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>이미지</label>
+              <div class="image-upload-box">
+                <input type="text" id="intro-img" placeholder="https:// 또는 파일 업로드 사용">
+                <label class="file-upload-btn-label">
+                  📁 파일 선택
+                  <input type="file" accept="image/*" onchange="uploadImage(this, 'intro-img')">
+                </label>
+              </div>
+            </div>
+           
+            <button type="submit" id="intro-submit-btn" class="submit-btn">소개글 추가하기</button>
+            <button type="button" id="intro-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetIntroForm()">수정 취소</button>
+          </form>
+        </div>
+
+        <h2>등록된 소개글 목록</h2>
+        <div id="admin-intro-list" class="item-grid"></div>
+      </section>
+
+      <!-- 🚩 연혁 관리 -->
+      <section id="history-tab" class="admin-section">
+        <h2>🚩 새 연혁 등록</h2>
+        <div class="form-card">
+          <form onsubmit="saveHistory(event)">
+            <div class="form-grid">
+              <div class="form-group"><label>연도</label><input type="text" id="his-year" required placeholder="예: 2026"></div>
+              <div class="form-group"><label>내용</label><input type="text" id="his-content" required placeholder="예: 제25회 정기 다회 개최"></div>
+            </div>
+            <button type="submit" class="submit-btn">연혁 추가하기</button>
+          </form>
+        </div>
+        <h2>등록된 연혁 목록</h2>
+        <div id="admin-history-list" class="item-grid"></div>
+      </section>
+
+      <!-- 📅 일정 관리 -->
+      <section id="schedule-tab" class="admin-section">
+        <h2>📅 새 일정 등록</h2>
+        <div class="form-card">
+          <form onsubmit="saveSchedule(event)">
+            <div class="form-grid">
+              <div class="form-group"><label>시점(월/일)</label><input type="text" id="sch-month" required placeholder="예: 4월 중순"></div>
+              <div class="form-group"><label>일정 제목</label><input type="text" id="sch-title" required placeholder="예: 신입생 환영 차회"></div>
+            </div>
+           
+            <div class="form-group" style="margin-bottom:12px;">
+              <label>이미지</label>
+              <div class="image-upload-box">
+                <input type="text" id="sch-img" placeholder="https:// 또는 파일 업로드 사용">
+                <label class="file-upload-btn-label">
+                  📁 파일 선택
+                  <input type="file" accept="image/*" onchange="uploadImage(this, 'sch-img')">
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn">일정 추가하기</button>
+          </form>
+        </div>
+        <h2>등록된 일정 목록</h2>
+        <div id="admin-schedule-list" class="item-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cjstjbgfpotajryepqcs.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqc3RqYmdmcG90YWpyeWVwcWNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4Njg2NTEsImV4cCI6MjEwMDQ0NDY1MX0.KkkUgghQhSWGQEn1ES4j19Uk0T_0tQAyDuPWH3NgNbo';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allTeas = [];
+    let allCategories = [];
+    let allIntros = [];
+    let currentAdminCategory = '전체';
+
+    const PREFERRED_ORDER = ["백차", "녹차", "청차", "황차", "홍차", "흑차", "보이차"];
+
+    window.onload = async () => {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (session) {
+        showDashboard();
+      }
+    };
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      let inputId = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value;
+
+      if (!inputId.includes('@')) {
+        inputId = inputId + '@hyowontea.com';
+      }
+
+      const { data, error } = await _supabase.auth.signInWithPassword({
+        email: inputId,
+        password: password
+      });
+
+      if (error) {
+        alert('로그인 실패: 아이디 또는 비밀번호를 확인하세요.');
+      } else {
+        alert('집행부 인증 완료!');
+        showDashboard();
+      }
+    }
+
+    async function handleLogout() {
+      await _supabase.auth.signOut();
+      alert('로그아웃 되었습니다.');
+      location.reload();
+    }
+
+    function showDashboard() {
+      document.getElementById('login-box').style.display = 'none';
+      document.getElementById('admin-dashboard').style.display = 'block';
+      loadAllData();
+    }
+
+    function switchTab(tabId, element) {
+      document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      element.classList.add('active');
+    }
+
+    async function uploadImage(fileInput, targetInputId) {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+      const filePath = `uploads/${fileName}`;
+
+      alert('이미지를 업로드 중입니다...');
+
+      const { data, error } = await _supabase.storage
+        .from('tea-images')
+        .upload(filePath, file);
+
+      if (error) {
+        alert('이미지 업로드 실패: ' + error.message);
+        return;
+      }
+
+      const { data: { publicUrl } } = _supabase.storage
+        .from('tea-images')
+        .getPublicUrl(filePath);
+
+      document.getElementById(targetInputId).value = publicUrl;
+      alert('이미지 업로드가 완료되었습니다!');
+      fileInput.value = '';
+    }
+
+    async function loadAllData() {
+      const { data: cats } = await _supabase.from('categories').select('*');
+      allCategories = cats || [];
+      setupAdminCategoryFilterButtons();
+
+      const { data: teas, error: teaErr } = await _supabase
+        .from('teas')
+        .select(`
+          id,
+          name,
+          temp,
+          description,
+          is_opened,
+          tea_categories (
+            category_id,
+            categories ( id, name )
+          )
+        `);
+
+      if (!teaErr) {
+        allTeas = teas || [];
+        setupAdminCategoryFilterButtons();
+        applyAdminFilters();
+      }
+
+      const { data: intros } = await _supabase.from('intro_sections').select('*').order('section_order', { ascending: true });
+      allIntros = intros || [];
+      renderAdminIntroList(allIntros);
+
+      const { data: schs } = await _supabase.from('schedules').select('*');
+      document.getElementById('admin-schedule-list').innerHTML = (schs || []).map(s => `
+        <div class="item-card">
+          <div>
+            <h4>${s.month || s.date || ''}</h4>
+            <p style="font-size:0.9rem; font-weight:bold; margin-top:4px;">${s.title || ''}</p>
+            ${s.image_url ? `<img src="${s.image_url}" style="width:100%; height:100px; object-fit:cover; border-radius:6px; margin-top:8px;">` : ''}
+          </div>
+          <button class="delete-btn" onclick="deleteItem('schedules', '${s.id}')">삭제</button>
+        </div>
+      `).join('');
+
+      const { data: his } = await _supabase.from('history').select('*').order('year', { ascending: true });
+      document.getElementById('admin-history-list').innerHTML = (his || []).map(h => `
+        <div class="item-card">
+          <div>
+            <h4>${h.year || ''}년</h4>
+            <p style="font-size:0.85rem; margin-top:4px;">${h.content || ''}</p>
+          </div>
+          <button class="delete-btn" onclick="deleteItem('history', '${h.id}')">삭제</button>
+        </div>
+      `).join('');
+    }
+
+    function setupAdminCategoryFilterButtons() {
+      const btnBox = document.getElementById('admin-category-buttons');
+     
+      const registeredCatNames = new Set();
+      allTeas.forEach(t => {
+        (t.tea_categories || []).forEach(tc => {
+          if (tc.categories?.name) registeredCatNames.add(tc.categories.name);
+        });
+      });
+
+      const fixedCategories = PREFERRED_ORDER;
+      const middleCategories = Array.from(registeredCatNames).filter(cat =>
+        !PREFERRED_ORDER.includes(cat) && cat !== '기타'
+      ).sort();
+
+      const finalCategories = [...new Set([...fixedCategories, ...middleCategories, '기타'])];
+
+      let buttonsHtml = `<button class="admin-filter-btn ${currentAdminCategory === '전체' ? 'active' : ''}" onclick="selectAdminCategory('전체', this)">전체</button>`;
+     
+      buttonsHtml += finalCategories.map(catName => `
+        <button class="admin-filter-btn ${catName === currentAdminCategory ? 'active' : ''}" onclick="selectAdminCategory('${catName}', this)">${catName}</button>
+      `).join('');
+     
+      btnBox.innerHTML = buttonsHtml;
+    }
+
+    function selectAdminCategory(categoryName, element) {
+      document.querySelectorAll('.admin-filter-btn').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+      currentAdminCategory = categoryName;
+      applyAdminFilters();
+    }
+
+    function applyAdminFilters() {
+      const search = document.getElementById('admin-search-input').value.toLowerCase().trim();
+      const filtered = allTeas.filter(t => {
+        const catNames = (t.tea_categories || []).map(tc => tc.categories?.name).filter(Boolean);
+        const matchesCategory = (currentAdminCategory === '전체' || catNames.includes(currentAdminCategory));
+        const matchesSearch = (t.name || '').toLowerCase().includes(search);
+        return matchesCategory && matchesSearch;
+      });
+      renderAdminTeaList(filtered);
+    }
+
+    function renderAdminTeaList(teas) {
+      const listContainer = document.getElementById('admin-tea-list');
+      if (!teas || teas.length === 0) {
+        listContainer.innerHTML = '<p style="color:#64748b; padding:10px;">조건에 해당하는 차가 없습니다.</p>';
+        return;
+      }
+      listContainer.innerHTML = teas.map(t => {
+        const catNames = (t.tea_categories || []).map(tc => tc.categories?.name).filter(Boolean).join(', ');
+        const isOpened = t.is_opened === true;
+        const statusBadge = isOpened
+          ? `<span class="status-badge status-opened">개봉</span>`
+          : `<span class="status-badge status-unopened">미개봉</span>`;
+
+        return `
+          <div class="item-card">
+            <div>
+              <h4>${t.name || ''} ${statusBadge} <span style="font-size:0.8rem; color:#2d5a45;">[${catNames || '분류 없음'}]</span></h4>
+              <p style="font-size:0.85rem; color:#64748b; margin-top:4px;">온도: ${t.temp || ''}</p>
+              <p style="font-size:0.80rem; color:#4a5568; margin-top:4px;">${t.description || ''}</p>
+            </div>
+            <div class="card-actions">
+              <button class="edit-btn" onclick="prepareEditTea('${t.id}')">수정</button>
+              <button class="delete-btn" onclick="deleteItem('teas', '${t.id}')">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function prepareEditTea(id) {
+      const tea = allTeas.find(t => t.id == id);
+      if (!tea) return;
+      document.getElementById('tea-id').value = tea.id;
+      document.getElementById('tea-name').value = tea.name || '';
+      document.getElementById('tea-temp').value = tea.temp || '';
+      document.getElementById('tea-desc').value = tea.description || '';
+      document.getElementById('tea-is-opened').checked = tea.is_opened === true;
+     
+      const catNames = (tea.tea_categories || []).map(tc => tc.categories?.name).filter(Boolean).join(', ');
+      document.getElementById('tea-categories-input').value = catNames;
+
+      document.getElementById('tea-form-title').innerText = '✏️ 차 정보 수정';
+      document.getElementById('tea-submit-btn').innerText = '수정 완료하기';
+      document.getElementById('tea-cancel-btn').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetTeaForm() {
+      document.getElementById('tea-id').value = '';
+      document.getElementById('tea-form').reset();
+      document.getElementById('tea-form-title').innerText = '🍵 새 차 등록';
+      document.getElementById('tea-submit-btn').innerText = 'DB에 차 추가하기';
+      document.getElementById('tea-cancel-btn').style.display = 'none';
+    }
+
+    async function getOrCreateCategoryId(catName) {
+      const trimmed = catName.trim();
+      if (!trimmed) return null;
+
+      const { data: existing } = await _supabase
+        .from('categories')
+        .select('id')
+        .eq('name', trimmed)
+        .single();
+
+      if (existing) {
+        return existing.id;
+      }
+
+      const { data: inserted, error } = await _supabase
+        .from('categories')
+        .insert([{ name: trimmed }])
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error('카테고리 생성 실패:', error);
+        return null;
+      }
+      return inserted.id;
+    }
+
+    async function saveTea(e) {
+      e.preventDefault();
+      const id = document.getElementById('tea-id').value;
+      const name = document.getElementById('tea-name').value;
+     
+      let rawTemp = document.getElementById('tea-temp').value.trim();
+      const temp = /^\d+$/.test(rawTemp) ? rawTemp + '℃' : rawTemp;
+
+      const description = document.getElementById('tea-desc').value;
+      const is_opened = document.getElementById('tea-is-opened').checked;
+      const categoriesInput = document.getElementById('tea-categories-input').value;
+
+      const catNameList = categoriesInput.split(',').map(s => s.trim()).filter(Boolean);
+
+      if (catNameList.length === 0) {
+        alert('최소 하나 이상의 카테고리를 입력해주세요.');
+        return;
+      }
+
+      let teaId = id;
+
+      if (id) {
+        const { error: updateErr } = await _supabase.from('teas').update({ name, temp, description, is_opened }).eq('id', id);
+        if (updateErr) {
+          alert('수정 실패: ' + updateErr.message);
+          return;
+        }
+        await _supabase.from('tea_categories').delete().eq('tea_id', id);
+      } else {
+        const { data: newTea, error: insertErr } = await _supabase.from('teas').insert([{ name, temp, description, is_opened }]).select().single();
+        if (insertErr) {
+          alert('등록 실패: ' + insertErr.message);
+          return;
+        }
+        teaId = newTea.id;
+      }
+
+      const mappingRows = [];
+      for (const catName of catNameList) {
+        const catId = await getOrCreateCategoryId(catName);
+        if (catId) {
+          mappingRows.push({
+            tea_id: teaId,
+            category_id: catId
+          });
+        }
+      }
+
+      if (mappingRows.length > 0) {
+        const { error: mapErr } = await _supabase.from('tea_categories').insert(mappingRows);
+        if (mapErr) {
+          alert('카테고리 연결 실패: ' + mapErr.message);
+          return;
+        }
+      }
+
+      alert(id ? '수정되었습니다!' : '새로운 차가 등록되었습니다!');
+      resetTeaForm();
+      loadAllData();
+    }
+
+    function renderAdminIntroList(intros) {
+      const container = document.getElementById('admin-intro-list');
+      if (!intros || intros.length === 0) {
+        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 소개글이 없습니다.</p>';
+        return;
+      }
+      container.innerHTML = intros.map(sec => `
+        <div class="item-card">
+          <div>
+            <h4>[순서 ${sec.section_order || 0}] ${sec.title_kr || '제목 없음'}</h4>
+            <p style="font-size:0.8rem; color:#2d5a45; font-weight:bold;">${sec.subtitle_en || ''}</p>
+            <p style="font-size:0.85rem; color:#4a5568; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${sec.content || ''}</p>
+            ${sec.image_url ? `<img src="${sec.image_url}" style="width:100%; height:100px; object-fit:cover; border-radius:6px; margin-top:8px;">` : ''}
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" onclick="prepareEditIntro('${sec.id}')">수정</button>
+            <button class="delete-btn" onclick="deleteItem('intro_sections', '${sec.id}')">삭제</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function prepareEditIntro(id) {
+      const sec = allIntros.find(i => i.id == id);
+      if (!sec) return;
+      document.getElementById('intro-id').value = sec.id;
+      document.getElementById('intro-order').value = sec.section_order || 1;
+      document.getElementById('intro-sub-en').value = sec.subtitle_en || '';
+      document.getElementById('intro-title-kr').value = sec.title_kr || '';
+      document.getElementById('intro-bg-type').value = sec.bg_type || 'light';
+      document.getElementById('intro-content').value = sec.content || '';
+      document.getElementById('intro-img').value = sec.image_url || '';
+
+      document.getElementById('intro-form-title').innerText = '✏️ 소개글 수정';
+      document.getElementById('intro-submit-btn').innerText = '수정 완료하기';
+      document.getElementById('intro-cancel-btn').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetIntroForm() {
+      document.getElementById('intro-id').value = '';
+      document.getElementById('intro-form').reset();
+      document.getElementById('intro-form-title').innerText = '📜 새 소개글 등록';
+      document.getElementById('intro-submit-btn').innerText = '소개글 추가하기';
+      document.getElementById('intro-cancel-btn').style.display = 'none';
+    }
+
+    async function saveIntro(e) {
+      e.preventDefault();
+      const id = document.getElementById('intro-id').value;
+      const payload = {
+        section_order: parseInt(document.getElementById('intro-order').value, 10),
+        subtitle_en: document.getElementById('intro-sub-en').value,
+        title_kr: document.getElementById('intro-title-kr').value,
+        bg_type: document.getElementById('intro-bg-type').value,
+        content: document.getElementById('intro-content').value,
+        image_url: document.getElementById('intro-img').value
+      };
+
+      let error = id
+        ? (await _supabase.from('intro_sections').update(payload).eq('id', id)).error
+        : (await _supabase.from('intro_sections').insert([payload])).error;
+
+      if (error) alert('저장 실패: ' + error.message);
+      else {
+        alert(id ? '소개글이 수정되었습니다!' : '새로운 소개글이 등록되었습니다!');
+        resetIntroForm();
+        loadAllData();
+      }
+    }
+
+    async function saveSchedule(e) {
+      e.preventDefault();
+      const { error } = await _supabase.from('schedules').insert([{
+        month: document.getElementById('sch-month').value,
+        title: document.getElementById('sch-title').value,
+        image_url: document.getElementById('sch-img').value
+      }]);
+      if (error) alert('등록 실패: ' + error.message);
+      else {
+        alert('일정 등록 완료!');
+        document.getElementById('sch-month').value = '';
+        document.getElementById('sch-title').value = '';
+        document.getElementById('sch-img').value = '';
+        loadAllData();
+      }
+    }
+
+    async function saveHistory(e) {
+      e.preventDefault();
+      const { error } = await _supabase.from('history').insert([{
+        year: document.getElementById('his-year').value,
+        content: document.getElementById('his-content').value
+      }]);
+      if (error) alert('등록 실패: ' + error.message);
+      else {
+        alert('연혁 관리 등록 완료!');
+        document.getElementById('his-year').value = '';
+        document.getElementById('his-content').value = '';
+        loadAllData();
+      }
+    }
+
+    async function deleteItem(table, id) {
+      if (confirm('정말 삭제하시겠습니까?')) {
+        const { error } = await _supabase.from(table).delete().eq('id', id);
+        if (error) alert('삭제 실패: ' + error.message);
+        else loadAllData();
+      }
+    }
+  </script>
+</body>
+</html>
