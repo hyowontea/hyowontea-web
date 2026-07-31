@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔑 曉原茶會 집행부 센터</title>
+  <title>효원다회(曉原茶會) 집행부</title>
   <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
@@ -448,7 +448,7 @@
           <li>
             <a class="tab-link" onclick="switchTab('intro-hub-tab', this)">소개글 관리</a>
             <ul class="dropdown-menu">
-              <li><a onclick="switchTab('tea-intro-tab', null)">다도/차 소개 관리</a></li>
+              <li><a onclick="switchTab('tea-intro-tab', null)">홈 소개글 관리</a></li>
               <li><a onclick="switchTab('club-intro-tab', null)">동아리 소개 관리</a></li>
               <li><a onclick="switchTab('history-tab', null)">연혁 관리</a></li>
             </ul>
@@ -482,7 +482,7 @@
          <li>
           <a class="drawer-toggle-link" onclick="switchTab('intro-hub-tab', null); toggleMobileDrawer();">소개</a>
           <ul class="drawer-sub-list">
-            <li><a onclick="switchTab('tea-intro-tab', null); toggleMobileDrawer();">다도/차 소개 관리</a></li>
+            <li><a onclick="switchTab('tea-intro-tab', null); toggleMobileDrawer();">홈 소개글 관리</a></li>
             <li><a onclick="switchTab('club-intro-tab', null); toggleMobileDrawer();">동아리 소개 관리</a></li>
             <li><a onclick="switchTab('history-tab', null); toggleMobileDrawer();">연혁 관리</a></li>
           </ul>
@@ -511,19 +511,19 @@
       </section>
 
       <section id="intro-hub-tab" class="admin-section">
-        <h2>📜 소개글 관리</h2>
+        <h2>소개글 관리</h2>
         <p style="color: #64748b; margin-bottom: 20px;">수정 또는 관리하고자 하는 소개글 항목을 선택해주세요.</p>
         <div class="hub-grid">
           <div class="hub-card" onclick="switchTab('tea-intro-tab', null)">
-            <h3>🍵 다도/차 소개 관리</h3>
+            <h3>홈 소개글 관리</h3>
             <p>다도 문화 및 차에 대한 안내글 데이터 관리</p>
           </div>
           <div class="hub-card" onclick="switchTab('club-intro-tab', null)">
-            <h3>🎋 동아리 소개 관리</h3>
+            <h3>동아리 소개 관리</h3>
             <p>효원다회 동아리 안내 및 활동 소개글 데이터 관리</p>
           </div>
           <div class="hub-card" onclick="switchTab('history-tab', null)">
-            <h3>🏛️ 연혁</h3>
+            <h3>연혁</h3>
             <p>효원다회의 역사 및 활동 타임라인 관리</p>
           </div>
         </div>
@@ -548,9 +548,9 @@
         </div>
       </section>
 
-      <!-- 🍵 차 도감 관리 -->
+      <!--차 도감 관리 -->
       <section id="tea-tab" class="admin-section">
-        <h2 id="tea-form-title">🍵 새 차 등록</h2>
+        <h2 id="tea-form-title">새 차 등록</h2>
         <div class="form-card">
           <form id="tea-form" onsubmit="saveTea(event)">
             <input type="hidden" id="tea-id">
@@ -604,9 +604,9 @@
         <div id="admin-tea-list" class="item-grid"></div>
       </section>
 
-      <!-- 📅 일정 관리 (달력 + 우측 상세 & 수정/등록 폼) -->
+      <!--일정 관리 (달력 + 우측 상세 & 수정/등록 폼) -->
       <section id="schedule-tab" class="admin-section">
-        <h2>📅 일정 관리 센터</h2>
+        <h2>일정 관리 센터</h2>
         
         <div class="admin-schedule-layout">
           <!-- 좌측: 달력 -->
@@ -664,15 +664,15 @@
         </div>
       </section>
 
-      <!-- 🍵 다도 / 차 소개글 관리 -->
+      <!-- 홈 소개글 관리 -->
       <section id="tea-intro-tab" class="admin-section">
-        <h2 id="tea-intro-form-title">🍵 새 다도/차 소개글 등록</h2>
+        <h2 id="tea-intro-form-title">홈 소개글 등록</h2>
         <div class="form-card">
           <form id="tea-intro-form" onsubmit="saveTeaIntro(event)">
             <input type="hidden" id="tea-intro-id">
             <div class="form-grid">
               <div class="form-group"><label>표시 순서(숫자)</label><input type="number" id="tea-intro-order" required placeholder="예: 1"></div>
-              <div class="form-group"><label>서브 제목 (영문/태그)</label><input type="text" id="tea-intro-sub-en" placeholder="예: TEA CULTURE"></div>
+              <div class="form-group"><label>서브 제목 (부제목/태그)</label><input type="text" id="tea-intro-sub-en" placeholder="예: TEA CULTURE"></div>
               <div class="form-group"><label>메인 제목 (한글)</label><input type="text" id="tea-intro-title-kr" required placeholder="예: 다도 및 차 문화 소개"></div>
               <div class="form-group">
                 <label>배경 스타일</label>
@@ -698,24 +698,24 @@
               </div>
             </div>
            
-            <button type="submit" id="tea-intro-submit-btn" class="submit-btn">다도/차 소개글 저장하기</button>
+            <button type="submit" id="tea-intro-submit-btn" class="submit-btn">홈 소개글 저장하기</button>
             <button type="button" id="tea-intro-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetTeaIntroForm()">수정 취소</button>
           </form>
         </div>
 
-        <h2>등록된 다도/차 소개글 목록</h2>
+        <h2>등록된 홈 소개글 목록</h2>
         <div id="admin-tea-intro-list" class="item-grid"></div>
       </section>
 
-      <!-- 🎋 동아리 소개글 관리 -->
+      <!-- 동아리 소개글 관리 -->
       <section id="club-intro-tab" class="admin-section">
-        <h2 id="club-intro-form-title">🎋 새 동아리 소개글 등록</h2>
+        <h2 id="club-intro-form-title">새 동아리 소개글 등록</h2>
         <div class="form-card">
           <form id="club-intro-form" onsubmit="saveClubIntro(event)">
             <input type="hidden" id="club-intro-id">
             <div class="form-grid">
               <div class="form-group"><label>표시 순서(숫자)</label><input type="number" id="club-intro-order" required placeholder="예: 1"></div>
-              <div class="form-group"><label>서브 제목 (영문/태그)</label><input type="text" id="club-intro-sub-en" placeholder="예: ABOUT CLUB"></div>
+              <div class="form-group"><label>서브 제목 (부제목/태그)</label><input type="text" id="club-intro-sub-en" placeholder="예: ABOUT CLUB"></div>
               <div class="form-group"><label>메인 제목 (한글)</label><input type="text" id="club-intro-title-kr" required placeholder="예: 효원다회 동아리 안내"></div>
               <div class="form-group">
                 <label>배경 스타일</label>
@@ -750,9 +750,9 @@
         <div id="admin-club-intro-list" class="item-grid"></div>
       </section>
 
-      <!-- 🗺️ 차 지도 관리 -->
+      <!-- 차 지도 관리 -->
       <section id="tea-map-tab" class="admin-section">
-        <h2 id="tea-map-form-title">🗺️ 새 차 산지/명소 등록</h2>
+        <h2 id="tea-map-form-title">새 차 산지/명소 등록</h2>
         <div class="form-card">
           <form id="tea-map-form" onsubmit="saveTeaMap(event)">
             <input type="hidden" id="tea-map-id">
@@ -783,9 +783,9 @@
         <div id="admin-tea-map-list" class="item-grid"></div>
       </section>
 
-      <!-- 🍵 다구 사용법 관리 -->
+      <!--  다구 사용법 관리 -->
       <section id="tea-ware-tab" class="admin-section">
-        <h2 id="tea-ware-form-title">🍵 새 다구 사용법 등록</h2>
+        <h2 id="tea-ware-form-title">새 다구 사용법 등록</h2>
         <div class="form-card">
           <form id="tea-ware-form" onsubmit="saveTeaWare(event)">
             <input type="hidden" id="tea-ware-id">
@@ -817,9 +817,9 @@
         <div id="admin-tea-ware-list" class="item-grid"></div>
       </section>
 
-      <!-- 🏛️ 연혁 관리 -->
+      <!--연혁 관리 -->
       <section id="history-tab" class="admin-section">
-        <h2 id="history-form-title">🏛️ 새 연혁 등록</h2>
+        <h2 id="history-form-title">새 연혁 등록</h2>
         <div class="form-card">
           <form id="history-form" onsubmit="saveHistory(event)">
             <input type="hidden" id="history-id">
@@ -1179,7 +1179,7 @@
       const { names } = getTeaCategoriesData(tea);
       document.getElementById('tea-category-input').value = names.join(', ');
 
-      document.getElementById('tea-form-title').innerText = '✏️ 차 정보 수정';
+      document.getElementById('tea-form-title').innerText = '차 정보 수정';
       document.getElementById('tea-submit-btn').innerText = '수정 완료하기';
       document.getElementById('tea-cancel-btn').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1189,7 +1189,7 @@
       document.getElementById('tea-id').value = '';
       document.getElementById('tea-form').reset();
 
-      document.getElementById('tea-form-title').innerText = '🍵 새 차 등록';
+      document.getElementById('tea-form-title').innerText = '새 차 등록';
       document.getElementById('tea-submit-btn').innerText = 'DB에 차 추가하기';
       document.getElementById('tea-cancel-btn').style.display = 'none';
     }
@@ -1295,7 +1295,7 @@
     }
 
     /* -------------------------------------------------------------
-       📅 어드민 일정 관리 캘린더 로직 (좌측 달력 / 우측 상세 및 수정)
+        어드민 일정 관리 캘린더 로직 (좌측 달력 / 우측 상세 및 수정)
     ------------------------------------------------------------- */
     function renderAdminCalendar() {
       const monthYearElem = document.getElementById('admin-cal-month-year');
@@ -1380,7 +1380,7 @@
       const container = document.getElementById('admin-selected-date-schedules');
       if (!textElem || !container) return;
 
-      textElem.innerText = `📌 ${dateStr} 일정 목록`;
+      textElem.innerText = `${dateStr} 일정 목록`;
 
       const dayEvents = allSchedules.filter(s => s.date === dateStr);
 
@@ -1398,7 +1398,7 @@
               <button class="delete-btn" onclick="deleteScheduleItem('${s.id}')">삭제</button>
             </div>
           </div>
-          ${s.location ? `<p style="font-size:0.83rem; color:#4a5568; margin-top:4px;">📍 장소: ${s.location}</p>` : ''}
+          ${s.location ? `<p style="font-size:0.83rem; color:#4a5568; margin-top:4px;">장소: ${s.location}</p>` : ''}
           ${s.desc ? `<p style="font-size:0.82rem; color:#64748b; margin-top:4px; line-height:1.4;">${s.desc}</p>` : ''}
         </div>
       `).join('');
@@ -1420,7 +1420,7 @@
       document.getElementById('sch-location').value = sch.location || '';
       document.getElementById('sch-desc').value = sch.desc || '';
 
-      document.getElementById('sch-form-title').innerText = '✏️ 일정 내용 수정';
+      document.getElementById('sch-form-title').innerText = '일정 내용 수정';
       document.getElementById('sch-submit-btn').innerText = '수정 완료하기';
       document.getElementById('sch-cancel-btn').style.display = 'block';
     }
@@ -1431,7 +1431,7 @@
       if (adminSelectedDateStr) {
         document.getElementById('sch-date').value = adminSelectedDateStr;
       }
-      document.getElementById('sch-form-title').innerText = '✏️ 일정 추가 / 수정 툴';
+      document.getElementById('sch-form-title').innerText = '일정 추가 / 수정 툴';
       document.getElementById('sch-submit-btn').innerText = '일정 저장하기';
       document.getElementById('sch-cancel-btn').style.display = 'none';
     }
@@ -1469,11 +1469,11 @@
       loadAllData();
     }
 
-    /* 🍵 다도/차 소개글 관리 함수 */
+    /*홈 소개글 관리 함수 */
     function renderTeaIntroList(intros) {
       const container = document.getElementById('admin-tea-intro-list');
       if (!intros || intros.length === 0) {
-        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 다도/차 소개글이 없습니다.</p>';
+        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 홈 소개글이 없습니다.</p>';
         return;
       }
       container.innerHTML = intros.map(item => `
@@ -1503,7 +1503,7 @@
       document.getElementById('tea-intro-content').value = intro.content || '';
       document.getElementById('tea-intro-img').value = intro.image_url || '';
 
-      document.getElementById('tea-intro-form-title').innerText = '✏️ 다도/차 소개글 수정';
+      document.getElementById('tea-intro-form-title').innerText = '홈 소개글 수정';
       document.getElementById('tea-intro-submit-btn').innerText = '수정 완료하기';
       document.getElementById('tea-intro-cancel-btn').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1512,8 +1512,8 @@
     function resetTeaIntroForm() {
       document.getElementById('tea-intro-id').value = '';
       document.getElementById('tea-intro-form').reset();
-      document.getElementById('tea-intro-form-title').innerText = '🍵 새 다도/차 소개글 등록';
-      document.getElementById('tea-intro-submit-btn').innerText = '다도/차 소개글 저장하기';
+      document.getElementById('tea-intro-form-title').innerText = '새 홈 소개글 등록';
+      document.getElementById('tea-intro-submit-btn').innerText = '홈 소개글 저장하기';
       document.getElementById('tea-intro-cancel-btn').style.display = 'none';
     }
 
@@ -1538,12 +1538,12 @@
         if (error) return alert('등록 실패: ' + error.message);
       }
 
-      alert(id ? '다도/차 소개글이 수정되었습니다!' : '새 다도/차 소개글이 저장되었습니다!');
+      alert(id ? '홈 소개글이 수정되었습니다!' : '새 홈 소개글이 저장되었습니다!');
       resetTeaIntroForm();
       loadAllData();
     }
 
-    /* 🎋 동아리 소개글 관리 함수 */
+    /*동아리 소개글 관리 함수 */
     function renderClubIntroList(intros) {
       const container = document.getElementById('admin-club-intro-list');
       if (!intros || intros.length === 0) {
@@ -1617,7 +1617,7 @@
       loadAllData();
     }
 
-    /* 🗺️ 차 지도 관리 함수 */
+    /*차 지도 관리 함수 */
     function renderAdminTeaMapList(maps) {
       const container = document.getElementById('admin-tea-map-list');
       if (!maps || maps.length === 0) {
@@ -1648,7 +1648,7 @@
       document.getElementById('tea-map-desc').value = map.description || '';
       document.getElementById('tea-map-img').value = map.image_url || '';
 
-      document.getElementById('tea-map-form-title').innerText = '✏️ 차 지도 정보 수정';
+      document.getElementById('tea-map-form-title').innerText = '차 지도 정보 수정';
       document.getElementById('tea-map-submit-btn').innerText = '수정 완료하기';
       document.getElementById('tea-map-cancel-btn').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1657,7 +1657,7 @@
     function resetTeaMapForm() {
       document.getElementById('tea-map-id').value = '';
       document.getElementById('tea-map-form').reset();
-      document.getElementById('tea-map-form-title').innerText = '🗺️ 새 차 산지/명소 등록';
+      document.getElementById('tea-map-form-title').innerText = '새 차 산지/명소 등록';
       document.getElementById('tea-map-submit-btn').innerText = '차 지도 저장하기';
       document.getElementById('tea-map-cancel-btn').style.display = 'none';
     }
@@ -1718,7 +1718,7 @@
       document.getElementById('tea-ware-desc').value = ware.description || '';
       document.getElementById('tea-ware-img').value = ware.image_url || '';
 
-      document.getElementById('tea-ware-form-title').innerText = '✏️ 다구 사용법 수정';
+      document.getElementById('tea-ware-form-title').innerText = '다구 사용법 수정';
       document.getElementById('tea-ware-submit-btn').innerText = '수정 완료하기';
       document.getElementById('tea-ware-cancel-btn').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1727,7 +1727,7 @@
     function resetTeaWareForm() {
       document.getElementById('tea-ware-id').value = '';
       document.getElementById('tea-ware-form').reset();
-      document.getElementById('tea-ware-form-title').innerText = '🍵 새 다구 사용법 등록';
+      document.getElementById('tea-ware-form-title').innerText = '새 다구 사용법 등록';
       document.getElementById('tea-ware-submit-btn').innerText = '다구 사용법 저장하기';
       document.getElementById('tea-ware-cancel-btn').style.display = 'none';
     }
@@ -1783,7 +1783,7 @@
       document.getElementById('history-year').value = hist.year || '';
       document.getElementById('history-content').value = hist.content || '';
 
-      document.getElementById('history-form-title').innerText = '✏️ 연혁 수정';
+      document.getElementById('history-form-title').innerText = '연혁 수정';
       document.getElementById('history-submit-btn').innerText = '수정 완료하기';
       document.getElementById('history-cancel-btn').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1792,7 +1792,7 @@
     function resetHistoryForm() {
       document.getElementById('history-id').value = '';
       document.getElementById('history-form').reset();
-      document.getElementById('history-form-title').innerText = '🏛️ 새 연혁 등록';
+      document.getElementById('history-form-title').innerText = '새 연혁 등록';
       document.getElementById('history-submit-btn').innerText = '연혁 등록하기';
       document.getElementById('history-cancel-btn').style.display = 'none';
     }
