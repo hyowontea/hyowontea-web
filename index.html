@@ -7,6 +7,11 @@
   <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
+  <!-- Google Fonts: Noto Serif KR, Nanum Pen Script, Nanum Brush Script, Caveat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nanum+Brush+Script&family=Nanum+Pen+Script&family=Noto+Serif+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -338,29 +343,6 @@
       pointer-events: none;
     }
 
-    .click-guide-tip {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.82rem;
-      color: #f0ede6;
-      background: rgba(31, 58, 44, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 4px 12px;
-      border-radius: 12px;
-      z-index: 10;
-      pointer-events: none;
-      letter-spacing: -0.5px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      animation: bounceTip 2s infinite;
-    }
-
-    @keyframes bounceTip {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-4px); }
-    }
-
     /* 소개글 섹션 */
     .intro-section {
       padding: 100px 20px;
@@ -556,141 +538,214 @@
     .node-year { font-size: 1.35rem; font-weight: 900; color: #1b382b; margin-bottom: 2px; font-family: 'Noto Serif KR', serif; }
     .node-content { font-size: 0.9rem; color: #4a5568; line-height: 1.4; }
 
-    /* 일정 캘린더 */
+    /* 📅 일정 캘린더 (개선된 다이어리 감성 커스텀) */
     .schedule-page-wrapper {
-      max-width: 1000px;
+      max-width: 100%; /* PC 기준 풀너비 활용 */
       margin: 0 auto;
-      padding: 40px 20px 80px 20px;
-    }
-    
-    .schedule-layout {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 30px;
-      margin-top: 30px;
-      align-items: start;
+      padding: 20px 20px 80px 20px;
     }
 
-    .calendar-card {
-      background: #ffffff;
-      border: 1px solid #eae6df;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    .diary-paper {
+      background: #faf7f2;
+      border: 1px solid #e0d7cd;
+      border-radius: 6px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.03);
+      padding: 35px 30px;
+      width: 100%;
     }
-    .calendar-header {
+
+    /* 이미지 스타일 월/연도 변경 헤더 바 */
+    .calendar-top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 1.5px solid #8c5d43;
+      position: relative;
     }
-    .calendar-header h3 {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: #1b382b;
+
+    .calendar-title-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin: 0 auto; /* 중앙 정렬 */
+    }
+
+    .calendar-month-num {
+      font-family: 'Caveat', 'Nanum Pen Script', cursive;
+      font-size: 4rem;
+      font-weight: 700;
+      color: #633621;
+      line-height: 0.8;
+      font-style: italic;
+    }
+
+    .calendar-month-name {
+      font-family: 'Caveat', cursive;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #633621;
+      line-height: 0.8;
+      margin-bottom: 2px;
+    }
+
+    .calendar-year-txt {
       font-family: 'Noto Serif KR', serif;
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: #a08c82;
+      margin-bottom: 4px;
+      margin-left: 2px;
     }
+
+    /* 이미지와 동일한 원형 얇은 테두리 버튼 */
     .cal-nav-btn {
-      background: #f4f1ea;
-      border: none;
-      width: 32px;
-      height: 32px;
+      background: #faf7f2;
+      border: 1px solid #dcd1c4;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       cursor: pointer;
-      font-weight: bold;
-      color: #1b382b;
+      font-size: 1.1rem;
+      color: #7d6b5d;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s;
+      transition: all 0.2s ease;
+      font-family: monospace;
     }
-    .cal-nav-btn:hover { background: #1b382b; color: white; }
+    .cal-nav-btn:hover {
+      background: #633621;
+      color: #ffffff;
+      border-color: #633621;
+    }
+
+    /* PC 메인 레이아웃: 좌측 달력 + 우측 세부일정 분할 */
+    .diary-layout-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px; /* PC 우측 세부일정 패널 */
+      gap: 30px;
+      align-items: start;
+    }
+
+    .calendar-main-body {
+      width: 100%;
+      border: 1px solid #d5c8bb;
+      background-color: #ffffff;
+    }
 
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
       text-align: center;
     }
+
     .cal-day-name {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      color: #718096;
-      padding-bottom: 8px;
+      color: #8c7667;
+      padding: 12px 0;
+      border-bottom: 1px solid #d5c8bb;
+      border-right: 1px solid #e8e0d5;
+      background-color: #faf5ee;
+      letter-spacing: 1px;
     }
-    
+    .cal-day-name:last-child {
+      border-right: none;
+    }
+
+    #calendar-days-container {
+      margin-top: 0;
+    }
+
+    /* 💡 [수정] aspect-ratio 및 패딩 조절로 격자 내부 정렬 최적화 */
     .cal-day {
-      min-height: 65px;
+      aspect-ratio: 1 / 1;
       display: flex;
       flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
       font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: 6px;
       cursor: pointer;
       position: relative;
-      transition: all 0.2s;
-      background: #fcfbf9;
-      border: 1px solid #eee;
-      padding: 4px 2px;
-    }
-    .cal-day:hover { background: #f0f7f4; border-color: #1b382b; }
-    .cal-day.empty { background: transparent; cursor: default; border: none; }
-    .cal-day.selected { background: #1b382b !important; color: white !important; border-color: #1b382b !important; }
-    
-    .cal-day-num {
-      font-weight: 700;
-      font-size: 0.82rem;
-      margin-bottom: 2px;
-      text-align: center;
-    }
-    .cal-day.selected .cal-day-num { color: #ffffff; }
-
-    .cal-event-badge {
-      background: #e6f4ea;
-      color: #1b382b;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 1px 3px;
-      border-radius: 3px;
-      margin-top: 1px;
-      text-align: left;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .cal-day.selected .cal-event-badge {
-      background: rgba(255, 255, 255, 0.25);
-      color: #ffffff;
-    }
-
-    .schedule-detail-card {
+      transition: background 0.15s;
       background: #ffffff;
-      border: 1px solid #eae6df;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-      min-height: 320px;
+      border-bottom: 1px solid #e8e0d5;
+      border-right: 1px solid #e8e0d5;
+      padding: 2px 3px; /* 💡 여백 축소하여 숫자를 좌측상단에 부착 */
+      overflow: hidden;
+    }
+    .cal-day:nth-child(7n) {
+      border-right: none;
+    }
+    .cal-day:hover {
+      background: #fdfaf5;
+    }
+    .cal-day.empty {
+      background: #fcfbfa;
+      cursor: default;
+    }
+    .cal-day.selected {
+      background: #f5eee6 !important;
+      outline: 2px solid #8c5d43;
+      z-index: 2;
+    }
+
+    /* 💡 [수정] 일자 숫자 크기 축소 및 상단 밀착 설정 */
+    .cal-day-num {
+      font-weight: 600;
+      font-size: 0.75rem; /* 💡 기존 0.9rem에서 축소 */
+      color: #555555;
+      margin-bottom: 2px;
+      text-align: left;
+      line-height: 1; /* 💡 윗여백 최소화 */
+    }
+    .cal-day.sun .cal-day-num { color: #c85a5a; }
+    .cal-day.sat .cal-day-num { color: #4a7bb0; }
+
+    /* ✍️ 손글씨 스타일 뱃지 */
+    .cal-event-badge {
+      font-family: 'Nanum Brush Script', cursive;
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: #bd4a2c;
+      line-height: 1.05;
+      text-align: center;
+      margin-top: 2px;
+      letter-spacing: 0px;
+      word-break: keep-all;
       display: flex;
-      flex-direction: column;
       justify-content: center;
+      align-items: center;
+      flex-grow: 1;
+      transform: rotate(-2deg);
+    }
+
+    /* 우측 세부 일정 표시 영역 (PC 전용 세로형 정렬) */
+    .schedule-detail-panel {
+      background: #ffffff;
+      border: 1px solid #d5c8bb;
+      border-top: 4px solid #8c5d43;
+      padding: 24px;
+      min-height: 300px;
     }
     .detail-date-title {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: 800;
-      color: #1b382b;
+      color: #633621;
       margin-bottom: 15px;
-      border-bottom: 2px solid #1b382b;
       padding-bottom: 8px;
+      border-bottom: 1px dashed #e8e0d5;
+      font-family: 'Noto Serif KR', serif;
     }
     .detail-content-box {
-      font-size: 0.98rem;
-      color: #4a5568;
+      font-size: 0.95rem;
+      color: #4a4a4a;
       line-height: 1.7;
     }
 
-    .sub-page { display: none; padding: 60px 20px; max-width: 1000px; margin: 0 auto; flex: 1; }
+    .sub-page { display: none; padding: 60px 20px; max-width: 1200px; margin: 0 auto; flex: 1; }
     .sub-page.active { display: block; }
     .main-scroll-view.hidden { display: none; }
 
@@ -864,21 +919,57 @@
       .node-year { font-size: 1.15rem; font-weight: 900; }
       .node-content { font-size: 0.85rem; font-weight: 500; }
 
-      .schedule-page-wrapper h2 { font-size: 1.5rem !important; font-weight: 900 !important; }
-      .schedule-page-wrapper p { font-size: 0.88rem !important; font-weight: 500 !important; }
-      .calendar-header h3 { font-size: 1.05rem; font-weight: 900; }
-      .detail-date-title { font-size: 1rem; font-weight: 900; }
-      .detail-content-box { font-size: 0.88rem; font-weight: 500; }
+      /* 📱 모바일 전용 일정 캘린더 스타일 수정 */
+      .schedule-page-wrapper {
+        padding: 10px 0 40px 0 !important;
+      }
+
+      .diary-layout-grid { grid-template-columns: 1fr; gap: 20px; }
+      .diary-paper { 
+        padding: 15px 5px !important;
+        border-left: none;
+        border-right: none;
+        border-radius: 0;
+      }
+      
+      /* 💡 [수정] 모바일 전용 일자 및 숫자 크기/정렬 수정 */
+      .cal-day { 
+        aspect-ratio: 1 / 1.1 !important;
+        font-size: 0.75rem; 
+        padding: 2px !important; /* 💡 상단 및 좌측 밀착 */
+        overflow: hidden;
+      }
+
+      .cal-day-num {
+        font-size: 0.7rem !important; /* 💡 모바일 숫자를 직관적으로 살짝 줄임 */
+        line-height: 1 !important;
+        margin-bottom: 1px !important;
+      }
+
+      /* 손글씨 텍스트 배치 및 크기 수정 */
+      .cal-event-badge {
+        display: block;
+        width: 100%;
+        font-size: 0.95rem !important;
+        line-height: 1.1;
+        margin-top: 1px;
+        transform: none;
+        white-space: normal !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        word-break: keep-all;
+      }
+
+      .calendar-month-num { font-size: 3rem; }
+      .calendar-month-name { font-size: 2.2rem; }
 
       .intro-container { grid-template-columns: 1fr; gap: 20px; }
       .hub-item-row, .hub-item-row.reverse { grid-template-columns: 1fr; gap: 20px; }
       .hub-item-row.reverse .hub-text-col { order: 2; }
       .hub-item-row.reverse .hub-media-col { order: 1; }
       
-      .schedule-layout { grid-template-columns: 1fr; }
       .search-input { max-width: 100%; }
       .footer-container { flex-direction: column; gap: 20px; }
-      .cal-day { min-height: 55px; font-size: 0.75rem; }
     }
 
     @media (min-width: 769px) {
@@ -995,37 +1086,47 @@
       </section>
     </div>
 
-    <!-- 일정 -->
+    <!-- 일정 섹션 (개선된 다이어리 감성 커스텀) -->
     <section id="schedule-page" class="sub-page">
       <div class="schedule-page-wrapper">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="color: #1b382b; font-size: 2.2rem; font-weight: 900; font-family: 'Noto Serif KR', serif;">동아리 일정</h2>
-          <p style="color: #718096; font-size: 1rem; margin-top: 6px;">날짜를 클릭하여 해당 일자의 활동 및 다회 정보를 확인하세요.</p>
+        <div style="text-align: center; margin-bottom: 25px;">
+          <h2 style="color: #1b382b; font-size: 2rem; font-weight: 900; font-family: 'Noto Serif KR', serif;">동아리 일정</h2>
+          <p style="color: #718096; font-size: 0.95rem; margin-top: 4px;">일정을 확인하거나 날짜를 클릭하여 세부 내용을 확인하세요.</p>
         </div>
 
-        <div class="schedule-layout">
-          <div class="calendar-card">
-            <div class="calendar-header">
-              <button class="cal-nav-btn" onclick="changeMonth(-1)">&lt;</button>
-              <h3 id="calendar-month-title">2026년 4월</h3>
-              <button class="cal-nav-btn" onclick="changeMonth(1)">&gt;</button>
+        <div class="diary-paper">
+          <!-- 이미지 스타일 월 / 연도 및 이전/다음 이동 버튼 -->
+          <div class="calendar-top-bar">
+            <button class="cal-nav-btn" onclick="changeMonth(-1)">&lt;</button>
+            <div class="calendar-title-wrap">
+              <span id="calendar-month-num" class="calendar-month-num">03</span>
+              <span id="calendar-month-name" class="calendar-month-name">March</span>
+              <span id="calendar-year-txt" class="calendar-year-txt">2026</span>
             </div>
-            <div class="calendar-grid">
-              <div class="cal-day-name" style="color: #e53e3e;">일</div>
-              <div class="cal-day-name">월</div>
-              <div class="cal-day-name">화</div>
-              <div class="cal-day-name">수</div>
-              <div class="cal-day-name">목</div>
-              <div class="cal-day-name">금</div>
-              <div class="cal-day-name" style="color: #3182ce;">토</div>
-            </div>
-            <div id="calendar-days-container" class="calendar-grid" style="margin-top: 8px;"></div>
+            <button class="cal-nav-btn" onclick="changeMonth(1)">&gt;</button>
           </div>
 
-          <div class="schedule-detail-card">
-            <div id="detail-date-title" class="detail-date-title">날짜를 선택해주세요</div>
-            <div id="detail-content-box" class="detail-content-box">
-              달력의 날짜를 클릭하시면 해당 일자에 등록된 상세 일정이 이 곳에 표시됩니다.
+          <!-- PC: 좌측 달력 + 우측 세부일정 2열 구성 -->
+          <div class="diary-layout-grid">
+            <div class="calendar-main-body">
+              <div class="calendar-grid">
+                <div class="cal-day-name" style="color: #c85a5a;">일</div>
+                <div class="cal-day-name">월</div>
+                <div class="cal-day-name">화</div>
+                <div class="cal-day-name">수</div>
+                <div class="cal-day-name">목</div>
+                <div class="cal-day-name">금</div>
+                <div class="cal-day-name" style="color: #4a7bb0;">토</div>
+              </div>
+              <div id="calendar-days-container" class="calendar-grid"></div>
+            </div>
+
+            <!-- 세부 일정 표시 (PC 우측 배치) -->
+            <div class="schedule-detail-panel">
+              <div id="detail-date-title" class="detail-date-title">날짜를 선택해주세요</div>
+              <div id="detail-content-box" class="detail-content-box">
+                달력의 날짜를 클릭하시면 해당 일자의 상세 활동 정보가 나타납니다.
+              </div>
             </div>
           </div>
         </div>
@@ -1159,6 +1260,9 @@
     let currentIntroType = 'tea';
     let introSectionsCache = [];
 
+    // 월 이름 영문 표기 배열
+    const monthNamesEn = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
     // 미디어 파일 확장자가 동영상인지 판별하는 함수
     function isVideoFile(url) {
       if (!url) return false;
@@ -1182,12 +1286,8 @@
       const container = document.getElementById(containerId);
       if (!container) return;
 
-      const imgFormats = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-      const videoFormats = ['mp4', '.webm'];
-
-      // 기본적으로 mp4를 1차 시도하고, 로드 실패 시 이미지(jpg, png 등)로 fallback 테스트
-      const testVideo = document.createElement('video');
       const videoSrc = `${basePathWithoutExt}.mp4`;
+      const testVideo = document.createElement('video');
       
       testVideo.src = videoSrc;
       testVideo.oncanplay = function() {
@@ -1195,7 +1295,6 @@
       };
       
       testVideo.onerror = function() {
-        // 동영상 로드 실패 시 일반 이미지 경로 적용
         const img = new Image();
         img.src = `${basePathWithoutExt}.jpg`;
         img.onload = function() {
@@ -1686,10 +1785,15 @@
     }
 
     function renderCalendar() {
-      const titleEl = document.getElementById('calendar-month-title');
+      const monthNumEl = document.getElementById('calendar-month-num');
+      const monthNameEl = document.getElementById('calendar-month-name');
+      const yearTxtEl = document.getElementById('calendar-year-txt');
       const daysContainer = document.getElementById('calendar-days-container');
 
-      titleEl.textContent = `${currentYear}년 ${currentMonth + 1}월`;
+      const formattedMonth = String(currentMonth + 1).padStart(2, '0');
+      monthNumEl.textContent = formattedMonth;
+      monthNameEl.textContent = monthNamesEn[currentMonth];
+      yearTxtEl.textContent = currentYear;
 
       const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
       const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -1705,22 +1809,23 @@
         const dd = String(day).padStart(2, '0');
         const dateStr = `${currentYear}-${mm}-${dd}`;
 
+        const dayOfWeek = new Date(currentYear, currentMonth, day).getDay();
+        let dayClass = '';
+        if (dayOfWeek === 0) dayClass = 'sun';
+        else if (dayOfWeek === 6) dayClass = 'sat';
+
         const matchedSchedules = schedulesData.filter(sch => sch.date === dateStr);
         const isSelected = (selectedDateStr === dateStr) ? 'selected' : '';
 
         let eventBadgesHtml = '';
         if (matchedSchedules.length > 0) {
-          matchedSchedules.forEach((sch, idx) => {
-            if (idx < 2) {
-              eventBadgesHtml += `<div class="cal-event-badge" title="${sch.title}">${sch.title}</div>`;
-            } else if (idx === 2) {
-              eventBadgesHtml += `<div class="cal-event-badge" style="background:#ddd; color:#333;">외 더보기</div>`;
-            }
+          matchedSchedules.forEach((sch) => {
+            eventBadgesHtml += `<div class="cal-event-badge">${sch.title}</div>`;
           });
         }
 
         daysHtml += `
-          <div class="cal-day ${isSelected}" onclick="onSelectDate('${dateStr}')">
+          <div class="cal-day ${dayClass} ${isSelected}" onclick="onSelectDate('${dateStr}')">
             <div class="cal-day-num">${day}</div>
             ${eventBadgesHtml}
           </div>
@@ -1737,17 +1842,17 @@
       const titleEl = document.getElementById('detail-date-title');
       const contentEl = document.getElementById('detail-content-box');
 
-      titleEl.textContent = `${dateStr} 일정`;
+      titleEl.textContent = `📅 ${dateStr} 일정`;
 
       const matchedEvents = schedulesData.filter(sch => sch.date === dateStr);
 
       if (matchedEvents.length === 0) {
-        contentEl.innerHTML = `<p style="color: #718096;">해당 일자에 등록된 일정이 없습니다.</p>`;
+        contentEl.innerHTML = `<p style="color: #888;">해당 일자에 등록된 일정이 없습니다.</p>`;
       } else {
         contentEl.innerHTML = matchedEvents.map(sch => `
-          <div style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #eae6df;">
-            <div style="font-weight: 800; font-size: 1.05rem; color: #1b382b; margin-bottom: 4px;">📌 ${sch.title}</div>
-            ${sch.location ? `<div style="font-size: 0.88rem; color: #4a5568; margin-bottom: 2px;">📍 장소: ${sch.location}</div>` : ''}
+          <div style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed #e8e0d5;">
+            <div style="font-weight: 800; font-size: 1.05rem; color: #633621; margin-bottom: 4px;">📌 ${sch.title}</div>
+            ${sch.location ? `<div style="font-size: 0.88rem; color: #555; margin-bottom: 2px;">📍 장소: ${sch.location}</div>` : ''}
             ${sch.desc ? `<div style="font-size: 0.9rem; color: #666;">${sch.desc}</div>` : ''}
           </div>
         `).join('');
