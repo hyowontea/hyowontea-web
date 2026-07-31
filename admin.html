@@ -3,90 +3,422 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔑 집행부 전용 관리자 센터</title>
+  <title>🔑 曉原茶會 집행부 센터</title>
   <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #f0f4f8; color: #2d3748; line-height: 1.6; }
+    html { scroll-behavior: smooth; }
+    body { 
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Noto Serif KR', serif; 
+      background-color: #fcfbf9; 
+      color: #2c2c2c; 
+      line-height: 1.8; 
+      word-break: keep-all;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
 
-    /* 🔒 로그인 화면 */
-    .login-container { max-width: 380px; margin: 100px auto; background: white; padding: 35px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
-    .login-container h2 { color: #1b382b; margin-bottom: 20px; font-size: 1.4rem; }
+    /* 관리자 대시보드 기본 숨김 */
+    #admin-dashboard {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header Navigation */
+    header { 
+      background-color: rgba(255, 255, 255, 0.95); 
+      backdrop-filter: blur(8px);
+      color: #1b382b; 
+      padding: 1.2rem 2rem; 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky; 
+      top: 0; 
+      z-index: 100; 
+      border-bottom: 1px solid #eae6df;
+    }
+    
+    header .brand-logo { 
+      font-size: 1.2rem; 
+      font-weight: 800; 
+      letter-spacing: 2px; 
+      text-decoration: none; 
+      color: #1b382b; 
+      cursor: pointer; 
+      display: inline-flex;
+      align-items: center;
+    }
+
+    nav ul { display: flex; list-style: none; gap: 20px; align-items: center; }
+    nav ul li { position: relative; }
+    nav ul li a { 
+      color: #4a5568; 
+      text-decoration: none; 
+      font-weight: 600; 
+      font-size: 0.95rem; 
+      transition: color 0.2s ease; 
+      cursor: pointer; 
+      padding: 10px 0;
+      display: block;
+    }
+    nav ul li a:hover, nav ul li a.active { color: #1b382b; font-weight: 700; }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background-color: #ffffff;
+      min-width: 160px;
+      padding: 12px 0;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      border: 1px solid #eae6df;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease-in-out;
+      z-index: 1000;
+    }
+
+    .dropdown-menu li { width: 100%; }
+    .dropdown-menu li a {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #4a5568;
+      white-space: nowrap;
+      text-align: center;
+      transition: background 0.2s, color 0.2s;
+    }
+    .dropdown-menu li a:hover {
+      background-color: #f7f5f0;
+      color: #1b382b;
+      font-weight: 700;
+    }
+
+    nav ul li:hover .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .sub-hangul {
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: #718096;
+      margin-left: 3px;
+      letter-spacing: 0px;
+    }
+
+    .hamburger-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 24px;
+      height: 18px;
+      z-index: 200;
+    }
+    .hamburger-btn span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background-color: #1b382b;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    .mobile-drawer-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(3px);
+      z-index: 150;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .mobile-drawer-overlay.open { opacity: 1; visibility: visible; }
+
+    .mobile-drawer {
+      position: fixed;
+      top: 0; right: -280px;
+      width: 280px; height: 100%;
+      background: #ffffff;
+      z-index: 160;
+      box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+      transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex; flex-direction: column;
+      padding: 30px 20px;
+      overflow-y: auto;
+    }
+    .mobile-drawer.open { right: 0; }
+
+    .drawer-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; border-bottom: 1px solid #eae6df; padding-bottom: 15px;
+    }
+    .drawer-title { font-size: 1.1rem; font-weight: 900; color: #1b382b; font-family: 'Noto Serif KR', serif; }
+    .drawer-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #4a5568; }
+    
+    .drawer-nav-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .drawer-nav-list li a, .drawer-nav-list .drawer-toggle-link {
+      font-size: 1.05rem; font-weight: 600; color: #2c2c2c;
+      text-decoration: none; display: block; padding: 8px 0;
+      border-bottom: 1px solid #f7f5f0; cursor: pointer;
+    }
+    .drawer-nav-list li a:hover, .drawer-nav-list .drawer-toggle-link:hover { color: #1b382b; }
+    
+    .drawer-sub-list {
+      list-style: none; padding-left: 15px; margin-top: 6px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .drawer-sub-list li a {
+      font-size: 0.92rem; font-weight: 500; color: #64748b;
+      border: none; padding: 6px 0; cursor: pointer;
+    }
+    .drawer-sub-list li a:hover { color: #1b382b; }
+
+    /* 로그인 */
+    .login-container { max-width: 380px; margin: 100px auto; background: white; padding: 35px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; border: 1px solid #eae6df; }
+    .login-container h2 { color: #1b382b; margin-bottom: 20px; font-size: 1.4rem; font-family: 'Noto Serif KR', serif; }
     .login-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; }
-    .login-input:focus { border-color: #2d5a45; }
-    .login-btn { width: 100%; padding: 12px; background: #2d5a45; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
-    .login-btn:hover { background: #1b382b; }
-   
-    .login-back-btn { display: inline-block; margin-top: 15px; color: #64748b; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: color 0.2s; }
+    .login-input:focus { border-color: #1b382b; }
+    .login-btn { width: 100%; padding: 12px; background: #1b382b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .login-btn:hover { background: #2d5a45; }
+    .login-back-btn { display: inline-block; margin-top: 15px; color: #64748b; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
     .login-back-btn:hover { color: #1b382b; text-decoration: underline; }
 
-    /* 🔑 어드민 대시보드 */
-    header { background-color: #1b382b; color: white; padding: 1rem; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    header h1 { font-size: 1.3rem; margin-bottom: 12px; }
-   
-    .header-actions { position: absolute; right: 15px; top: 15px; display: flex; gap: 8px; }
-    .home-btn { background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 12px; cursor: pointer; font-size: 0.8rem; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; }
-    .home-btn:hover { background: #334155; }
-    .logout-btn { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 12px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-    .logout-btn:hover { background: #b91c1c; }
-
-    nav ul { display: flex; justify-content: center; list-style: none; gap: 8px; flex-wrap: wrap; }
-    nav ul li a { color: #cbd5e1; text-decoration: none; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
-    nav ul li a:hover, nav ul li a.active { background-color: #2d5a45; color: white; }
-
-    main { max-width: 900px; margin: 25px auto; padding: 0 15px; }
-    .admin-section { display: none; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    /* 어드민 본문 */
+    main { max-width: 1000px; margin: 40px auto; padding: 0 20px; flex: 1; width: 100%; }
+    .admin-section { display: none; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eae6df; }
     .admin-section.active { display: block; }
+    .admin-section h2 { font-size: 1.5rem; font-weight: 900; color: #1b382b; font-family: 'Noto Serif KR', serif; margin-bottom: 20px; }
 
-    .form-card { background: #f8faf9; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
-    .form-group label { display: block; font-weight: bold; font-size: 0.8rem; margin-bottom: 4px; color: #4a5568; }
-    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; }
+    .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
+    .hub-card {
+      background: #f8faf9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px;
+      text-align: center; cursor: pointer; transition: all 0.25s ease;
+    }
+    .hub-card:hover {
+      transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-color: #1b382b;
+    }
+    .hub-card h3 { color: #1b382b; font-size: 1.2rem; margin-bottom: 10px; font-family: 'Noto Serif KR', serif; }
+    .hub-card p { font-size: 0.88rem; color: #64748b; line-height: 1.5; }
 
-    /* 🏷️ 카테고리와 개봉 여부 인라인 배치 및 작고 컴팩트한 체크박스 스타일 */
-    .tea-category-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
-    .tea-category-row .form-group { flex: 1; margin-bottom: 0; }
-    .checkbox-group-inline { display: flex; align-items: center; gap: 6px; background: #fff; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; height: 38px; white-space: nowrap; }
-    .checkbox-group-inline input[type="checkbox"] { width: 15px; height: 15px; accent-color: #2d5a45; cursor: pointer; }
-    .checkbox-group-inline label { margin-bottom: 0; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: #1b382b; }
+    .form-card { background: #f8faf9; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 30px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; color: #4a5568; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.92rem; outline: none; background: #fff; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #1b382b; }
 
-    /* 📸 이미지 업로드 필드 스타일 (글자 색상 하양 명시) */
     .image-upload-box { display: flex; gap: 8px; align-items: center; }
     .image-upload-box input[type="text"] { flex: 1; }
-    .file-upload-btn-label { background: #475569; color: white !important; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; transition: background 0.2s; }
+    .file-upload-btn-label { background: #475569; color: white !important; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; white-space: nowrap; transition: background 0.2s; }
     .file-upload-btn-label:hover { background: #334155; }
     .file-upload-btn-label input { display: none; }
 
-    .submit-btn { background: #2d5a45; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
-    .submit-btn:hover { background: #1b382b; }
-    .cancel-btn { background: #64748b; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 6px; width: 100%; }
+    .submit-btn { background: #1b382b; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; transition: background 0.2s; font-size: 0.95rem; }
+    .submit-btn:hover { background: #2d5a45; }
+    .cancel-btn { background: #64748b; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 8px; width: 100%; font-size: 0.95rem; }
 
-    .filter-container { background: #f8faf9; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+    /* 카테고리 필터 영역 및 버튼 스타일 */
+    .filter-container { background: #f8faf9; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; }
     .filter-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-    .admin-filter-btn { padding: 6px 14px; border: 1px solid #cbd5e1; background: white; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: #4a5568; transition: all 0.2s; }
-    .admin-filter-btn.active { background: #2d5a45; color: white; border-color: #2d5a45; }
-   
-    .search-input { width: 100%; max-width: 320px; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 0.9rem; outline: none; }
-    .search-input:focus { border-color: #2d5a45; }
+    
+    .admin-filter-btn { 
+      padding: 8px 16px; 
+      border: 1px solid #cbd5e1; 
+      background: white; 
+      border-radius: 20px; 
+      cursor: pointer; 
+      font-weight: 600; 
+      font-size: 0.88rem; 
+      color: #4a5568; 
+      transition: all 0.2s; 
+      user-select: none;
+    }
+    .admin-filter-btn.active { background: #1b382b; color: white; border-color: #1b382b; }
+    .admin-filter-btn.exclude, .admin-filter-btn.disabled { 
+      background: #fdf2f2; 
+      color: #ef4444; 
+      border-color: #fca5a5; 
+      text-decoration: line-through; 
+      text-decoration-color: #ef4444;
+      text-decoration-thickness: 2px;
+      opacity: 0.9;
+    }
+    .search-input { width: 100%; max-width: 320px; padding: 9px 16px; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 0.9rem; outline: none; background: #fff; }
+    .search-input:focus { border-color: #1b382b; }
 
-    .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; margin-top: 15px; }
-    .item-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; background: white; display: flex; flex-direction: column; justify-content: space-between; }
-    .card-actions { display: flex; gap: 6px; margin-top: 12px; }
-    .edit-btn { background: #2563eb; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+    .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+    .item-card { border: 1px solid #eae6df; border-radius: 12px; padding: 20px; background: white; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+    .card-actions { display: flex; gap: 8px; margin-top: 15px; }
+    .edit-btn { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; }
     .edit-btn:hover { background: #1d4ed8; }
-    .delete-btn { background: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+    .delete-btn { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; }
     .delete-btn:hover { background: #b91c1c; }
 
-    /* 🏷️ 상태 뱃지 디자인 */
-    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 6px; }
-    .status-opened { background: #dcfce7; color: #166534; }
-    .status-unopened { background: #fee2e2; color: #991b1b; }
+    .status-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-left: 6px; }
+    .status-opened { background: #e6f4ea; color: #1b382b; }
+    .status-unopened { background: #f1f5f9; color: #475569; }
 
-    @media (max-width: 600px) {
-      .header-actions { position: static; justify-content: center; margin-bottom: 10px; }
-      .tea-category-row { flex-direction: column; align-items: stretch; }
+    /* 📅 어드민 일정 관리 캘린더 전용 스타일 */
+    .admin-schedule-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 25px;
+      align-items: start;
     }
+    .calendar-card {
+      background: #ffffff;
+      border: 1px solid #eae6df;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .calendar-header h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #1b382b;
+      font-family: 'Noto Serif KR', serif;
+    }
+    .cal-nav-btn {
+      background: #f4f1ea;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+      color: #1b382b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .cal-nav-btn:hover { background: #1b382b; color: white; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .cal-day-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #718096;
+      padding-bottom: 8px;
+    }
+    .cal-day {
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      background: #fcfbf9;
+      border: 1px solid #eee;
+      padding: 4px 2px;
+    }
+    .cal-day:hover { background: #f0f7f4; border-color: #1b382b; }
+    .cal-day.empty { background: transparent; cursor: default; border: none; }
+    .cal-day.selected { background: #1b382b !important; color: white !important; border-color: #1b382b !important; }
+    
+    .cal-day-num {
+      font-weight: 700;
+      font-size: 0.82rem;
+      margin-bottom: 2px;
+      text-align: center;
+    }
+    .cal-day.selected .cal-day-num { color: #ffffff; }
+
+    .cal-event-badge {
+      background: #e6f4ea;
+      color: #1b382b;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 3px;
+      border-radius: 3px;
+      margin-top: 1px;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cal-day.selected .cal-event-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    .admin-schedule-right {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .schedule-detail-card {
+      background: #ffffff;
+      border: 1px solid #eae6df;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+    .detail-date-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #1b382b;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #1b382b;
+      padding-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      header { padding: 0.8rem 1rem; }
+      nav { display: none; }
+      .hamburger-btn { display: flex; }
+      .footer-container { flex-direction: column; gap: 20px; }
+      .admin-schedule-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-drawer-overlay, .mobile-drawer { display: none !important; }
+    }
+
+    footer { background-color: #162920; color: #cbd5e1; padding: 40px 20px; border-top: 1px solid #233f31; margin-top: auto; }
+    .footer-container { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 30px; }
+    .footer-info h3 { color: #f4f1ea; font-size: 1.05rem; font-weight: 800; margin-bottom: 6px; font-family: 'Noto Serif KR', serif; letter-spacing: 1px; }
+    .footer-info p { font-size: 0.85rem; color: #94a3b8; line-height: 1.35; }
+    .footer-links { display: flex; flex-direction: column; gap: 3px; }
+    .footer-links a { color: #cbd5e1; text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: color 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .footer-links a:hover { color: #ffffff; text-decoration: underline; }
+    .footer-bottom { max-width: 1000px; margin: 20px auto 0 auto; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.78rem; color: #64748b; text-align: center; }
   </style>
 </head>
 <body>
@@ -99,31 +431,125 @@
       <input type="password" id="admin-password" class="login-input" placeholder="비밀번호" required>
       <button type="submit" class="login-btn">로그인</button>
     </form>
-    <a href="index.html" class="login-back-btn">← 메인 페이지로 돌아가기</a>
+    <a href="index.html" class="login-back-btn">&larr; 메인 페이지로 돌아가기</a>
   </div>
 
   <!-- 2. 관리자 대시보드 -->
-  <div id="admin-dashboard" style="display: none;">
+  <div id="admin-dashboard">
+    
     <header>
-      <div class="header-actions">
-        <a href="index.html" class="home-btn">← 메인으로</a>
-        <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
-      </div>
-
-      <h1>🔑 집행부 데이터 관리 센터</h1>
+      <a onclick="switchTab('home-tab', this)" class="brand-logo">
+        <span>曉原茶會 집행부</span>
+      </a>
+      
       <nav>
         <ul>
-          <li><a class="tab-link active" onclick="switchTab('tea-tab', this)">🍵 차 관리</a></li>
-          <li><a class="tab-link" onclick="switchTab('intro-tab', this)">📜 소개글 관리</a></li>
-          <li><a class="tab-link" onclick="switchTab('history-tab', this)">🚩 연혁 관리</a></li>
-          <li><a class="tab-link" onclick="switchTab('schedule-tab', this)">📅 일정 관리</a></li>
+          <li><a class="tab-link active" onclick="switchTab('home-tab', this)">홈</a></li>
+          <li>
+            <a class="tab-link" onclick="switchTab('intro-hub-tab', this)">소개글 관리</a>
+            <ul class="dropdown-menu">
+              <li><a onclick="switchTab('tea-intro-tab', null)">다도/차 소개 관리</a></li>
+              <li><a onclick="switchTab('club-intro-tab', null)">동아리 소개 관리</a></li>
+              <li><a onclick="switchTab('history-tab', null)">연혁 관리</a></li>
+            </ul>
+          </li>
+          <li><a class="tab-link" onclick="switchTab('schedule-tab', this)">일정 관리</a></li>
+          <li>
+            <a class="tab-link" onclick="switchTab('tea-book-hub-tab', this)">茶書 <span class="sub-hangul">(다서)</span></a>
+            <ul class="dropdown-menu">
+              <li><a onclick="switchTab('tea-tab', null)">차 도감</a></li>
+              <li><a onclick="switchTab('tea-map-tab', null)">차 지도</a></li>
+              <li><a onclick="switchTab('tea-ware-tab', null)">다구 사용법</a></li>
+            </ul>
+          </li>
+          <li><a href="index.html" style="color: #1b382b; font-weight: 800;">메인으로</a></li>
+          <li><a onclick="handleLogout()" style="color: #dc2626;">로그아웃</a></li>
         </ul>
       </nav>
+
+      <button class="hamburger-btn" onclick="toggleMobileDrawer()" aria-label="메뉴 열기">
+        <span></span><span></span><span></span>
+      </button>
     </header>
 
+    <div id="drawerOverlay" class="mobile-drawer-overlay" onclick="toggleMobileDrawer()"></div>
+    <div id="mobileDrawer" class="mobile-drawer">
+      <div class="drawer-header">
+        <span class="drawer-title">曉原茶會 집행부</span>
+        <button class="drawer-close-btn" onclick="toggleMobileDrawer()">&times;</button>
+      </div>
+      <ul class="drawer-nav-list">
+         <li>
+          <a class="drawer-toggle-link" onclick="switchTab('intro-hub-tab', null); toggleMobileDrawer();">소개</a>
+          <ul class="drawer-sub-list">
+            <li><a onclick="switchTab('tea-intro-tab', null); toggleMobileDrawer();">다도/차 소개 관리</a></li>
+            <li><a onclick="switchTab('club-intro-tab', null); toggleMobileDrawer();">동아리 소개 관리</a></li>
+            <li><a onclick="switchTab('history-tab', null); toggleMobileDrawer();">연혁 관리</a></li>
+          </ul>
+        </li>
+        <li><a onclick="switchTab('schedule-tab', null); toggleMobileDrawer();">일정</a></li>
+        <li>
+          <a class="drawer-toggle-link" onclick="switchTab('tea-book-hub-tab', null); toggleMobileDrawer();">茶書<span class="sub-hangul">(다서)</span></a>
+          <ul class="drawer-sub-list">
+            <li><a onclick="switchTab('tea-tab', null); toggleMobileDrawer();">차 도감</a></li>
+            <li><a onclick="switchTab('tea-map-tab', null); toggleMobileDrawer();">차 지도</a></li>
+            <li><a onclick="switchTab('tea-ware-tab', null); toggleMobileDrawer();">다구 사용법</a></li>
+          </ul>
+        </li>
+        <li style="margin-top: 15px; border-top: 1px solid #eae6df; padding-top: 10px;"><a href="index.html">&larr; 메인 페이지로</a></li>
+        <li><a onclick="handleLogout()" style="color: #dc2626;">로그아웃</a></li>
+      </ul>
+    </div>
+
     <main>
-      <!-- 🍵 차 관리 -->
-      <section id="tea-tab" class="admin-section active">
+      <section id="home-tab" class="admin-section active">
+        <h2>曉原茶會 집행부</h2>
+        <div style="padding: 30px; color: #4a5568; background: #f8faf9; border-radius: 12px; border: 1px solid #e2e8f0; line-height: 1.8;">
+          <p style="font-size: 1.1rem; font-weight: 700; color: #1b382b; margin-bottom: 10px;">환영합니다, 집행부 여러분!</p>
+          <p>효원다회 웹사이트 통합 관리 센터입니다.</p>
+        </div>
+      </section>
+
+      <section id="intro-hub-tab" class="admin-section">
+        <h2>📜 소개글 관리</h2>
+        <p style="color: #64748b; margin-bottom: 20px;">수정 또는 관리하고자 하는 소개글 항목을 선택해주세요.</p>
+        <div class="hub-grid">
+          <div class="hub-card" onclick="switchTab('tea-intro-tab', null)">
+            <h3>🍵 다도/차 소개 관리</h3>
+            <p>다도 문화 및 차에 대한 안내글 데이터 관리</p>
+          </div>
+          <div class="hub-card" onclick="switchTab('club-intro-tab', null)">
+            <h3>🎋 동아리 소개 관리</h3>
+            <p>효원다회 동아리 안내 및 활동 소개글 데이터 관리</p>
+          </div>
+          <div class="hub-card" onclick="switchTab('history-tab', null)">
+            <h3>🏛️ 연혁</h3>
+            <p>효원다회의 역사 및 활동 타임라인 관리</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tea-book-hub-tab" class="admin-section">
+        <h2>茶書(다서)</h2>
+        <p style="color: #64748b; margin-bottom: 20px;">관리하고자 하는 다서 카테고리를 선택해주세요.</p>
+        <div class="hub-grid">
+          <div class="hub-card" onclick="switchTab('tea-tab', null)">
+            <h3>차 도감</h3>
+            <p>보유 차 정보, 적정 온도, 개봉 상태 등 데이터 관리</p>
+          </div>
+          <div class="hub-card" onclick="switchTab('tea-map-tab', null)">
+            <h3>차 지도</h3>
+            <p>차 산지 및 차 관련 명소 지도 데이터 관리</p>
+          </div>
+          <div class="hub-card" onclick="switchTab('tea-ware-tab', null)">
+            <h3>다구 사용법</h3>
+            <p>개완, 자사호 등 다구별 명칭 및 올바른 사용 가이드</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 🍵 차 도감 관리 -->
+      <section id="tea-tab" class="admin-section">
         <h2 id="tea-form-title">🍵 새 차 등록</h2>
         <div class="form-card">
           <form id="tea-form" onsubmit="saveTea(event)">
@@ -131,22 +557,36 @@
            
             <div class="form-grid">
               <div class="form-group"><label>차 이름</label><input type="text" id="tea-name" required placeholder="예: 우전"></div>
-              <div class="form-group"><label>적정 온도</label><input type="text" id="tea-temp" required placeholder="예: 7070℃"></div>
-            </div>
-
-            <!-- ✨ 카테고리 입력란과 개봉 여부 체크박스를 오른쪽에 작게 나란히 배치 -->
-            <div class="tea-category-row">
+              <div class="form-group"><label>적정 온도</label><input type="text" id="tea-temp" required placeholder="예: 70℃"></div>
               <div class="form-group">
-                <label>카테고리 (쉼표로 구분하여 여러 개 입력 가능)</label>
-                <input type="text" id="tea-categories-input" required placeholder="예: 녹차, 백차">
-              </div>
-              <div class="checkbox-group-inline">
-                <input type="checkbox" id="tea-is-opened">
-                <label for="tea-is-opened">개봉</label>
+                <label>개봉 여부</label>
+                <select id="tea-status-select">
+                  <option value="opened">개봉</option>
+                  <option value="unopened">미개봉</option>
+                </select>
               </div>
             </div>
 
-            <div class="form-group" style="margin-bottom:12px;"><label>설명</label><textarea id="tea-desc" rows="2" placeholder="차에 대한 설명을 적어주세요."></textarea></div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>카테고리 직접 입력 (여러 개일 경우 쉼표로 구분)</label>
+              <input type="text" id="tea-category-input" required placeholder="예: 녹차, 한국차">
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>설명</label>
+              <textarea id="tea-desc" rows="3" placeholder="차에 대한 특징 및 우리는 팁을 적어주세요."></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>차 이미지 (선택)</label>
+              <div class="image-upload-box">
+                <input type="text" id="tea-img-url" placeholder="이미지 URL 직접 입력 또는 파일 선택">
+                <label class="file-upload-btn-label">
+                  📁 파일 업로드
+                  <input type="file" accept="image/*" onchange="uploadImage(this, 'tea-img-url')">
+                </label>
+              </div>
+            </div>
            
             <button type="submit" id="tea-submit-btn" class="submit-btn">DB에 차 추가하기</button>
             <button type="button" id="tea-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetTeaForm()">수정 취소</button>
@@ -156,7 +596,7 @@
         <h2>등록된 차 목록</h2>
         <div class="filter-container">
           <div id="admin-category-buttons" class="filter-buttons">
-            <button class="admin-filter-btn active" onclick="selectAdminCategory('전체', this)">전체</button>
+            <button class="admin-filter-btn active" onclick="selectAdminCategory('전체')">전체</button>
           </div>
           <input type="text" id="admin-search-input" class="search-input" oninput="applyAdminFilters()" placeholder="🔍 차 이름 검색...">
         </div>
@@ -164,93 +604,254 @@
         <div id="admin-tea-list" class="item-grid"></div>
       </section>
 
-      <!-- 📜 소개글 관리 -->
-      <section id="intro-tab" class="admin-section">
-        <h2 id="intro-form-title">📜 새 소개글 등록</h2>
+      <!-- 📅 일정 관리 (달력 + 우측 상세 & 수정/등록 폼) -->
+      <section id="schedule-tab" class="admin-section">
+        <h2>📅 일정 관리 센터</h2>
+        
+        <div class="admin-schedule-layout">
+          <!-- 좌측: 달력 -->
+          <div class="calendar-card">
+            <div class="calendar-header">
+              <button class="cal-nav-btn" onclick="prevAdminMonth()">&lt;</button>
+              <h3 id="admin-cal-month-year">2026년 4월</h3>
+              <button class="cal-nav-btn" onclick="nextAdminMonth()">&gt;</button>
+            </div>
+            <div class="calendar-grid" id="admin-calendar-grid">
+              <!-- JS 동적 생성 -->
+            </div>
+          </div>
+
+          <!-- 우측: 일정 세부사항 & 편집/등록 폼 -->
+          <div class="admin-schedule-right">
+            <!-- 클릭 일자 상세 정보 -->
+            <div class="schedule-detail-card">
+              <div class="detail-date-title">
+                <span id="admin-selected-date-text">날짜를 선택해 주세요</span>
+                <button type="button" onclick="prepareAddScheduleForSelectedDate()" style="font-size:0.78rem; background:#1b382b; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">+ 이 날짜에 일정 추가</button>
+              </div>
+              <div id="admin-selected-date-schedules">
+                <p style="color:#64748b; font-size:0.9rem;">달력에서 날짜를 클릭하면 해당 일자의 일정 목록이 이곳에 나타납니다.</p>
+              </div>
+            </div>
+
+            <!-- 일정 입력 / 수정 폼 -->
+            <div class="form-card" style="margin-bottom:0;">
+              <h3 id="sch-form-title" style="font-size:1.1rem; color:#1b382b; font-weight:800; margin-bottom:12px;">✏️ 일정 추가 / 수정 툴</h3>
+              <form id="schedule-form" onsubmit="saveSchedule(event)">
+                <input type="hidden" id="sch-id">
+                <div class="form-group" style="margin-bottom:12px;">
+                  <label>날짜 (YYYY-MM-DD)</label>
+                  <input type="text" id="sch-date" required placeholder="예: 2026-04-15">
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                  <label>일정 제목</label>
+                  <input type="text" id="sch-title" required placeholder="예: 봄맞이 야외 찻자리">
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                  <label>장소</label>
+                  <input type="text" id="sch-location" placeholder="예: 동아리방">
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                  <label>상세 설명</label>
+                  <textarea id="sch-desc" rows="3" placeholder="일정에 대한 상세 내용을 적어주세요."></textarea>
+                </div>
+
+                <button type="submit" id="sch-submit-btn" class="submit-btn">일정 저장하기</button>
+                <button type="button" id="sch-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetScheduleForm()">수정 취소</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 🍵 다도 / 차 소개글 관리 -->
+      <section id="tea-intro-tab" class="admin-section">
+        <h2 id="tea-intro-form-title">🍵 새 다도/차 소개글 등록</h2>
         <div class="form-card">
-          <form id="intro-form" onsubmit="saveIntro(event)">
-            <input type="hidden" id="intro-id">
+          <form id="tea-intro-form" onsubmit="saveTeaIntro(event)">
+            <input type="hidden" id="tea-intro-id">
             <div class="form-grid">
-              <div class="form-group"><label>표시 순서(숫자)</label><input type="number" id="intro-order" required placeholder="예: 1"></div>
-              <div class="form-group"><label>서브 제목</label><input type="text" id="intro-sub-en" placeholder="예: 차 어렵지 않아요."></div>
-              <div class="form-group"><label>메인 제목</label><input type="text" id="intro-title-kr" placeholder="예: 차 향으로 이어지는 우리"></div>
+              <div class="form-group"><label>표시 순서(숫자)</label><input type="number" id="tea-intro-order" required placeholder="예: 1"></div>
+              <div class="form-group"><label>서브 제목 (영문/태그)</label><input type="text" id="tea-intro-sub-en" placeholder="예: TEA CULTURE"></div>
+              <div class="form-group"><label>메인 제목 (한글)</label><input type="text" id="tea-intro-title-kr" required placeholder="예: 다도 및 차 문화 소개"></div>
               <div class="form-group">
                 <label>배경 스타일</label>
-                <select id="intro-bg-type">
+                <select id="tea-intro-bg-type">
                   <option value="light">밝은색 (Light)</option>
                   <option value="warm">따뜻한 베이지 (Warm)</option>
                 </select>
               </div>
             </div>
-            <div class="form-group" style="margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:16px;">
               <label>본문 내용</label>
-              <textarea id="intro-content" rows="4" required placeholder="소개글 본문을 입력하세요."></textarea>
+              <textarea id="tea-intro-content" rows="4" required placeholder="소개글 본문을 입력하세요."></textarea>
             </div>
            
-            <div class="form-group" style="margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:16px;">
               <label>이미지</label>
               <div class="image-upload-box">
-                <input type="text" id="intro-img" placeholder="https:// 또는 파일 업로드 사용">
+                <input type="text" id="tea-intro-img" placeholder="https:// 또는 파일 업로드 사용">
                 <label class="file-upload-btn-label">
                   📁 파일 선택
-                  <input type="file" accept="image/*" onchange="uploadImage(this, 'intro-img')">
+                  <input type="file" accept="image/*" onchange="uploadImage(this, 'tea-intro-img')">
                 </label>
               </div>
             </div>
            
-            <button type="submit" id="intro-submit-btn" class="submit-btn">소개글 추가하기</button>
-            <button type="button" id="intro-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetIntroForm()">수정 취소</button>
+            <button type="submit" id="tea-intro-submit-btn" class="submit-btn">다도/차 소개글 저장하기</button>
+            <button type="button" id="tea-intro-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetTeaIntroForm()">수정 취소</button>
           </form>
         </div>
 
-        <h2>등록된 소개글 목록</h2>
-        <div id="admin-intro-list" class="item-grid"></div>
+        <h2>등록된 다도/차 소개글 목록</h2>
+        <div id="admin-tea-intro-list" class="item-grid"></div>
       </section>
 
-      <!-- 🚩 연혁 관리 -->
-      <section id="history-tab" class="admin-section">
-        <h2>🚩 새 연혁 등록</h2>
+      <!-- 🎋 동아리 소개글 관리 -->
+      <section id="club-intro-tab" class="admin-section">
+        <h2 id="club-intro-form-title">🎋 새 동아리 소개글 등록</h2>
         <div class="form-card">
-          <form onsubmit="saveHistory(event)">
+          <form id="club-intro-form" onsubmit="saveClubIntro(event)">
+            <input type="hidden" id="club-intro-id">
             <div class="form-grid">
-              <div class="form-group"><label>연도</label><input type="text" id="his-year" required placeholder="예: 2026"></div>
-              <div class="form-group"><label>내용</label><input type="text" id="his-content" required placeholder="예: 제25회 정기 다회 개최"></div>
+              <div class="form-group"><label>표시 순서(숫자)</label><input type="number" id="club-intro-order" required placeholder="예: 1"></div>
+              <div class="form-group"><label>서브 제목 (영문/태그)</label><input type="text" id="club-intro-sub-en" placeholder="예: ABOUT CLUB"></div>
+              <div class="form-group"><label>메인 제목 (한글)</label><input type="text" id="club-intro-title-kr" required placeholder="예: 효원다회 동아리 안내"></div>
+              <div class="form-group">
+                <label>배경 스타일</label>
+                <select id="club-intro-bg-type">
+                  <option value="light">밝은색 (Light)</option>
+                  <option value="warm">따뜻한 베이지 (Warm)</option>
+                </select>
+              </div>
             </div>
-            <button type="submit" class="submit-btn">연혁 추가하기</button>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>본문 내용</label>
+              <textarea id="club-intro-content" rows="4" required placeholder="소개글 본문을 입력하세요."></textarea>
+            </div>
+           
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>이미지</label>
+              <div class="image-upload-box">
+                <input type="text" id="club-intro-img" placeholder="https:// 또는 파일 업로드 사용">
+                <label class="file-upload-btn-label">
+                  📁 파일 선택
+                  <input type="file" accept="image/*" onchange="uploadImage(this, 'club-intro-img')">
+                </label>
+              </div>
+            </div>
+           
+            <button type="submit" id="club-intro-submit-btn" class="submit-btn">동아리 소개글 저장하기</button>
+            <button type="button" id="club-intro-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetClubIntroForm()">수정 취소</button>
           </form>
         </div>
+
+        <h2>등록된 동아리 소개글 목록</h2>
+        <div id="admin-club-intro-list" class="item-grid"></div>
+      </section>
+
+      <!-- 🗺️ 차 지도 관리 -->
+      <section id="tea-map-tab" class="admin-section">
+        <h2 id="tea-map-form-title">🗺️ 새 차 산지/명소 등록</h2>
+        <div class="form-card">
+          <form id="tea-map-form" onsubmit="saveTeaMap(event)">
+            <input type="hidden" id="tea-map-id">
+            <div class="form-grid">
+              <div class="form-group"><label>지역 / 산지명</label><input type="text" id="tea-map-region" required placeholder="예: 하동, 보성, 중국 우이산"></div>
+              <div class="form-group"><label>명소 / 대표 차</label><input type="text" id="tea-map-title" required placeholder="예: 하동 화개장터 차밭"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>설명</label>
+              <textarea id="tea-map-desc" rows="3" placeholder="산지 특성이나 추천 코스를 적어주세요."></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>이미지 URL</label>
+              <div class="image-upload-box">
+                <input type="text" id="tea-map-img" placeholder="이미지 URL 직접 입력 또는 파일 선택">
+                <label class="file-upload-btn-label">
+                  📁 파일 업로드
+                  <input type="file" accept="image/*" onchange="uploadImage(this, 'tea-map-img')">
+                </label>
+              </div>
+            </div>
+            <button type="submit" id="tea-map-submit-btn" class="submit-btn">차 지도 저장하기</button>
+            <button type="button" id="tea-map-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetTeaMapForm()">수정 취소</button>
+          </form>
+        </div>
+
+        <h2>등록된 차 지도 목록</h2>
+        <div id="admin-tea-map-list" class="item-grid"></div>
+      </section>
+
+      <!-- 🍵 다구 사용법 관리 -->
+      <section id="tea-ware-tab" class="admin-section">
+        <h2 id="tea-ware-form-title">🍵 새 다구 사용법 등록</h2>
+        <div class="form-card">
+          <form id="tea-ware-form" onsubmit="saveTeaWare(event)">
+            <input type="hidden" id="tea-ware-id">
+            <div class="form-grid">
+              <div class="form-group"><label>표시 순서(숫자)</label><input type="number" id="tea-ware-order" required placeholder="예: 1"></div>
+              <div class="form-group"><label>다구 이름</label><input type="text" id="tea-ware-name" required placeholder="예: 개완 (蓋碗)"></div>
+              <div class="form-group"><label>영문/부제목</label><input type="text" id="tea-ware-sub" placeholder="예: Gaiwan - 차를 우리는 뚜껑 달긴 찻잔"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>상세 사용 방법 설명</label>
+              <textarea id="tea-ware-desc" rows="4" required placeholder="다구의 명칭 설명 및 올바른 사용법을 상세히 적어주세요."></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>이미지 URL</label>
+              <div class="image-upload-box">
+                <input type="text" id="tea-ware-img" placeholder="이미지 URL 직접 입력 또는 파일 선택">
+                <label class="file-upload-btn-label">
+                  📁 파일 업로드
+                  <input type="file" accept="image/*" onchange="uploadImage(this, 'tea-ware-img')">
+                </label>
+              </div>
+            </div>
+            <button type="submit" id="tea-ware-submit-btn" class="submit-btn">다구 사용법 저장하기</button>
+            <button type="button" id="tea-ware-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetTeaWareForm()">수정 취소</button>
+          </form>
+        </div>
+
+        <h2>등록된 다구 목록</h2>
+        <div id="admin-tea-ware-list" class="item-grid"></div>
+      </section>
+
+      <!-- 🏛️ 연혁 관리 -->
+      <section id="history-tab" class="admin-section">
+        <h2 id="history-form-title">🏛️ 새 연혁 등록</h2>
+        <div class="form-card">
+          <form id="history-form" onsubmit="saveHistory(event)">
+            <input type="hidden" id="history-id">
+            <div class="form-grid">
+              <div class="form-group"><label>연도 / 시기</label><input type="text" id="history-year" required placeholder="예: 2024 또는 2026.03"></div>
+              <div class="form-group"><label>내용</label><input type="text" id="history-content" required placeholder="예: 효원다회 창단 및 제1회 정기 다회 개최"></div>
+            </div>
+            <button type="submit" id="history-submit-btn" class="submit-btn">연혁 등록하기</button>
+            <button type="button" id="history-cancel-btn" class="cancel-btn" style="display:none;" onclick="resetHistoryForm()">수정 취소</button>
+          </form>
+        </div>
+
         <h2>등록된 연혁 목록</h2>
         <div id="admin-history-list" class="item-grid"></div>
       </section>
-
-      <!-- 📅 일정 관리 -->
-      <section id="schedule-tab" class="admin-section">
-        <h2>📅 새 일정 등록</h2>
-        <div class="form-card">
-          <form onsubmit="saveSchedule(event)">
-            <div class="form-grid">
-              <div class="form-group"><label>시점(월/일)</label><input type="text" id="sch-month" required placeholder="예: 4월 중순"></div>
-              <div class="form-group"><label>일정 제목</label><input type="text" id="sch-title" required placeholder="예: 신입생 환영 차회"></div>
-            </div>
-           
-            <div class="form-group" style="margin-bottom:12px;">
-              <label>이미지</label>
-              <div class="image-upload-box">
-                <input type="text" id="sch-img" placeholder="https:// 또는 파일 업로드 사용">
-                <label class="file-upload-btn-label">
-                  📁 파일 선택
-                  <input type="file" accept="image/*" onchange="uploadImage(this, 'sch-img')">
-                </label>
-              </div>
-            </div>
-
-            <button type="submit" class="submit-btn">일정 추가하기</button>
-          </form>
-        </div>
-        <h2>등록된 일정 목록</h2>
-        <div id="admin-schedule-list" class="item-grid"></div>
-      </section>
     </main>
+
+    <footer>
+      <div class="footer-container">
+        <div class="footer-info">
+          <h3>曉原茶會 (효원다회)</h3>
+          <p>부산대학교 전통 차 문화 동아리<br>집행부 전용 관리자 센터입니다.</p>
+        </div>
+        <div class="footer-links">
+          <a href="https://www.instagram.com/hyowon_tea/" target="_blank">📷 인스타그램 (@hyowon_tea)</a>
+          <a href="mailto:hyowontea@gmail.com">✉️ 이메일 문의 (hyowontea@gmail.com)</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 효원다회 (Hyowon tea). All rights reserved.
+      </div>
+    </footer>
   </div>
 
   <script>
@@ -261,14 +862,28 @@
     let allTeas = [];
     let allCategories = [];
     let allIntros = [];
-    let currentAdminCategory = '전체';
+    let allSchedules = [];
+    let allHistories = [];
+    let allTeaMaps = [];
+    let allTeaWares = [];
 
-    const PREFERRED_ORDER = ["백차", "녹차", "청차", "황차", "홍차", "흑차", "보이차"];
+    // 어드민 일정 캘린더 관련 변수
+    let adminCurrentYear = new Date().getFullYear();
+    let adminCurrentMonth = new Date().getMonth(); 
+    let adminSelectedDateStr = null;
+
+    let adminFilterState = {
+      selectedCategory: null,
+      excludes: new Set()
+    };
 
     window.onload = async () => {
       const { data: { session } } = await _supabase.auth.getSession();
       if (session) {
         showDashboard();
+      } else {
+        document.getElementById('login-box').style.display = 'block';
+        document.getElementById('admin-dashboard').style.display = 'none';
       }
     };
 
@@ -297,20 +912,37 @@
     async function handleLogout() {
       await _supabase.auth.signOut();
       alert('로그아웃 되었습니다.');
+      document.getElementById('admin-dashboard').style.display = 'none';
+      document.getElementById('login-box').style.display = 'block';
       location.reload();
     }
 
     function showDashboard() {
       document.getElementById('login-box').style.display = 'none';
-      document.getElementById('admin-dashboard').style.display = 'block';
+      document.getElementById('admin-dashboard').style.display = 'flex';
       loadAllData();
     }
 
     function switchTab(tabId, element) {
       document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
       document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      element.classList.add('active');
+      
+      const targetSec = document.getElementById(tabId);
+      if(targetSec) targetSec.classList.add('active');
+      if (element) element.classList.add('active');
+
+      if (tabId === 'schedule-tab') {
+        renderAdminCalendar();
+      }
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleMobileDrawer() {
+      const drawer = document.getElementById('mobileDrawer');
+      const overlay = document.getElementById('drawerOverlay');
+      drawer.classList.toggle('open');
+      overlay.classList.toggle('open');
     }
 
     async function uploadImage(fileInput, targetInputId) {
@@ -341,22 +973,25 @@
       fileInput.value = '';
     }
 
+    // 데이터 전체 로드
     async function loadAllData() {
-      const { data: cats } = await _supabase.from('categories').select('*');
+      const { data: cats } = await _supabase
+        .from('categories')
+        .select('*')
+        .order('display_order', { ascending: true });
       allCategories = cats || [];
-      setupAdminCategoryFilterButtons();
 
       const { data: teas, error: teaErr } = await _supabase
         .from('teas')
         .select(`
-          id,
-          name,
-          temp,
-          description,
-          is_opened,
+          *,
           tea_categories (
             category_id,
-            categories ( id, name )
+            categories (
+              id,
+              name,
+              display_order
+            )
           )
         `);
 
@@ -368,73 +1003,131 @@
 
       const { data: intros } = await _supabase.from('intro_sections').select('*').order('section_order', { ascending: true });
       allIntros = intros || [];
-      renderAdminIntroList(allIntros);
+      
+      // 소개글 목록 각각 렌더링
+      renderTeaIntroList(allIntros.filter(i => i.category === 'tea'));
+      renderClubIntroList(allIntros.filter(i => i.category === 'club'));
 
-      const { data: schs } = await _supabase.from('schedules').select('*');
-      document.getElementById('admin-schedule-list').innerHTML = (schs || []).map(s => `
-        <div class="item-card">
-          <div>
-            <h4>${s.month || s.date || ''}</h4>
-            <p style="font-size:0.9rem; font-weight:bold; margin-top:4px;">${s.title || ''}</p>
-            ${s.image_url ? `<img src="${s.image_url}" style="width:100%; height:100px; object-fit:cover; border-radius:6px; margin-top:8px;">` : ''}
-          </div>
-          <button class="delete-btn" onclick="deleteItem('schedules', '${s.id}')">삭제</button>
-        </div>
-      `).join('');
+      const { data: schs } = await _supabase.from('schedules').select('*').order('date', { ascending: true });
+      allSchedules = schs || [];
+      renderAdminCalendar();
 
-      const { data: his } = await _supabase.from('history').select('*').order('year', { ascending: true });
-      document.getElementById('admin-history-list').innerHTML = (his || []).map(h => `
-        <div class="item-card">
-          <div>
-            <h4>${h.year || ''}년</h4>
-            <p style="font-size:0.85rem; margin-top:4px;">${h.content || ''}</p>
-          </div>
-          <button class="delete-btn" onclick="deleteItem('history', '${h.id}')">삭제</button>
-        </div>
-      `).join('');
+      const { data: hists } = await _supabase.from('history').select('*').order('year', { ascending: true });
+      allHistories = hists || [];
+      renderAdminHistoryList(allHistories);
+
+      const { data: maps } = await _supabase.from('tea_map').select('*').order('created_at', { ascending: false });
+      allTeaMaps = maps || [];
+      renderAdminTeaMapList(allTeaMaps);
+
+      const { data: wares } = await _supabase.from('tea_ware').select('*').order('display_order', { ascending: true });
+      allTeaWares = wares || [];
+      renderAdminTeaWareList(allTeaWares);
+    }
+
+    function getTeaCategoriesData(tea) {
+      if (!tea || !tea.tea_categories) return { names: [], ids: [] };
+      const names = [];
+      const ids = [];
+      tea.tea_categories.forEach(tc => {
+        if (tc.categories) {
+          names.push(tc.categories.name);
+          ids.push(tc.categories.id);
+        }
+      });
+      return { names, ids };
     }
 
     function setupAdminCategoryFilterButtons() {
       const btnBox = document.getElementById('admin-category-buttons');
-     
-      const registeredCatNames = new Set();
+      const baseMainCategories = ['백차', '녹차', '청차', '황차', '홍차', '흑차', '보이차'];
+
+      const activeCategoryNames = new Set();
       allTeas.forEach(t => {
-        (t.tea_categories || []).forEach(tc => {
-          if (tc.categories?.name) registeredCatNames.add(tc.categories.name);
-        });
+        const { names } = getTeaCategoriesData(t);
+        names.forEach(n => activeCategoryNames.add(n));
       });
 
-      const fixedCategories = PREFERRED_ORDER;
-      const middleCategories = Array.from(registeredCatNames).filter(cat =>
-        !PREFERRED_ORDER.includes(cat) && cat !== '기타'
-      ).sort();
+      const dynamicCategories = allCategories
+        .map(c => c.name)
+        .filter(name => !baseMainCategories.includes(name) && name !== '기타' && activeCategoryNames.has(name));
 
-      const finalCategories = [...new Set([...fixedCategories, ...middleCategories, '기타'])];
+      const displayCategories = [
+        '전체',
+        ...baseMainCategories,
+        ...dynamicCategories,
+        '기타'
+      ];
 
-      let buttonsHtml = `<button class="admin-filter-btn ${currentAdminCategory === '전체' ? 'active' : ''}" onclick="selectAdminCategory('전체', this)">전체</button>`;
-     
-      buttonsHtml += finalCategories.map(catName => `
-        <button class="admin-filter-btn ${catName === currentAdminCategory ? 'active' : ''}" onclick="selectAdminCategory('${catName}', this)">${catName}</button>
-      `).join('');
+      const isAllSelected = adminFilterState.selectedCategory === null && adminFilterState.excludes.size === 0;
+
+      const buttonsHtml = displayCategories.map(catName => {
+        let activeClass = '';
+        if (catName === '전체') {
+          if (isAllSelected) activeClass = 'active';
+        } else {
+          if (adminFilterState.selectedCategory === catName) {
+            activeClass = 'active';
+          } else if (adminFilterState.excludes.has(catName)) {
+            activeClass = 'exclude disabled';
+          }
+        }
+        return `<button class="admin-filter-btn ${activeClass}" onclick="selectAdminCategory('${catName}')">${catName}</button>`;
+      }).join('');
      
       btnBox.innerHTML = buttonsHtml;
     }
 
-    function selectAdminCategory(categoryName, element) {
-      document.querySelectorAll('.admin-filter-btn').forEach(btn => btn.classList.remove('active'));
-      element.classList.add('active');
-      currentAdminCategory = categoryName;
+    function selectAdminCategory(categoryName) {
+      if (categoryName === '전체') {
+        adminFilterState.selectedCategory = null;
+        adminFilterState.excludes.clear();
+      } else {
+        if (adminFilterState.selectedCategory === categoryName) {
+          adminFilterState.selectedCategory = null;
+          adminFilterState.excludes.add(categoryName);
+        } else if (adminFilterState.excludes.has(categoryName)) {
+          adminFilterState.excludes.delete(categoryName);
+        } else {
+          adminFilterState.selectedCategory = categoryName;
+          adminFilterState.excludes.delete(categoryName);
+        }
+      }
+
+      setupAdminCategoryFilterButtons();
       applyAdminFilters();
     }
 
     function applyAdminFilters() {
       const search = document.getElementById('admin-search-input').value.toLowerCase().trim();
+      const baseMainCategories = ['백차', '녹차', '청차', '황차', '홍차', '흑차', '보이차'];
+
       const filtered = allTeas.filter(t => {
-        const catNames = (t.tea_categories || []).map(tc => tc.categories?.name).filter(Boolean);
-        const matchesCategory = (currentAdminCategory === '전체' || catNames.includes(currentAdminCategory));
+        const { names } = getTeaCategoriesData(t);
+
+        for (const exCat of adminFilterState.excludes) {
+          if (exCat === '기타') {
+            const hasBaseCat = names.some(n => baseMainCategories.includes(n));
+            if (!hasBaseCat) return false;
+          } else {
+            if (names.includes(exCat)) return false;
+          }
+        }
+
+        if (adminFilterState.selectedCategory) {
+          const selCat = adminFilterState.selectedCategory;
+          if (selCat === '기타') {
+            const hasBaseCat = names.some(n => baseMainCategories.includes(n));
+            if (hasBaseCat) return false;
+          } else {
+            if (!names.includes(selCat)) return false;
+          }
+        }
+
         const matchesSearch = (t.name || '').toLowerCase().includes(search);
-        return matchesCategory && matchesSearch;
+        return matchesSearch;
       });
+
       renderAdminTeaList(filtered);
     }
 
@@ -445,22 +1138,27 @@
         return;
       }
       listContainer.innerHTML = teas.map(t => {
-        const catNames = (t.tea_categories || []).map(tc => tc.categories?.name).filter(Boolean).join(', ');
-        const isOpened = t.is_opened === true;
-        const statusBadge = isOpened
-          ? `<span class="status-badge status-opened">개봉</span>`
-          : `<span class="status-badge status-unopened">미개봉</span>`;
+        const { names } = getTeaCategoriesData(t);
+        const catNameStr = names.length > 0 ? names.join(', ') : '분류 없음';
+        
+        let statusBadge = '';
+        if (t.is_opened === true) {
+          statusBadge = `<span class="status-badge status-opened">개봉</span>`;
+        } else {
+          statusBadge = `<span class="status-badge status-unopened">미개봉</span>`;
+        }
 
         return `
           <div class="item-card">
             <div>
-              <h4>${t.name || ''} ${statusBadge} <span style="font-size:0.8rem; color:#2d5a45;">[${catNames || '분류 없음'}]</span></h4>
-              <p style="font-size:0.85rem; color:#64748b; margin-top:4px;">온도: ${t.temp || ''}</p>
-              <p style="font-size:0.80rem; color:#4a5568; margin-top:4px;">${t.description || ''}</p>
+              <h4 style="font-size:1.1rem; color:#1b382b; font-weight:800;">${t.name || ''} ${statusBadge}</h4>
+              <p style="font-size:0.8rem; color:#2d5a45; font-weight:bold; margin-top:2px;">[${catNameStr}]</p>
+              <p style="font-size:0.85rem; color:#64748b; margin-top:4px;">적정 온도: ${t.temp || ''}</p>
+              <p style="font-size:0.82rem; color:#4a5568; margin-top:4px; line-height:1.4;">${t.description || ''}</p>
             </div>
             <div class="card-actions">
               <button class="edit-btn" onclick="prepareEditTea('${t.id}')">수정</button>
-              <button class="delete-btn" onclick="deleteItem('teas', '${t.id}')">삭제</button>
+              <button class="delete-btn" onclick="deleteTeaItem('${t.id}')">삭제</button>
             </div>
           </div>
         `;
@@ -474,10 +1172,12 @@
       document.getElementById('tea-name').value = tea.name || '';
       document.getElementById('tea-temp').value = tea.temp || '';
       document.getElementById('tea-desc').value = tea.description || '';
-      document.getElementById('tea-is-opened').checked = tea.is_opened === true;
+      document.getElementById('tea-img-url').value = tea.image_url || '';
+
+      document.getElementById('tea-status-select').value = tea.is_opened ? 'opened' : 'unopened';
      
-      const catNames = (tea.tea_categories || []).map(tc => tc.categories?.name).filter(Boolean).join(', ');
-      document.getElementById('tea-categories-input').value = catNames;
+      const { names } = getTeaCategoriesData(tea);
+      document.getElementById('tea-category-input').value = names.join(', ');
 
       document.getElementById('tea-form-title').innerText = '✏️ 차 정보 수정';
       document.getElementById('tea-submit-btn').innerText = '수정 완료하기';
@@ -488,91 +1188,85 @@
     function resetTeaForm() {
       document.getElementById('tea-id').value = '';
       document.getElementById('tea-form').reset();
+
       document.getElementById('tea-form-title').innerText = '🍵 새 차 등록';
       document.getElementById('tea-submit-btn').innerText = 'DB에 차 추가하기';
       document.getElementById('tea-cancel-btn').style.display = 'none';
     }
 
-    async function getOrCreateCategoryId(catName) {
-      const trimmed = catName.trim();
-      if (!trimmed) return null;
+    async function getOrCreateCategoryIds(rawCategoryString) {
+      const catNames = rawCategoryString.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      const categoryIds = [];
 
-      const { data: existing } = await _supabase
-        .from('categories')
-        .select('id')
-        .eq('name', trimmed)
-        .single();
+      for (const name of catNames) {
+        let existing = allCategories.find(c => c.name === name);
+        
+        if (existing) {
+          categoryIds.push(existing.id);
+        } else {
+          const { data: newCat, error } = await _supabase
+            .from('categories')
+            .insert([{ name: name, display_order: allCategories.length + 1 }])
+            .select('*');
 
-      if (existing) {
-        return existing.id;
+          if (error) {
+            console.error('카테고리 자동 추가 실패:', error);
+          } else if (newCat && newCat.length > 0) {
+            categoryIds.push(newCat[0].id);
+            allCategories.push(newCat[0]);
+          }
+        }
       }
 
-      const { data: inserted, error } = await _supabase
-        .from('categories')
-        .insert([{ name: trimmed }])
-        .select('id')
-        .single();
-
-      if (error) {
-        console.error('카테고리 생성 실패:', error);
-        return null;
-      }
-      return inserted.id;
+      return categoryIds;
     }
 
     async function saveTea(e) {
       e.preventDefault();
       const id = document.getElementById('tea-id').value;
-      const name = document.getElementById('tea-name').value;
+      const name = document.getElementById('tea-name').value.trim();
      
       let rawTemp = document.getElementById('tea-temp').value.trim();
       const temp = /^\d+$/.test(rawTemp) ? rawTemp + '℃' : rawTemp;
 
       const description = document.getElementById('tea-desc').value;
-      const is_opened = document.getElementById('tea-is-opened').checked;
-      const categoriesInput = document.getElementById('tea-categories-input').value;
+      const statusValue = document.getElementById('tea-status-select').value;
+      const image_url = document.getElementById('tea-img-url').value;
+      const rawCategoryInput = document.getElementById('tea-category-input').value;
 
-      const catNameList = categoriesInput.split(',').map(s => s.trim()).filter(Boolean);
-
-      if (catNameList.length === 0) {
-        alert('최소 하나 이상의 카테고리를 입력해주세요.');
+      if (!rawCategoryInput.trim()) {
+        alert('카테고리를 1개 이상 입력해주세요.');
         return;
       }
 
-      let teaId = id;
+      const targetCategoryIds = await getOrCreateCategoryIds(rawCategoryInput);
+      const is_opened = statusValue === 'opened';
+
+      const teaData = { name, temp, description, is_opened, image_url };
+
+      let targetTeaId = id;
 
       if (id) {
-        const { error: updateErr } = await _supabase.from('teas').update({ name, temp, description, is_opened }).eq('id', id);
-        if (updateErr) {
-          alert('수정 실패: ' + updateErr.message);
-          return;
-        }
+        const { error: updateErr } = await _supabase.from('teas').update(teaData).eq('id', id);
+        if (updateErr) return alert('수정 실패: ' + updateErr.message);
+
         await _supabase.from('tea_categories').delete().eq('tea_id', id);
       } else {
-        const { data: newTea, error: insertErr } = await _supabase.from('teas').insert([{ name, temp, description, is_opened }]).select().single();
-        if (insertErr) {
-          alert('등록 실패: ' + insertErr.message);
-          return;
-        }
-        teaId = newTea.id;
-      }
-
-      const mappingRows = [];
-      for (const catName of catNameList) {
-        const catId = await getOrCreateCategoryId(catName);
-        if (catId) {
-          mappingRows.push({
-            tea_id: teaId,
-            category_id: catId
-          });
+        const { data: newTea, error: insertErr } = await _supabase.from('teas').insert([teaData]).select('*');
+        if (insertErr) return alert('등록 실패: ' + insertErr.message);
+        if (newTea && newTea.length > 0) {
+          targetTeaId = newTea[0].id;
         }
       }
 
-      if (mappingRows.length > 0) {
-        const { error: mapErr } = await _supabase.from('tea_categories').insert(mappingRows);
-        if (mapErr) {
-          alert('카테고리 연결 실패: ' + mapErr.message);
-          return;
+      if (targetTeaId && targetCategoryIds.length > 0) {
+        const relationPayload = targetCategoryIds.map(catId => ({
+          tea_id: targetTeaId,
+          category_id: catId
+        }));
+        const { error: relErr } = await _supabase.from('tea_categories').insert(relationPayload);
+        if (relErr) {
+          alert('카테고리 연동 오류: ' + relErr.message);
         }
       }
 
@@ -581,115 +1275,556 @@
       loadAllData();
     }
 
-    function renderAdminIntroList(intros) {
-      const container = document.getElementById('admin-intro-list');
-      if (!intros || intros.length === 0) {
-        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 소개글이 없습니다.</p>';
+    async function deleteTeaItem(teaId) {
+      if (!confirm('정말 이 차를 삭제하시겠습니까?')) return;
+      
+      const { error: relErr } = await _supabase.from('tea_categories').delete().eq('tea_id', teaId);
+      if (relErr) {
+        alert('카테고리 연동 데이터 삭제 실패: ' + relErr.message);
         return;
       }
-      container.innerHTML = intros.map(sec => `
+
+      const { error: teaErr } = await _supabase.from('teas').delete().eq('id', teaId);
+      if (teaErr) {
+        alert('차 삭제 실패: ' + teaErr.message);
+        return;
+      }
+
+      alert('성공적으로 삭제되었습니다.');
+      loadAllData();
+    }
+
+    /* -------------------------------------------------------------
+       📅 어드민 일정 관리 캘린더 로직 (좌측 달력 / 우측 상세 및 수정)
+    ------------------------------------------------------------- */
+    function renderAdminCalendar() {
+      const monthYearElem = document.getElementById('admin-cal-month-year');
+      const gridElem = document.getElementById('admin-calendar-grid');
+      if (!gridElem || !monthYearElem) return;
+
+      monthYearElem.innerText = `${adminCurrentYear}년 ${adminCurrentMonth + 1}월`;
+
+      const firstDay = new Date(adminCurrentYear, adminCurrentMonth, 1).getDay();
+      const daysInMonth = new Date(adminCurrentYear, adminCurrentMonth + 1, 0).getDate();
+
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+
+      for (let i = 0; i < firstDay; i++) {
+        html += `<div class="cal-day empty"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const monthStr = String(adminCurrentMonth + 1).padStart(2, '0');
+        const dayStr = String(day).padStart(2, '0');
+        const dateKey = `${adminCurrentYear}-${monthStr}-${dayStr}`;
+
+        const dayEvents = allSchedules.filter(s => s.date === dateKey);
+        const isSelected = (dateKey === adminSelectedDateStr);
+
+        let badgesHtml = '';
+        dayEvents.forEach(e => {
+          badgesHtml += `<div class="cal-event-badge" title="${e.title}">${e.title}</div>`;
+        });
+
+        html += `
+          <div class="cal-day ${isSelected ? 'selected' : ''}" onclick="selectAdminDate('${dateKey}')">
+            <span class="cal-day-num">${day}</span>
+            ${badgesHtml}
+          </div>
+        `;
+      }
+
+      gridElem.innerHTML = html;
+
+      // 선택된 날짜가 있다면 우측 세부사항 갱신
+      if (adminSelectedDateStr) {
+        renderAdminScheduleDetail(adminSelectedDateStr);
+      } else {
+        // 기본값: 오늘 날짜
+        const todayStr = new Date().toISOString().split('T')[0];
+        selectAdminDate(todayStr);
+      }
+    }
+
+    function prevAdminMonth() {
+      adminCurrentMonth--;
+      if (adminCurrentMonth < 0) {
+        adminCurrentMonth = 11;
+        adminCurrentYear--;
+      }
+      renderAdminCalendar();
+    }
+
+    function nextAdminMonth() {
+      adminCurrentMonth++;
+      if (adminCurrentMonth > 11) {
+        adminCurrentMonth = 0;
+        adminCurrentYear++;
+      }
+      renderAdminCalendar();
+    }
+
+    function selectAdminDate(dateStr) {
+      adminSelectedDateStr = dateStr;
+      
+      // 입력 폼의 날짜 자동으로 셋팅
+      document.getElementById('sch-date').value = dateStr;
+
+      // 달력 선택 하이라이트 갱신
+      renderAdminCalendar();
+    }
+
+    function renderAdminScheduleDetail(dateStr) {
+      const textElem = document.getElementById('admin-selected-date-text');
+      const container = document.getElementById('admin-selected-date-schedules');
+      if (!textElem || !container) return;
+
+      textElem.innerText = `📌 ${dateStr} 일정 목록`;
+
+      const dayEvents = allSchedules.filter(s => s.date === dateStr);
+
+      if (dayEvents.length === 0) {
+        container.innerHTML = '<p style="color:#64748b; font-size:0.9rem; padding:10px 0;">등록된 일정이 없습니다. 아래 폼을 작성하여 일정을 새로 등록하세요.</p>';
+        return;
+      }
+
+      container.innerHTML = dayEvents.map(s => `
+        <div style="background:#f8faf9; border:1px solid #e2e8f0; border-radius:8px; padding:12px 14px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <h4 style="font-size:0.98rem; color:#1b382b; font-weight:800;">${s.title || ''}</h4>
+            <div style="display:flex; gap:6px;">
+              <button class="edit-btn" onclick="prepareEditSchedule('${s.id}')">수정</button>
+              <button class="delete-btn" onclick="deleteScheduleItem('${s.id}')">삭제</button>
+            </div>
+          </div>
+          ${s.location ? `<p style="font-size:0.83rem; color:#4a5568; margin-top:4px;">📍 장소: ${s.location}</p>` : ''}
+          ${s.desc ? `<p style="font-size:0.82rem; color:#64748b; margin-top:4px; line-height:1.4;">${s.desc}</p>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function prepareAddScheduleForSelectedDate() {
+      resetScheduleForm();
+      if (adminSelectedDateStr) {
+        document.getElementById('sch-date').value = adminSelectedDateStr;
+      }
+    }
+
+    function prepareEditSchedule(id) {
+      const sch = allSchedules.find(s => s.id == id);
+      if (!sch) return;
+      document.getElementById('sch-id').value = sch.id;
+      document.getElementById('sch-date').value = sch.date || '';
+      document.getElementById('sch-title').value = sch.title || '';
+      document.getElementById('sch-location').value = sch.location || '';
+      document.getElementById('sch-desc').value = sch.desc || '';
+
+      document.getElementById('sch-form-title').innerText = '✏️ 일정 내용 수정';
+      document.getElementById('sch-submit-btn').innerText = '수정 완료하기';
+      document.getElementById('sch-cancel-btn').style.display = 'block';
+    }
+
+    function resetScheduleForm() {
+      document.getElementById('sch-id').value = '';
+      document.getElementById('schedule-form').reset();
+      if (adminSelectedDateStr) {
+        document.getElementById('sch-date').value = adminSelectedDateStr;
+      }
+      document.getElementById('sch-form-title').innerText = '✏️ 일정 추가 / 수정 툴';
+      document.getElementById('sch-submit-btn').innerText = '일정 저장하기';
+      document.getElementById('sch-cancel-btn').style.display = 'none';
+    }
+
+    async function saveSchedule(e) {
+      e.preventDefault();
+      const id = document.getElementById('sch-id').value;
+      const date = document.getElementById('sch-date').value.trim();
+      const title = document.getElementById('sch-title').value.trim();
+      const location = document.getElementById('sch-location').value.trim();
+      const desc = document.getElementById('sch-desc').value.trim();
+
+      if (id) {
+        const { error } = await _supabase.from('schedules').update({ date, title, location, desc }).eq('id', id);
+        if (error) return alert('수정 실패: ' + error.message);
+      } else {
+        const { error } = await _supabase.from('schedules').insert([{ date, title, location, desc }]);
+        if (error) return alert('일정 등록 실패: ' + error.message);
+      }
+
+      alert(id ? '일정이 수정되었습니다!' : '일정이 성공적으로 저장되었습니다!');
+      adminSelectedDateStr = date;
+      resetScheduleForm();
+      loadAllData();
+    }
+
+    async function deleteScheduleItem(id) {
+      if (!confirm('정말 이 일정을 삭제하시겠습니까?')) return;
+      const { error } = await _supabase.from('schedules').delete().eq('id', id);
+      if (error) {
+        alert('삭제 실패: ' + error.message);
+        return;
+      }
+      alert('삭제되었습니다.');
+      loadAllData();
+    }
+
+    /* 🍵 다도/차 소개글 관리 함수 */
+    function renderTeaIntroList(intros) {
+      const container = document.getElementById('admin-tea-intro-list');
+      if (!intros || intros.length === 0) {
+        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 다도/차 소개글이 없습니다.</p>';
+        return;
+      }
+      container.innerHTML = intros.map(item => `
         <div class="item-card">
           <div>
-            <h4>[순서 ${sec.section_order || 0}] ${sec.title_kr || '제목 없음'}</h4>
-            <p style="font-size:0.8rem; color:#2d5a45; font-weight:bold;">${sec.subtitle_en || ''}</p>
-            <p style="font-size:0.85rem; color:#4a5568; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${sec.content || ''}</p>
-            ${sec.image_url ? `<img src="${sec.image_url}" style="width:100%; height:100px; object-fit:cover; border-radius:6px; margin-top:8px;">` : ''}
+            <span style="font-size:0.75rem; background:#1b382b; color:#fff; padding:2px 6px; border-radius:4px;">순서: ${item.section_order || 0}</span>
+            <p style="font-size:0.8rem; color:#718096; margin-top:4px;">${item.subtitle_en || ''}</p>
+            <h4 style="font-size:1.05rem; color:#1b382b; font-weight:800;">${item.title_kr || ''}</h4>
+            <p style="font-size:0.82rem; color:#4a5568; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${item.content || ''}</p>
           </div>
           <div class="card-actions">
-            <button class="edit-btn" onclick="prepareEditIntro('${sec.id}')">수정</button>
-            <button class="delete-btn" onclick="deleteItem('intro_sections', '${sec.id}')">삭제</button>
+            <button class="edit-btn" onclick="prepareEditTeaIntro('${item.id}')">수정</button>
+            <button class="delete-btn" onclick="deleteItem('intro_sections', '${item.id}')">삭제</button>
           </div>
         </div>
       `).join('');
     }
 
-    function prepareEditIntro(id) {
-      const sec = allIntros.find(i => i.id == id);
-      if (!sec) return;
-      document.getElementById('intro-id').value = sec.id;
-      document.getElementById('intro-order').value = sec.section_order || 1;
-      document.getElementById('intro-sub-en').value = sec.subtitle_en || '';
-      document.getElementById('intro-title-kr').value = sec.title_kr || '';
-      document.getElementById('intro-bg-type').value = sec.bg_type || 'light';
-      document.getElementById('intro-content').value = sec.content || '';
-      document.getElementById('intro-img').value = sec.image_url || '';
+    function prepareEditTeaIntro(id) {
+      const intro = allIntros.find(i => i.id == id);
+      if (!intro) return;
+      document.getElementById('tea-intro-id').value = intro.id;
+      document.getElementById('tea-intro-order').value = intro.section_order || 1;
+      document.getElementById('tea-intro-sub-en').value = intro.subtitle_en || '';
+      document.getElementById('tea-intro-title-kr').value = intro.title_kr || '';
+      document.getElementById('tea-intro-bg-type').value = intro.bg_type || 'light';
+      document.getElementById('tea-intro-content').value = intro.content || '';
+      document.getElementById('tea-intro-img').value = intro.image_url || '';
 
-      document.getElementById('intro-form-title').innerText = '✏️ 소개글 수정';
-      document.getElementById('intro-submit-btn').innerText = '수정 완료하기';
-      document.getElementById('intro-cancel-btn').style.display = 'block';
+      document.getElementById('tea-intro-form-title').innerText = '✏️ 다도/차 소개글 수정';
+      document.getElementById('tea-intro-submit-btn').innerText = '수정 완료하기';
+      document.getElementById('tea-intro-cancel-btn').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function resetIntroForm() {
-      document.getElementById('intro-id').value = '';
-      document.getElementById('intro-form').reset();
-      document.getElementById('intro-form-title').innerText = '📜 새 소개글 등록';
-      document.getElementById('intro-submit-btn').innerText = '소개글 추가하기';
-      document.getElementById('intro-cancel-btn').style.display = 'none';
+    function resetTeaIntroForm() {
+      document.getElementById('tea-intro-id').value = '';
+      document.getElementById('tea-intro-form').reset();
+      document.getElementById('tea-intro-form-title').innerText = '🍵 새 다도/차 소개글 등록';
+      document.getElementById('tea-intro-submit-btn').innerText = '다도/차 소개글 저장하기';
+      document.getElementById('tea-intro-cancel-btn').style.display = 'none';
     }
 
-    async function saveIntro(e) {
+    async function saveTeaIntro(e) {
       e.preventDefault();
-      const id = document.getElementById('intro-id').value;
-      const payload = {
-        section_order: parseInt(document.getElementById('intro-order').value, 10),
-        subtitle_en: document.getElementById('intro-sub-en').value,
-        title_kr: document.getElementById('intro-title-kr').value,
-        bg_type: document.getElementById('intro-bg-type').value,
-        content: document.getElementById('intro-content').value,
-        image_url: document.getElementById('intro-img').value
-      };
+      const id = document.getElementById('tea-intro-id').value;
+      const category = 'tea';
+      const section_order = parseInt(document.getElementById('tea-intro-order').value) || 1;
+      const subtitle_en = document.getElementById('tea-intro-sub-en').value;
+      const title_kr = document.getElementById('tea-intro-title-kr').value;
+      const bg_type = document.getElementById('tea-intro-bg-type').value;
+      const content = document.getElementById('tea-intro-content').value;
+      const image_url = document.getElementById('tea-intro-img').value;
 
-      let error = id
-        ? (await _supabase.from('intro_sections').update(payload).eq('id', id)).error
-        : (await _supabase.from('intro_sections').insert([payload])).error;
+      const payload = { category, section_order, subtitle_en, title_kr, bg_type, content, image_url };
 
-      if (error) alert('저장 실패: ' + error.message);
-      else {
-        alert(id ? '소개글이 수정되었습니다!' : '새로운 소개글이 등록되었습니다!');
-        resetIntroForm();
-        loadAllData();
+      if (id) {
+        const { error } = await _supabase.from('intro_sections').update(payload).eq('id', id);
+        if (error) return alert('수정 실패: ' + error.message);
+      } else {
+        const { error } = await _supabase.from('intro_sections').insert([payload]);
+        if (error) return alert('등록 실패: ' + error.message);
       }
+
+      alert(id ? '다도/차 소개글이 수정되었습니다!' : '새 다도/차 소개글이 저장되었습니다!');
+      resetTeaIntroForm();
+      loadAllData();
     }
 
-    async function saveSchedule(e) {
-      e.preventDefault();
-      const { error } = await _supabase.from('schedules').insert([{
-        month: document.getElementById('sch-month').value,
-        title: document.getElementById('sch-title').value,
-        image_url: document.getElementById('sch-img').value
-      }]);
-      if (error) alert('등록 실패: ' + error.message);
-      else {
-        alert('일정 등록 완료!');
-        document.getElementById('sch-month').value = '';
-        document.getElementById('sch-title').value = '';
-        document.getElementById('sch-img').value = '';
-        loadAllData();
+    /* 🎋 동아리 소개글 관리 함수 */
+    function renderClubIntroList(intros) {
+      const container = document.getElementById('admin-club-intro-list');
+      if (!intros || intros.length === 0) {
+        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 동아리 소개글이 없습니다.</p>';
+        return;
       }
+      container.innerHTML = intros.map(item => `
+        <div class="item-card">
+          <div>
+            <span style="font-size:0.75rem; background:#1b382b; color:#fff; padding:2px 6px; border-radius:4px;">순서: ${item.section_order || 0}</span>
+            <p style="font-size:0.8rem; color:#718096; margin-top:4px;">${item.subtitle_en || ''}</p>
+            <h4 style="font-size:1.05rem; color:#1b382b; font-weight:800;">${item.title_kr || ''}</h4>
+            <p style="font-size:0.82rem; color:#4a5568; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${item.content || ''}</p>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" onclick="prepareEditClubIntro('${item.id}')">수정</button>
+            <button class="delete-btn" onclick="deleteItem('intro_sections', '${item.id}')">삭제</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function prepareEditClubIntro(id) {
+      const intro = allIntros.find(i => i.id == id);
+      if (!intro) return;
+      document.getElementById('club-intro-id').value = intro.id;
+      document.getElementById('club-intro-order').value = intro.section_order || 1;
+      document.getElementById('club-intro-sub-en').value = intro.subtitle_en || '';
+      document.getElementById('club-intro-title-kr').value = intro.title_kr || '';
+      document.getElementById('club-intro-bg-type').value = intro.bg_type || 'light';
+      document.getElementById('club-intro-content').value = intro.content || '';
+      document.getElementById('club-intro-img').value = intro.image_url || '';
+
+      document.getElementById('club-intro-form-title').innerText = '✏️ 동아리 소개글 수정';
+      document.getElementById('club-intro-submit-btn').innerText = '수정 완료하기';
+      document.getElementById('club-intro-cancel-btn').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetClubIntroForm() {
+      document.getElementById('club-intro-id').value = '';
+      document.getElementById('club-intro-form').reset();
+      document.getElementById('club-intro-form-title').innerText = '🎋 새 동아리 소개글 등록';
+      document.getElementById('club-intro-submit-btn').innerText = '동아리 소개글 저장하기';
+      document.getElementById('club-intro-cancel-btn').style.display = 'none';
+    }
+
+    async function saveClubIntro(e) {
+      e.preventDefault();
+      const id = document.getElementById('club-intro-id').value;
+      const category = 'club';
+      const section_order = parseInt(document.getElementById('club-intro-order').value) || 1;
+      const subtitle_en = document.getElementById('club-intro-sub-en').value;
+      const title_kr = document.getElementById('club-intro-title-kr').value;
+      const bg_type = document.getElementById('club-intro-bg-type').value;
+      const content = document.getElementById('club-intro-content').value;
+      const image_url = document.getElementById('club-intro-img').value;
+
+      const payload = { category, section_order, subtitle_en, title_kr, bg_type, content, image_url };
+
+      if (id) {
+        const { error } = await _supabase.from('intro_sections').update(payload).eq('id', id);
+        if (error) return alert('수정 실패: ' + error.message);
+      } else {
+        const { error } = await _supabase.from('intro_sections').insert([payload]);
+        if (error) return alert('등록 실패: ' + error.message);
+      }
+
+      alert(id ? '동아리 소개글이 수정되었습니다!' : '새 동아리 소개글이 저장되었습니다!');
+      resetClubIntroForm();
+      loadAllData();
+    }
+
+    /* 🗺️ 차 지도 관리 함수 */
+    function renderAdminTeaMapList(maps) {
+      const container = document.getElementById('admin-tea-map-list');
+      if (!maps || maps.length === 0) {
+        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 차 지도 정보가 없습니다.</p>';
+        return;
+      }
+      container.innerHTML = maps.map(m => `
+        <div class="item-card">
+          <div>
+            <span style="font-size:0.75rem; background:#1b382b; color:#fff; padding:2px 6px; border-radius:4px;">${m.region || ''}</span>
+            <h4 style="font-size:1.05rem; color:#1b382b; font-weight:800; margin-top:4px;">${m.title || ''}</h4>
+            <p style="font-size:0.82rem; color:#4a5568; margin-top:6px;">${m.description || ''}</p>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" onclick="prepareEditTeaMap('${m.id}')">수정</button>
+            <button class="delete-btn" onclick="deleteItem('tea_map', '${m.id}')">삭제</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function prepareEditTeaMap(id) {
+      const map = allTeaMaps.find(m => m.id == id);
+      if (!map) return;
+      document.getElementById('tea-map-id').value = map.id;
+      document.getElementById('tea-map-region').value = map.region || '';
+      document.getElementById('tea-map-title').value = map.title || '';
+      document.getElementById('tea-map-desc').value = map.description || '';
+      document.getElementById('tea-map-img').value = map.image_url || '';
+
+      document.getElementById('tea-map-form-title').innerText = '✏️ 차 지도 정보 수정';
+      document.getElementById('tea-map-submit-btn').innerText = '수정 완료하기';
+      document.getElementById('tea-map-cancel-btn').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetTeaMapForm() {
+      document.getElementById('tea-map-id').value = '';
+      document.getElementById('tea-map-form').reset();
+      document.getElementById('tea-map-form-title').innerText = '🗺️ 새 차 산지/명소 등록';
+      document.getElementById('tea-map-submit-btn').innerText = '차 지도 저장하기';
+      document.getElementById('tea-map-cancel-btn').style.display = 'none';
+    }
+
+    async function saveTeaMap(e) {
+      e.preventDefault();
+      const id = document.getElementById('tea-map-id').value;
+      const region = document.getElementById('tea-map-region').value;
+      const title = document.getElementById('tea-map-title').value;
+      const description = document.getElementById('tea-map-desc').value;
+      const image_url = document.getElementById('tea-map-img').value;
+
+      const payload = { region, title, description, image_url };
+
+      if (id) {
+        const { error } = await _supabase.from('tea_map').update(payload).eq('id', id);
+        if (error) return alert('수정 실패: ' + error.message);
+      } else {
+        const { error } = await _supabase.from('tea_map').insert([payload]);
+        if (error) return alert('등록 실패: ' + error.message);
+      }
+
+      alert(id ? '차 지도 정보가 수정되었습니다!' : '새 차 지도 정보가 저장되었습니다!');
+      resetTeaMapForm();
+      loadAllData();
+    }
+
+    /* 🍵 다구 사용법 관리 함수 */
+    function renderAdminTeaWareList(wares) {
+      const container = document.getElementById('admin-tea-ware-list');
+      if (!wares || wares.length === 0) {
+        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 다구 사용법 정보가 없습니다.</p>';
+        return;
+      }
+      container.innerHTML = wares.map(w => `
+        <div class="item-card">
+          <div>
+            <span style="font-size:0.75rem; background:#1b382b; color:#fff; padding:2px 6px; border-radius:4px;">순서: ${w.display_order || 1}</span>
+            <p style="font-size:0.8rem; color:#718096; margin-top:4px;">${w.subtitle || ''}</p>
+            <h4 style="font-size:1.05rem; color:#1b382b; font-weight:800;">${w.name || ''}</h4>
+            <p style="font-size:0.82rem; color:#4a5568; margin-top:6px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${w.description || ''}</p>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" onclick="prepareEditTeaWare('${w.id}')">수정</button>
+            <button class="delete-btn" onclick="deleteItem('tea_ware', '${w.id}')">삭제</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function prepareEditTeaWare(id) {
+      const ware = allTeaWares.find(w => w.id == id);
+      if (!ware) return;
+      document.getElementById('tea-ware-id').value = ware.id;
+      document.getElementById('tea-ware-order').value = ware.display_order || 1;
+      document.getElementById('tea-ware-name').value = ware.name || '';
+      document.getElementById('tea-ware-sub').value = ware.subtitle || '';
+      document.getElementById('tea-ware-desc').value = ware.description || '';
+      document.getElementById('tea-ware-img').value = ware.image_url || '';
+
+      document.getElementById('tea-ware-form-title').innerText = '✏️ 다구 사용법 수정';
+      document.getElementById('tea-ware-submit-btn').innerText = '수정 완료하기';
+      document.getElementById('tea-ware-cancel-btn').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetTeaWareForm() {
+      document.getElementById('tea-ware-id').value = '';
+      document.getElementById('tea-ware-form').reset();
+      document.getElementById('tea-ware-form-title').innerText = '🍵 새 다구 사용법 등록';
+      document.getElementById('tea-ware-submit-btn').innerText = '다구 사용법 저장하기';
+      document.getElementById('tea-ware-cancel-btn').style.display = 'none';
+    }
+
+    async function saveTeaWare(e) {
+      e.preventDefault();
+      const id = document.getElementById('tea-ware-id').value;
+      const display_order = parseInt(document.getElementById('tea-ware-order').value) || 1;
+      const name = document.getElementById('tea-ware-name').value;
+      const subtitle = document.getElementById('tea-ware-sub').value;
+      const description = document.getElementById('tea-ware-desc').value;
+      const image_url = document.getElementById('tea-ware-img').value;
+
+      const payload = { display_order, name, subtitle, description, image_url };
+
+      if (id) {
+        const { error } = await _supabase.from('tea_ware').update(payload).eq('id', id);
+        if (error) return alert('수정 실패: ' + error.message);
+      } else {
+        const { error } = await _supabase.from('tea_ware').insert([payload]);
+        if (error) return alert('등록 실패: ' + error.message);
+      }
+
+      alert(id ? '다구 사용법이 수정되었습니다!' : '새 다구 사용법이 저장되었습니다!');
+      resetTeaWareForm();
+      loadAllData();
+    }
+
+    function renderAdminHistoryList(histories) {
+      const container = document.getElementById('admin-history-list');
+      if (!histories || histories.length === 0) {
+        container.innerHTML = '<p style="color:#64748b; padding:10px;">등록된 연혁이 없습니다.</p>';
+        return;
+      }
+      container.innerHTML = histories.map(h => `
+        <div class="item-card">
+          <div>
+            <h4 style="font-size:1.1rem; color:#1b382b; font-weight:800;">${h.year || ''}</h4>
+            <p style="font-size:0.9rem; color:#4a5568; margin-top:4px;">${h.content || ''}</p>
+          </div>
+          <div class="card-actions">
+            <button class="edit-btn" onclick="prepareEditHistory('${h.id}')">수정</button>
+            <button class="delete-btn" onclick="deleteItem('history', '${h.id}')">삭제</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function prepareEditHistory(id) {
+      const hist = allHistories.find(h => h.id == id);
+      if (!hist) return;
+      document.getElementById('history-id').value = hist.id;
+      document.getElementById('history-year').value = hist.year || '';
+      document.getElementById('history-content').value = hist.content || '';
+
+      document.getElementById('history-form-title').innerText = '✏️ 연혁 수정';
+      document.getElementById('history-submit-btn').innerText = '수정 완료하기';
+      document.getElementById('history-cancel-btn').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetHistoryForm() {
+      document.getElementById('history-id').value = '';
+      document.getElementById('history-form').reset();
+      document.getElementById('history-form-title').innerText = '🏛️ 새 연혁 등록';
+      document.getElementById('history-submit-btn').innerText = '연혁 등록하기';
+      document.getElementById('history-cancel-btn').style.display = 'none';
     }
 
     async function saveHistory(e) {
       e.preventDefault();
-      const { error } = await _supabase.from('history').insert([{
-        year: document.getElementById('his-year').value,
-        content: document.getElementById('his-content').value
-      }]);
-      if (error) alert('등록 실패: ' + error.message);
-      else {
-        alert('연혁 관리 등록 완료!');
-        document.getElementById('his-year').value = '';
-        document.getElementById('his-content').value = '';
-        loadAllData();
+      const id = document.getElementById('history-id').value;
+      const year = document.getElementById('history-year').value;
+      const content = document.getElementById('history-content').value;
+
+      if (id) {
+        const { error } = await _supabase.from('history').update({ year, content }).eq('id', id);
+        if (error) return alert('수정 실패: ' + error.message);
+      } else {
+        const { error } = await _supabase.from('history').insert([{ year, content }]);
+        if (error) return alert('연혁 등록 실패: ' + error.message);
       }
+
+      alert(id ? '연혁이 수정되었습니다!' : '연혁이 등록되었습니다!');
+      resetHistoryForm();
+      loadAllData();
     }
 
-    async function deleteItem(table, id) {
-      if (confirm('정말 삭제하시겠습니까?')) {
-        const { error } = await _supabase.from(table).delete().eq('id', id);
-        if (error) alert('삭제 실패: ' + error.message);
-        else loadAllData();
+    async function deleteItem(tableName, id) {
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+      const { error } = await _supabase.from(tableName).delete().eq('id', id);
+      if (error) {
+        alert('삭제 실패: ' + error.message);
+        return;
       }
+      alert('삭제되었습니다.');
+      loadAllData();
     }
   </script>
 </body>
