@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차 지도 — 효원다회(曉原茶會)</title>
+<meta name="description" content="하동·보성부터 중국 우이산까지, 세계의 다산지를 지역별로 살펴봅니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     차 지도  v2
+     v2 변경점
+     ① 지역 그룹핑을 Map 으로 (숫자형 지역명 순서 꼬임 방지)
+     ② 위도·경도 0 처리
+     ③ 딥그린 카드 위에서 안 보이던 '지도에서 보기' 링크 보정
+     ④ 탭 번호 어긋남 수정
+     ========================================================= */
+
+  .phead{background:var(--jade-d);padding:clamp(66px,7.5vw,124px) var(--pad) clamp(42px,4.6vw,74px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:18px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.7rem,3.1vw,3rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:#b6c2b5;font-size:.92rem;line-height:2;margin-top:15px;max-width:var(--read)}
+  .phead .vert{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:2;
+    writing-mode:vertical-rl;text-orientation:upright;font-family:var(--serif);
+    font-size:.88rem;letter-spacing:.42em;color:#8d9b8c;opacity:.7}
+  .crumb{padding:18px var(--pad) 0;font-size:.72rem;letter-spacing:.16em}
+  .crumb a{color:var(--sumi);text-decoration:none;border-bottom:1px solid var(--line-2);padding-bottom:3px}
+  .crumb a:hover{color:var(--jade);border-color:var(--jade)}
+
+  /* ---------- 국가 탭 ----------
+     ★ common.css 가 .tb 에 테두리를 !important 로 넣기 때문에
+       공유 테두리 방식은 선이 두 겹으로 보입니다. gap 방식으로 바꿉니다. */
+  .tabs{display:flex;flex-wrap:wrap;gap:clamp(6px,.6vw,10px);
+    margin:clamp(22px,2.6vw,40px) var(--pad) 0}
+  .tb{padding:12px 20px;background:transparent;border:1px solid var(--line);cursor:pointer;
+    font-family:inherit;display:inline-flex;align-items:baseline;gap:9px;transition:all .2s}
+  .tb em{font-style:normal;font-size:.62rem;letter-spacing:.18em;color:var(--sumi);opacity:.8}
+  .tb span{font-size:.84rem;letter-spacing:.1em;color:var(--sumi)}
+  .tb:hover{background:var(--cream-2)}
+  .tb.on{background:var(--jade);border-color:var(--jade)}
+  .tb.on em,.tb.on span{color:var(--ivory);opacity:1}
+  .tb:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+
+  .cntinfo{display:block;padding:14px var(--pad) 0;
+    font-size:.72rem;letter-spacing:.16em;color:var(--sumi)}
+
+  .body{padding:clamp(20px,2.4vw,42px) var(--pad) clamp(60px,6vw,100px)}
+  .grp{margin-bottom:clamp(38px,4.2vw,70px)}
+  .grp h3{font-family:var(--serif);font-size:1.12rem;font-weight:500;color:var(--ink);
+    letter-spacing:.12em;padding-bottom:14px;margin-bottom:0;
+    border-bottom:1px solid var(--line);display:flex;justify-content:space-between;
+    align-items:baseline;gap:12px}
+  .grp h3 small{font-size:.66rem;letter-spacing:.22em;color:var(--sumi);font-weight:400;flex:none}
+
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));
+    gap:1px;background:var(--line);border:1px solid var(--line);border-top:none}
+  .sp{background:var(--cream);display:flex;flex-direction:column;transition:background .22s}
+  .sp:hover{background:var(--cream-2)}
+  .sp img{width:100%;height:clamp(140px,10.5vw,176px);object-fit:cover;display:block;filter:saturate(.82)}
+  .sp .ph{height:clamp(140px,10.5vw,176px);background:var(--cream-3);display:flex;
+    align-items:center;justify-content:center;font-family:var(--serif);
+    font-size:1.8rem;color:var(--sumi);letter-spacing:.1em}
+  .sp .in{padding:clamp(16px,1.7vw,24px);flex:1;display:flex;flex-direction:column}
+  .rg{font-size:.64rem;letter-spacing:.2em;color:var(--sumi);margin-bottom:9px}
+  .sp h4{font-family:var(--serif);font-size:1.1rem;font-weight:500;color:var(--jade);
+    letter-spacing:.06em;line-height:1.45;margin-bottom:9px}
+  .sp p{font-size:.86rem;color:var(--sumi);line-height:1.8;flex:1}
+  .mlink{margin-top:16px;font-size:.72rem;letter-spacing:.16em;color:var(--sumi);
+    text-decoration:none;align-self:flex-start;border-bottom:1px solid var(--line-2);padding-bottom:4px}
+  .mlink:hover{color:var(--jade);border-color:var(--jade)}
+
+  /* =========================================================
+     common.css 호환 보정
+     ★ body .sp 가 딥그린 카드로 덮어쓰이는데 .mlink 는 짙은 회색이라
+       거의 보이지 않았습니다. 밝은 쪽으로 돌려놓습니다.
+     ========================================================= */
+  body .sp .mlink{color:var(--ivory) !important;
+    border-bottom-color:rgba(233,228,214,.4) !important}
+  body .sp .mlink:hover{color:var(--gold) !important;
+    border-bottom-color:var(--gold) !important}
+  body .sp h4{color:var(--ivory) !important}
+
+  .msg{color:var(--sumi);font-size:.86rem;line-height:1.9}
+
+  @media(max-width:768px){
+    .phead .vert{display:none}
+    .list{grid-template-columns:1fr}
+    .tb{padding:10px 15px}
+  }
+</style>
+</head>
+<body data-page="dasho">
+
+<div id="hw-header"></div>
+
+<main>
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">ARCHIVE 02 &nbsp;/&nbsp; TEA MAP</div>
+      <h1>찻잎이 자라난<br>땅의 이름들</h1>
+      <p>세계의 다산지(茶産地)와 그곳 차의 성격을 지역별로 살펴봅니다.</p>
+    </div>
+    <div class="vert">茶産地</div>
+  </section>
+
+  <div class="crumb"><a href="dasho.html">茶書 허브로 돌아가기</a></div>
+  <nav class="tabs" id="tabs" aria-label="국가 선택"></nav>
+  <span class="cntinfo" id="cntinfo" aria-live="polite"></span>
+
+  <div class="body" id="body">
+    <p class="msg">불러오는 중…</p>
+  </div>
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+const MSG = t => `<p class="msg">${E(t)}</p>`;
+
+let ROWS = [], country = '전체';
+
+/* =========================================================
+   1. 불러오기
+   ★ v1 은 오류와 "데이터 0건"을 똑같이 처리해
+     권한(RLS) 문제인지 그냥 빈 목록인지 알 수 없었습니다.
+   ========================================================= */
+(async () => {
+  const body = HW.qs('#body');
+  try{
+    ROWS = await HW.api.teaMap();          /* 정렬 규칙은 api.js 한 곳에서 */
+  }catch(err){
+    console.error('[tea-map]', err);
+    body.innerHTML = MSG('차 지도 정보를 불러오지 못했습니다.');
+    return;
+  }
+
+  if(!ROWS.length){
+    body.innerHTML = MSG('등록된 차 지도 정보가 없습니다.');
+    return;
+  }
+
+  /* 국가 탭 — '전체'는 ALL, 국가는 01 부터 (v1 은 번호가 한 칸 밀렸습니다) */
+  const cs = [...new Set(ROWS.map(x => x.country || '기타'))];
+  HW.qs('#tabs').innerHTML =
+    tabHtml('전체', 'ALL', true) +
+    cs.map((c,i) => tabHtml(c, String(i+1).padStart(2,'0'), false)).join('');
+
+  draw();
+})();
+
+function tabHtml(name, no, on){
+  return `<button type="button" class="tb ${on ? 'on' : ''}" data-c="${A(name)}"
+            aria-pressed="${on ? 'true' : 'false'}">
+            <em>${E(no)}</em><span>${E(name)}</span></button>`;
+}
+
+HW.qs('#tabs').addEventListener('click', e => {
+  const b = e.target.closest('.tb'); if(!b) return;
+  country = b.dataset.c;
+  HW.qsa('.tb').forEach(x => {
+    const on = x === b;
+    x.classList.toggle('on', on);
+    x.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  draw();
+});
+
+/* =========================================================
+   2. 그리기
+   ★ v1 버그 : 지역 그룹핑을 {} 로 해서
+     지역명이 "1지구" 같은 숫자형이면 JS 가 정수 키를 먼저 올려
+     sort_order 로 맞춰 온 순서가 통째로 뒤집혔습니다. Map 을 씁니다.
+   ========================================================= */
+function draw(){
+  const rows = country === '전체'
+    ? ROWS
+    : ROWS.filter(x => (x.country || '기타') === country);
+
+  HW.qs('#cntinfo').textContent =
+    `${country} · ${rows.length}곳`;
+
+  if(!rows.length){
+    HW.qs('#body').innerHTML = MSG('이 지역에 등록된 곳이 없습니다.');
+    return;
+  }
+
+  const g = new Map();
+  rows.forEach(x => {
+    const k = x.region || '기타';
+    if(!g.has(k)) g.set(k, []);
+    g.get(k).push(x);
+  });
+
+  HW.qs('#body').innerHTML = [...g.entries()].map(([rg, list]) => `
+    <section class="grp">
+      <h3>${E(rg)}<small>${list.length} PLACES</small></h3>
+      <div class="list">${list.map(card).join('')}</div>
+    </section>`).join('');
+}
+
+function card(s){
+  const pic = s.image_url
+    ? `<img src="${A(s.image_url)}" alt="${A(s.title)}" loading="lazy"
+           onerror="this.outerHTML='&lt;div class=\\'ph\\'&gt;産&lt;/div&gt;'">`
+    : `<div class="ph">産</div>`;
+
+  const where = [s.country, s.region].filter(Boolean).join(' · ');
+
+  return `<article class="sp">
+    ${pic}
+    <div class="in">
+      ${where ? `<div class="rg">${E(where)}</div>` : ''}
+      <h4>${E(s.title)}</h4>
+      <p>${E(s.description || '')}</p>
+      <a class="mlink" href="${A(mapUrl(s))}" target="_blank" rel="noopener"
+         aria-label="${A(s.title + ' 지도에서 보기 (새 창)')}">지도에서 보기 ↗</a>
+    </div>
+  </article>`;
+}
+
+/* =========================================================
+   3. 지도 주소
+   ★ v1 버그 : s.lat && s.lng 는 값이 0 이면 false 가 되어
+     적도·본초자오선 근처 좌표가 통째로 무시됐습니다.
+   ========================================================= */
+function mapUrl(s){
+  const lat = Number(s.lat), lng = Number(s.lng);
+  const q = (Number.isFinite(lat) && Number.isFinite(lng) && !(s.lat === null || s.lng === null))
+    ? `${lat},${lng}`
+    : [s.country, s.region, s.title].filter(Boolean).join(' ');
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+}
+</script>
+</body>
+</html>

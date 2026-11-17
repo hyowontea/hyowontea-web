@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>페이지를 찾을 수 없습니다 — 효원다회(曉原茶會)</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  .nf{min-height:72vh;display:flex;flex-direction:column;justify-content:center;
+    background:var(--jade-d);padding:clamp(70px,8vw,130px) var(--pad);position:relative;overflow:hidden}
+  .nf::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);background-size:28px 28px}
+  .nf-in{position:relative;z-index:2;max-width:var(--read)}
+  .nf .cup{font-family:var(--serif);font-size:clamp(3.4rem,7vw,6rem);color:var(--fog-2);
+    letter-spacing:.14em;line-height:1;opacity:.5;margin-bottom:26px}
+  .nf .sec-no{color:var(--fog-2);margin-bottom:16px}
+  .nf h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.6rem,2.9vw,2.6rem);letter-spacing:.12em;line-height:1.5}
+  .nf p{color:var(--fog);font-size:.94rem;line-height:2;margin:18px 0 clamp(28px,3vw,44px)}
+  .nf .acts{display:flex;gap:10px;flex-wrap:wrap}
+  .nf .acts a,.nf .acts button{font-family:inherit;font-size:.76rem;letter-spacing:.18em;
+    text-decoration:none;padding:14px 28px;border:1px solid rgba(233,228,214,.4);
+    background:transparent;color:var(--ivory);cursor:pointer;transition:all .28s}
+  .nf .acts a:hover,.nf .acts button:hover{background:var(--ivory);color:var(--jade)}
+  @media(max-width:768px){ .nf .acts a,.nf .acts button{flex:1;text-align:center} }
+</style>
+</head>
+<body data-page="404">
+
+<div id="hw-header"></div>
+
+<main>
+  <section class="nf">
+    <div class="nf-in">
+      <div class="cup" data-glyph="empty"></div>
+      <div class="sec-no">ERROR &nbsp;/&nbsp; 404</div>
+      <h1>찻잔은 비어 있고,<br>찾으시는 페이지는 보이지 않습니다</h1>
+      <p>주소가 바뀌었거나 삭제된 글일 수 있습니다.<br>아래 길로 돌아가 주세요.</p>
+      <div class="acts">
+        <a href="index.html">첫 페이지로</a>
+        <button type="button" onclick="history.back()">이전 페이지로</button>
+        <a href="dasho.html">茶書 둘러보기</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/glyph.js"></script>
+<script src="assets/js/layout.js"></script>
+</body>
+</html>

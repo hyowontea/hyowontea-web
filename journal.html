@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학술지 — 효원다회(曉原茶會)</title>
+<meta name="description" content="효원다회가 발간하는 학술지와 회원 투고 글을 모았습니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     학술지 목록  v2
+     v2 변경점
+     ① 호가 지워진 글에서 "제 null 호" 가 찍히던 것 수정
+     ② 로드 전 검색으로 "글이 없습니다" 가 번쩍이던 것 수정
+     ③ 요약문이 통째로 비던 것(본문 컬럼 부재) 폴백 추가
+     ④ 보조 글자 명암비 보정
+     ========================================================= */
+
+  .phead{background:var(--jade-d);padding:clamp(66px,7.5vw,124px) var(--pad) clamp(42px,4.6vw,74px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:18px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.7rem,3.1vw,3rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:#b6c2b5;font-size:.92rem;line-height:2;margin-top:15px;max-width:var(--read)}
+  .phead .vert{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:2;
+    writing-mode:vertical-rl;text-orientation:upright;font-family:var(--serif);
+    font-size:.88rem;letter-spacing:.42em;color:#8d9b8c;opacity:.7}
+
+  /* ---------- 상단 바 ----------
+     ★ common.css 가 .tb 에 테두리를 !important 로 넣어
+       공유 테두리 방식은 선이 두 겹으로 보입니다. gap 방식으로 바꿉니다. */
+  .bar{margin:clamp(22px,2.6vw,40px) var(--pad) 0;display:flex;gap:18px;
+    flex-wrap:wrap;align-items:flex-end}
+  .tabs{display:flex;flex-wrap:wrap;gap:clamp(6px,.6vw,10px)}
+  .tb{padding:11px 20px;background:transparent;border:1px solid var(--line);cursor:pointer;
+    font-family:inherit;font-size:.78rem;letter-spacing:.1em;color:var(--sumi);transition:all .2s}
+  .tb:hover{background:var(--cream-2)}
+  .tb.on{background:var(--jade);color:var(--ivory);border-color:var(--jade)}
+  .tb:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+  .srch{flex:1;min-width:190px;max-width:300px;padding:11px 0;border:none;
+    border-bottom:1px solid var(--line-2);background:transparent;font-family:inherit;
+    font-size:.88rem;color:var(--ink);outline:none;letter-spacing:.04em}
+  .srch:focus{border-color:var(--jade)}
+  .srch::placeholder{color:var(--sumi)}
+  .acts{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .cntinfo{font-size:.72rem;letter-spacing:.16em;color:var(--sumi);white-space:nowrap}
+  .lnkbtn{font-size:.74rem;letter-spacing:.16em;text-decoration:none;padding:11px 20px;
+    border:1px solid var(--line-2);color:var(--sumi);transition:all .25s;white-space:nowrap}
+  .lnkbtn:hover{background:var(--cream-2);color:var(--ink)}
+  .lnkbtn.fill{background:var(--jade);border-color:var(--jade);color:var(--ivory)}
+  .lnkbtn.fill:hover{background:var(--jade-d);color:var(--ivory)}
+
+  .body{padding:clamp(26px,3vw,52px) var(--pad) clamp(60px,6vw,100px)}
+  .grp{margin-bottom:clamp(40px,4.4vw,72px)}
+
+  /* ---------- 호 표지 머리 ---------- */
+  .ghead{display:flex;gap:clamp(16px,1.8vw,28px);align-items:flex-start;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:clamp(18px,2vw,28px) 0;margin-bottom:0}
+  .ghead img{width:84px;height:116px;object-fit:cover;flex:none;filter:saturate(.82)}
+  .ghead .gph{width:84px;height:116px;flex:none;background:var(--cream-3);display:flex;
+    align-items:center;justify-content:center;font-family:var(--serif);
+    font-size:1.5rem;color:var(--sumi);letter-spacing:.1em}
+  .ghead .gin{flex:1;min-width:0}
+  .ghead .gno{font-size:.64rem;letter-spacing:.24em;color:var(--sumi);margin-bottom:9px}
+  .ghead h3{font-family:var(--serif);font-size:clamp(1.05rem,1.4vw,1.3rem);font-weight:500;
+    color:var(--ink);letter-spacing:.1em;line-height:1.5;display:flex;
+    justify-content:space-between;align-items:baseline;gap:12px}
+  .ghead h3 small{font-size:.64rem;letter-spacing:.22em;color:var(--sumi);font-weight:400;flex:none}
+  .ghead .gnote{font-size:.86rem;color:var(--sumi);line-height:1.85;margin-top:8px;
+    overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .ghead .gmeta{font-size:.72rem;letter-spacing:.14em;color:var(--sumi);margin-top:8px}
+
+  /* ---------- 자유 투고 머리 ---------- */
+  .fhead{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:clamp(18px,2vw,26px) 0;display:flex;justify-content:space-between;
+    align-items:baseline;gap:12px}
+  .fhead b{font-family:var(--serif);font-size:1.12rem;font-weight:500;
+    color:var(--ink);letter-spacing:.12em}
+  .fhead small{font-size:.64rem;letter-spacing:.22em;color:var(--sumi);flex:none}
+
+  /* ---------- 글 카드 ---------- */
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));
+    gap:1px;background:var(--line);border:1px solid var(--line);border-top:none}
+  .p{background:var(--cream);display:flex;flex-direction:column;text-decoration:none;
+    color:inherit;transition:background .22s}
+  .p:hover{background:var(--cream-2)}
+  .p:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+  .p img{width:100%;height:clamp(136px,10vw,166px);object-fit:cover;display:block;filter:saturate(.82)}
+  .p .ph{height:clamp(136px,10vw,166px);background:var(--cream-3);display:flex;
+    align-items:center;justify-content:center;font-family:var(--serif);
+    font-size:1.8rem;color:var(--sumi);letter-spacing:.1em}
+  .p .in{padding:clamp(16px,1.7vw,24px);flex:1;display:flex;flex-direction:column}
+  .kd{font-size:.62rem;letter-spacing:.2em;padding:3px 10px;align-self:flex-start;
+    margin-bottom:10px;border:1px solid var(--line-2);color:var(--sumi)}
+  .kd.free{border-color:var(--clay);color:var(--clay)}
+  .p h4{font-family:var(--serif);font-size:1.06rem;font-weight:500;color:var(--jade);
+    letter-spacing:.06em;line-height:1.5;margin-bottom:9px}
+  .p .ex{font-size:.86rem;color:var(--sumi);line-height:1.8;flex:1;
+    overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .p .mt{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:.72rem;letter-spacing:.1em;color:var(--sumi);display:flex;
+    justify-content:space-between;gap:8px}
+
+  /* common.css 가 .p 를 딥그린 카드로 덮어쓰므로 그 위 글자를 밝게 */
+  body .p .mt{color:#9fae9e !important}
+
+  .msg{color:var(--sumi);font-size:.86rem;line-height:1.9}
+
+  @media(max-width:768px){
+    .phead .vert{display:none}
+    .acts{margin-left:0;width:100%}
+    .acts .lnkbtn{flex:1;text-align:center}
+    .list{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body data-page="journal">
+
+<div id="hw-header"></div>
+
+<main>
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">JOURNAL &nbsp;/&nbsp; 學術誌</div>
+      <h1>효원다회가 기록해 온<br>글과 이야기</h1>
+      <p>동아리가 발간한 학술지와 회원 여러분이 보내주신 글을 호(號)별로 묶었습니다.</p>
+    </div>
+    <div class="vert">學術誌</div>
+  </section>
+
+  <div class="bar">
+    <nav class="tabs" id="tabs" aria-label="글 종류 선택"></nav>
+    <input class="srch" id="srch" placeholder="제목 · 글쓴이 검색" aria-label="학술지 글 검색">
+    <div class="acts">
+      <span class="cntinfo" id="cntinfo" aria-live="polite"></span>
+      <a class="lnkbtn" href="my-post.html">내 투고 확인</a>
+      <a class="lnkbtn fill" href="submit.html">글 투고하기</a>
+    </div>
+  </div>
+
+  <div class="body" id="body">
+    <p class="msg">불러오는 중…</p>
+  </div>
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+const MSG = t => `<p class="msg">${E(t)}</p>`;
+
+const KIND   = { article:'기고', essay:'수필', review:'서평', free:'자유', notice:'공지' };
+const kLabel = k => KIND[k] || k || '자유';
+
+let ROWS = [], LOADED = false, kind = '전체';
+
+/* =========================================================
+   1. 불러오기
+   ========================================================= */
+(async () => {
+  const box = HW.qs('#body');
+  const r = await HW.sb.from('journal_public').select('*')
+    .order('issue_no',     { ascending:false, nullsFirst:false })
+    .order('sort_order',   { ascending:true })
+    .order('published_at', { ascending:false, nullsFirst:false });
+
+  if(r.error){
+    console.error('[journal]', r.error);
+    box.innerHTML = MSG('목록을 불러오지 못했습니다.');
+    return;
+  }
+
+  ROWS = r.data || [];
+  LOADED = true;                     /* ★ 이 줄이 없어서 검색이 로딩 문구를 지웠습니다 */
+
+  if(!ROWS.length){ box.innerHTML = MSG('아직 공개된 글이 없습니다.'); return; }
+
+  const ks = [...new Set(ROWS.map(x => x.kind || 'free'))];
+  HW.qs('#tabs').innerHTML = ['전체', ...ks].map(k =>
+    `<button type="button" class="tb ${k==='전체'?'on':''}" data-k="${A(k)}"
+             aria-pressed="${k==='전체'?'true':'false'}">${
+      k==='전체' ? '전체' : E(kLabel(k))}</button>`).join('');
+
+  draw();
+})();
+
+HW.qs('#tabs').addEventListener('click', e => {
+  const b = e.target.closest('.tb'); if(!b) return;
+  kind = b.dataset.k;
+  HW.qsa('.tb').forEach(x => {
+    const on = x === b;
+    x.classList.toggle('on', on);
+    x.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  draw();
+});
+
+/* 입력할 때마다 전부 다시 그리지 않도록 잠깐 기다립니다 */
+let timer = null;
+HW.qs('#srch').addEventListener('input', () => {
+  clearTimeout(timer);
+  timer = setTimeout(draw, 180);
+});
+
+/* =========================================================
+   2. 그리기
+   ========================================================= */
+function draw(){
+  if(!LOADED) return;                /* ★ 로드 전에는 아무것도 건드리지 않습니다 */
+
+  const q = HW.qs('#srch').value.toLowerCase().trim();
+  const rows = ROWS.filter(x => {
+    if(kind !== '전체' && (x.kind || 'free') !== kind) return false;
+    return `${x.title||''} ${x.author||''}`.toLowerCase().includes(q);
+  });
+
+  HW.qs('#cntinfo').textContent =
+    `${kind === '전체' ? '전체' : kLabel(kind)} · ${rows.length}편`;
+
+  if(!rows.length){ HW.qs('#body').innerHTML = MSG('조건에 맞는 글이 없습니다.'); return; }
+
+  /* 호(號) 단위 묶기 — 미편성은 맨 뒤 '자유 투고' */
+  const g = new Map();
+  rows.forEach(x => {
+    const key = x.issue_id || '_free';
+    if(!g.has(key)) g.set(key, []);
+    g.get(key).push(x);
+  });
+
+  const groups = [...g.entries()]
+    .map(([key, list]) => ({ key, list, info: issueInfo(list) }))
+    .sort((a,b) => {
+      if(a.key === '_free') return 1;
+      if(b.key === '_free') return -1;
+      return (b.info.no ?? -1) - (a.info.no ?? -1);
+    });
+
+  HW.qs('#body').innerHTML = groups.map(grp =>
+    `<section class="grp">${headHtml(grp)}
+       <div class="list">${grp.list.map(card).join('')}</div></section>`).join('');
+}
+
+/* =========================================================
+   3. 호 정보
+   ★ v1 버그 : 그룹의 첫 행만 보고 issue_no 를 그대로 출력해서
+     호가 삭제된 글(issue_id 는 남고 issue_no 는 null)에
+     "제 null 호", 제목엔 "null호" 가 찍혔습니다.
+   ========================================================= */
+function issueInfo(list){
+  const src = list.find(x => x.issue_no !== null && x.issue_no !== undefined) || list[0] || {};
+  const no  = Number.isFinite(Number(src.issue_no)) && src.issue_no !== null
+            ? Number(src.issue_no) : null;
+  return {
+    no,
+    series: src.series_name || '학술지',
+    title : src.issue_title || (no !== null ? `${no}호` : '호 미정'),
+    cover : src.issue_cover || null,
+    note  : src.issue_note  || null,
+    date  : src.issue_date || src.issue_published_at || null
+  };
+}
+
+function headHtml(grp){
+  if(grp.key === '_free')
+    return `<div class="fhead"><b>자유 투고</b><small>${grp.list.length} ARTICLES</small></div>`;
+
+  const i = grp.info;
+  const cover = i.cover
+    ? `<img src="${A(i.cover)}" alt="${A(i.title)}" loading="lazy"
+           onerror="this.outerHTML='&lt;div class=\\'gph\\'&gt;刊&lt;/div&gt;'">`
+    : `<div class="gph">刊</div>`;
+
+  /* 호수가 없으면 '제 n 호' 자체를 쓰지 않습니다 */
+  const line = i.no !== null
+    ? `${E(i.series)} &nbsp;·&nbsp; 제 ${i.no} 호`
+    : `${E(i.series)} &nbsp;·&nbsp; 호 미정`;
+
+  return `<div class="ghead">
+    ${cover}
+    <div class="gin">
+      <div class="gno">${line}</div>
+      <h3><span>${E(i.title)}</span><small>${grp.list.length} ARTICLES</small></h3>
+      ${i.note ? `<div class="gnote">${E(i.note)}</div>` : ''}
+      ${i.date ? `<div class="gmeta">발행 ${E(HW.korDate(i.date))}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   4. 글 카드
+   ★ v1 버그 : 요약을 p.body 로만 만들었는데
+     journal_public 뷰에 body 가 없으면 전 카드가 빈 칸이 됩니다.
+   ========================================================= */
+function excerpt(p){
+  const src = p.summary || p.body || p.excerpt || '';
+  return String(src).replace(/\s+/g,' ').trim().slice(0,90);
+}
+
+function card(p){
+  const free = (p.kind || 'free') === 'free' || p.kind === '자유';
+  const pic  = p.image_url
+    ? `<img src="${A(p.image_url)}" alt="${A(p.title)}" loading="lazy"
+           onerror="this.outerHTML='&lt;div class=\\'ph\\'&gt;話&lt;/div&gt;'">`
+    : `<div class="ph">話</div>`;
+
+  return `<a class="p" href="journal-post.html?id=${encodeURIComponent(p.id)}">
+    ${pic}
+    <div class="in">
+      <span class="kd ${free?'free':''}">${E(kLabel(p.kind))}</span>
+      <h4>${E(p.title)}</h4>
+      <div class="ex">${E(excerpt(p))}</div>
+      <div class="mt">
+        <span>${E(p.author || '익명')}</span>
+        <span>${E(String(p.published_at || p.created_at || '').slice(0,10))} · 조회 ${Number(p.views)||0}</span>
+      </div>
+    </div></a>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>茶書(다서) — 효원다회(曉原茶會)</title>
+<meta name="description" content="효원다회가 기록한 차와 다구에 관한 지식 공간, 茶書입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* ===== 공통 페이지 머리 (다른 페이지에도 복붙 가능) ===== */
+  .phead{background:var(--jade-d);padding:clamp(70px,8vw,130px) var(--pad) clamp(46px,5vw,80px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);
+    background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:20px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.8rem,3.4vw,3.2rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:var(--fog);font-size:.93rem;line-height:2;margin-top:16px;max-width:var(--read)}
+  .phead .vert{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:2;
+    writing-mode:vertical-rl;text-orientation:upright;font-family:var(--serif);
+    font-size:.9rem;letter-spacing:.42em;color:var(--fog-2);opacity:.55}
+
+  /* ===== 茶書 카드 4열 ===== */
+  .arc-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card-cnt{font-size:.66rem;letter-spacing:.2em;color:var(--fog-2);margin-top:10px}
+
+  @media(max-width:1100px){
+    .arc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .phead .vert{display:none}
+  }
+  @media(max-width:768px){ .arc-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body data-page="dasho">
+
+<div id="hw-header"></div>
+
+<main>
+
+  <!-- ===== 머리 ===== -->
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">ARCHIVE &nbsp;/&nbsp; 茶書</div>
+      <h1>효원다회가 기록해 온<br>차와 다구의 모든 것</h1>
+      <p>찻잎 한 종류부터 다구 한 점까지, 동아리가 수집하고 남겨 온 기록을 네 갈래로 나누어 두었습니다.</p>
+    </div>
+    <div class="vert">茶書</div>
+  </section>
+
+  <!-- ===== 4카드 ===== -->
+  <section class="section bg-light">
+    <div class="sec-no">01 &nbsp;/&nbsp; CONTENTS</div>
+    <div class="head-split">
+      <h2 class="serif" style="font-weight:400;color:var(--ink);letter-spacing:.1em;
+          line-height:1.5;font-size:clamp(1.5rem,2.7vw,2.6rem)">네 갈래의 기록</h2>
+      <p>보고 싶은 쪽을 고르시면 됩니다. 각 항목의 숫자는 현재 등록된 개수입니다.</p>
+    </div>
+
+    <div class="card-grid arc-grid">
+      <a class="card" href="tea.html">
+        <div class="card-visual">
+          <span class="card-tag">ARCHIVE 01</span>
+          <svg width="88" height="88" viewBox="0 0 92 92" fill="none"
+               stroke="#e9e4d6" stroke-width="1" opacity=".5">
+            <path d="M22 38h48v18a24 24 0 0 1-48 0V38Z"/><path d="M70 42h8a9 9 0 0 1 0 18h-8"/>
+            <path d="M30 26c0-5 6-5 6-10M46 26c0-5 6-5 6-10M62 26c0-5 6-5 6-10"/><path d="M16 80h60"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>차 도감</h3>
+          <div class="card-en">TEA DICTIONARY</div>
+          <p>소장한 찻잎의 산지와 적정 우림 온도, 개봉 여부를 확인합니다.
+             다 마신 차도 기록으로 남겨 보관합니다.</p>
+          <div class="card-cnt" id="cnt-tea">—</div>
+          <span class="card-cta">도감 보기</span>
+        </div>
+      </a>
+
+      <a class="card" href="tea-map.html">
+        <div class="card-visual">
+          <span class="card-tag">ARCHIVE 02</span>
+          <svg width="88" height="88" viewBox="0 0 92 92" fill="none"
+               stroke="#e9e4d6" stroke-width="1" opacity=".5">
+            <path d="M14 68l20-44 18 30 10-16 16 30H14Z"/><circle cx="62" cy="22" r="7"/>
+            <path d="M10 80h72"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>차 지도</h3>
+          <div class="card-en">TEA MAP</div>
+          <p>하동·보성부터 중국 우이산까지, 세계의 다산지(茶産地)와
+             그곳 차의 성격을 지역별로 살펴봅니다.</p>
+          <div class="card-cnt" id="cnt-map">—</div>
+          <span class="card-cta">지도 보기</span>
+        </div>
+      </a>
+
+      <a class="card" href="tea-ware.html">
+        <div class="card-visual">
+          <span class="card-tag">ARCHIVE 03</span>
+          <svg width="88" height="88" viewBox="0 0 92 92" fill="none"
+               stroke="#e9e4d6" stroke-width="1" opacity=".5">
+            <path d="M26 34h40l-4 30a10 10 0 0 1-10 9H40a10 10 0 0 1-10-9l-4-30Z"/>
+            <path d="M22 28h48"/><path d="M46 20V10"/><path d="M14 80h64"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>다구 사용법</h3>
+          <div class="card-en">TEA UTENSILS</div>
+          <p>개완·자사호·숙우의 이름과 생김새를 소개하고,
+             물 데우기부터 찻물 따르기까지 단계별로 안내합니다.</p>
+          <div class="card-cnt" id="cnt-ware">—</div>
+          <span class="card-cta">사용법 보기</span>
+        </div>
+      </a>
+
+      <a class="card" href="tea-story.html">
+        <div class="card-visual">
+          <span class="card-tag">ARCHIVE 04</span>
+          <svg width="88" height="88" viewBox="0 0 92 92" fill="none"
+               stroke="#e9e4d6" stroke-width="1" opacity=".5">
+            <rect x="18" y="16" width="56" height="60"/><path d="M30 32h32M30 44h32M30 56h20"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>차 이야기</h3>
+          <div class="card-en">TEA STORIES</div>
+          <p>집행부가 직접 쓰는, 차에 얽힌 짧은 글들입니다.
+             찻자리에서 나눈 이야기를 기록합니다.</p>
+          <div class="card-cnt" id="cnt-story">—</div>
+          <span class="card-cta">이야기 보기</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== 브라켓 인용 ===== -->
+  <section class="section bg-dark dotgrid">
+    <div class="bracket">
+      <div class="sec-no">02 &nbsp;/&nbsp; NOTE</div>
+      <h2 class="serif" style="font-weight:300;color:var(--ivory);letter-spacing:.08em;
+          line-height:1.7;font-size:clamp(1.25rem,2.2vw,2.1rem);max-width:24em">
+        “차를 안다는 것은 이름을 외우는 일이 아니라,<br>
+         한 잔을 제대로 우려내는 손을 갖는 일입니다.”
+      </h2>
+      <p style="color:var(--fog);font-size:.9rem;line-height:2;margin-top:26px;max-width:var(--read)">
+        茶書의 기록은 집행부가 직접 관리합니다. 잘못된 내용이나 추가할 차가 있다면 언제든 알려주세요.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/glyph.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+/* 등록 개수 (DB 연동 유지) */
+(async () => {
+  const set = (id, txt) => { const el = HW.qs('#'+id); if (el) el.textContent = txt; };
+  try{
+    const [tea, map, ware, story] = await Promise.all([
+      HW.sb.from('teas').select('id',       {count:'exact',head:true}),
+      HW.sb.from('tea_map').select('id',    {count:'exact',head:true}),
+      HW.sb.from('tea_ware').select('id',   {count:'exact',head:true}),
+      HW.sb.from('tea_stories').select('id',{count:'exact',head:true}).eq('status','published')
+    ]);
+    set('cnt-tea',   `${tea.count   || 0}종 등록`);
+    set('cnt-map',   `${map.count   || 0}곳 등록`);
+    set('cnt-ware',  `${ware.count  || 0}점 등록`);
+    set('cnt-story', `${story.count || 0}편 공개`);
+  }catch(e){ HW.qsa('.card-cnt').forEach(c => c.style.display = 'none'); }
+})();
+</script>
+</body>
+</html>

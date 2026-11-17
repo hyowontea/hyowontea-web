@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>효원다회(曉原茶會) — 부산대학교 전통 차 문화 동아리</title>
+<meta name="description" content="차가 좋아서, 사람이 좋아서. 부산대학교 전통 차 문화 동아리 효원다회입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     index 전용 — 山水畵 톤  v2
+     v2 변경점
+     ① SCROLL 버튼 클릭 불가 수정 (pointer-events)
+     ② 04 INVITATION 섹션을 .bg-dark 로 전환 → 글자색 토큰 정상화
+     ③ 캔버스 리사이즈가 모바일에서 과도하게 재실행되던 문제
+     ④ 보조 글자 명암비 보정
+     ========================================================= */
+
+  /* ---------- 히어로 ---------- */
+  .hero{
+    position:relative; width:100%; min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--jade-d); overflow:hidden;
+  }
+  @supports (min-height:100dvh){ .hero{min-height:100dvh} }
+
+  .hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;
+    opacity:1;filter:saturate(.88) brightness(.94)}
+  .hero-dim{position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:radial-gradient(circle at 50% 46%,rgba(22,37,30,0) 0%,rgba(22,37,30,.38) 88%)}
+  .hero-grid{position:absolute;inset:0;z-index:3;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.045) 1px,transparent 1px);
+    background-size:28px 28px}
+  /* 십자 기준선 */
+  .hero-cross::before,.hero-cross::after{
+    content:'';position:absolute;background:rgba(233,228,214,.05);z-index:3;pointer-events:none}
+  .hero-cross::before{left:50%;top:0;bottom:0;width:1px}
+  .hero-cross::after{top:50%;left:0;right:0;height:1px}
+  #effectCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:4;cursor:crosshair}
+
+  .hero-inner{position:relative;z-index:10;text-align:center;pointer-events:none;padding:0 20px;
+    text-shadow:0 2px 20px rgba(22,37,30,.6)}
+
+  /* 로고 타이포 — 프레임 안 2단 */
+  .logomark{
+    display:inline-block;border:1px solid rgba(233,228,214,.72);
+    background:rgba(22,37,30,.3);
+  }
+  .logomark .lm{
+    font-family:var(--serif);font-weight:300;color:var(--ivory);
+    font-size:clamp(2.2rem,4.2vw,4.4rem);line-height:1;letter-spacing:.3em;
+    padding:clamp(20px,2.2vw,38px) clamp(28px,3.2vw,54px);
+    padding-right:calc(clamp(28px,3.2vw,54px) - .3em);
+  }
+  .logomark .lm + .lm{border-top:1px solid rgba(233,228,214,.72)}
+
+  .hero-name{
+    margin-top:clamp(24px,2.8vw,42px);font-size:.74rem;letter-spacing:.52em;
+    color:#b6c2b5;text-transform:uppercase;padding-left:.52em;   /* ★ 6.4:1 */
+  }
+  .hero-slogan{
+    margin-top:18px;font-family:var(--serif);font-weight:300;
+    font-size:clamp(.92rem,1.2vw,1.18rem);color:var(--ivory);
+    letter-spacing:.14em;line-height:2;opacity:.92;
+  }
+  .hero-slogan b{color:var(--gold);font-weight:400}
+
+  /* ---------- SCROLL ----------
+     ★ v1 버그 : .scrolldown 전체에 pointer-events:none 이 걸려
+       <a> 를 눌러도 반응하지 않았습니다. 앵커만 되살립니다. */
+  .scrolldown{position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+    z-index:11;text-align:center;pointer-events:auto;display:block;
+    padding:0 18px 0;text-decoration:none}
+  .scrolldown span{display:block;font-size:.68rem;letter-spacing:.44em;
+    color:#8d9b8c;padding-left:.44em;transition:color .25s}      /* ★ 4.85:1 */
+  .scrolldown:hover span{color:var(--ivory)}
+  .scrolldown i{display:block;width:1px;height:clamp(56px,7vh,92px);margin:16px auto 0;
+    background:linear-gradient(to bottom,rgba(182,194,181,.8),rgba(182,194,181,0));
+    animation:drop 2.6s ease-in-out infinite}
+  @keyframes drop{
+    0%{transform:scaleY(.25);transform-origin:top}
+    55%{transform:scaleY(1);transform-origin:top}
+    56%{transform:scaleY(1);transform-origin:bottom}
+    100%{transform:scaleY(0);transform-origin:bottom}}
+
+  .hero-hint{position:absolute;left:var(--pad);bottom:34px;z-index:11;
+    font-size:.68rem;letter-spacing:.2em;color:#8d9b8c;pointer-events:none}  /* ★ */
+
+  /* ---------- 공통 큰 제목 ---------- */
+  .big{font-family:var(--serif);font-weight:400;letter-spacing:.1em;line-height:1.5;
+    font-size:clamp(1.55rem,2.8vw,2.75rem)}
+  .big.on-dark{color:var(--ivory)}
+  .big.on-light{color:var(--ink)}
+
+  /* ---------- 01 소개 3단 ---------- */
+  .intro-img{width:100%;height:clamp(150px,11vw,210px);object-fit:cover;
+    margin-bottom:26px;filter:saturate(.8) brightness(.95)}
+
+  /* ---------- 02 茶書 카드 ---------- */
+  .arc-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+  /* ---------- 03 브라켓 ---------- */
+  .jr-wrap{display:grid;
+    grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr) clamp(50px,4.6vw,92px);
+    gap:clamp(26px,3.2vw,60px);align-items:start}
+  .jr-div{background:var(--jade-line);align-self:stretch}
+  .jr-vert{writing-mode:vertical-rl;text-orientation:upright;justify-self:center;
+    font-family:var(--serif);font-size:.92rem;letter-spacing:.42em;
+    color:#8d9b8c;line-height:1;opacity:.8}
+  .jr-h{display:flex;justify-content:space-between;align-items:baseline;
+    padding-bottom:18px;border-bottom:1px solid var(--jade-line)}
+  .jr-h b{font-family:var(--serif);font-weight:500;font-size:1.1rem;
+    color:var(--ivory);letter-spacing:.12em}
+  .jr-h span{font-size:.68rem;letter-spacing:.26em;color:#8d9b8c}
+
+  .pitem{display:grid;grid-template-columns:70px minmax(0,1fr);
+    gap:clamp(14px,1.4vw,26px);padding:20px 0;
+    border-bottom:1px solid var(--jade-line);align-items:start;
+    width:100%;text-align:left;background:none;border-left:none;
+    border-right:none;border-top:none;font-family:inherit}
+  .pitem.click{cursor:pointer;transition:padding-left .25s}
+  .pitem.click:hover{padding-left:8px}
+  .pitem.click:hover .pt{color:var(--gold)}
+  .pd{font-family:var(--serif);color:var(--gold);line-height:1.15;letter-spacing:.04em}
+  .pd b{display:block;font-size:1.45rem;font-weight:500}
+  .pd span{font-size:.68rem;color:#8d9b8c;letter-spacing:.18em}
+  .pk{font-size:.66rem;letter-spacing:.22em;color:#8d9b8c;margin-bottom:5px}
+  .pt{font-size:.97rem;color:var(--ivory);line-height:1.6;transition:color .25s}
+  .pm{font-size:.78rem;color:#8d9b8c;margin-top:6px;letter-spacing:.06em}
+  .jr-more{display:block;margin-top:26px;padding:14px;text-align:center;
+    border:1px solid rgba(233,228,214,.3);font-size:.76rem;letter-spacing:.2em;
+    color:#b6c2b5;transition:all .25s}
+  .jr-more:hover{background:var(--ivory);color:var(--jade);border-color:var(--ivory)}
+  .jr-msg{padding:22px 0;color:#8d9b8c;font-size:.88rem}
+
+    /* ---------- 04 초대 (축소판) ---------- */
+  .section.inv-sec{padding:clamp(44px,5vw,80px) var(--pad)}
+  .inv-sec .sec-no{margin-bottom:16px}
+  .inv-sec .big{font-size:clamp(1.3rem,2.1vw,2rem)}
+
+  .inv{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);
+    gap:clamp(22px,3.4vw,64px);align-items:end}
+  .inv p.lead{color:#b6c2b5;font-size:.88rem;line-height:1.9;margin-top:14px;max-width:var(--read)}
+  .inv-acts{display:flex;flex-direction:column;gap:8px;padding-bottom:4px}
+  .inv-acts .btn{padding:12px 24px;font-size:.78rem}
+  .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    border-top:1px solid var(--jade-line);margin-top:clamp(22px,2.6vw,40px)}
+  .facts > div{padding:18px clamp(12px,1.6vw,26px) 0;border-left:1px solid var(--jade-line)}
+  .facts > div:first-child{padding-left:0;border-left:none}
+  .facts dt{font-size:.66rem;letter-spacing:.26em;color:#8d9b8c;margin-bottom:8px}
+  .facts dd{font-family:var(--serif);font-size:clamp(.9rem,1.05vw,1.08rem);
+    color:var(--ivory);font-weight:400;letter-spacing:.06em;line-height:1.5}
+    
+  @media(max-width:1100px){
+    .arc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .jr-wrap{grid-template-columns:1fr;gap:44px}
+    .jr-div,.jr-vert{display:none}
+    .inv{grid-template-columns:1fr;gap:32px;align-items:start}
+  }
+  @media(max-width:768px){
+    .hero{min-height:86vh}
+    .logomark .lm{font-size:2rem;letter-spacing:.24em;padding:18px 24px;
+      padding-right:calc(24px - .24em)}
+    .arc-grid{grid-template-columns:1fr}
+    .facts{grid-template-columns:1fr}
+    .facts > div{padding:20px 0 0;border-left:none;border-top:1px solid var(--jade-line)}
+    .facts > div:first-child{border-top:none;padding-top:22px}
+    .inv-acts .btn{width:100%}
+    .hero-hint{display:none}
+    .hero-hint{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scrolldown i{animation:none;transform:scaleY(1)}
+  }
+</style>
+</head>
+<body data-page="index">
+
+<div id="hw-header"></div>
+
+<main>
+
+  <!-- ===================== 히어로 ===================== -->
+  <section class="hero hero-cross" id="hero">
+    <div id="heroMedia"></div>
+    <div class="hero-dim"></div>
+    <div class="hero-grid"></div>
+    <canvas id="effectCanvas" aria-hidden="true"></canvas>
+
+    <div class="hero-inner">
+      <div class="logomark">
+        <div class="lm">曉原</div>
+        <div class="lm">茶會</div>
+      </div>
+      <div class="hero-name">Hyowon Tea Society</div>
+      <p class="hero-slogan">
+        차가 좋아서, 사람이 좋아서<br>
+        <b data-sv="club.years">40</b>년을 이어 온 부산대학교 다도 동아리
+      </p>
+    </div>
+
+    <div class="hero-hint">화면을 누르면 찻물이 번집니다</div>
+
+    <!-- ★ pointer-events 복구 : 이제 실제로 눌립니다 -->
+    <a class="scrolldown" href="#philosophy" aria-label="아래 내용 보기">
+      <span>SCROLL</span><i aria-hidden="true"></i>
+    </a>
+  </section>
+
+  <!-- ===================== 01 / PHILOSOPHY ===================== -->
+  <section class="section bg-dark" id="philosophy">
+    <div class="sec-no">01 &nbsp;/&nbsp; PHILOSOPHY</div>
+    <div class="head-split">
+      <h2 class="big on-dark">한 잔을 우리는 동안<br>비로소 선명해지는 것들</h2>
+      <p>효원다회는 차를 배우는 모임이자, 차를 사이에 두고 사람을 만나는 자리입니다.
+         우리는 느리게 우러나는 시간을 함께 기다립니다.</p>
+    </div>
+    <div class="rule"></div>
+    <div id="intro"><p class="jr-msg">불러오는 중…</p></div>
+  </section>
+
+  <!-- ===================== 02 / ARCHIVE ===================== -->
+  <section class="section bg-light">
+    <div class="sec-no">02 &nbsp;/&nbsp; ARCHIVE</div>
+    <div class="head-split">
+      <h2 class="big on-light">효원다회의 茶書</h2>
+      <p>동아리가 기록하고 수집해 온 차와 다구에 관한 모든 것.
+         찻잎 한 종류부터 다구 한 점까지 남겨 둡니다.</p>
+    </div>
+
+    <div class="card-grid arc-grid">
+      <a class="card" href="tea.html">
+        <div class="card-visual">
+          <span class="card-tag">ARCHIVE 01</span>
+          <svg width="88" height="88" viewBox="0 0 92 92" fill="none" aria-hidden="true"
+               stroke="#e9e4d6" stroke-width="1" opacity=".5">
+            <path d="M22 38h48v18a24 24 0 0 1-48 0V38Z"/><path d="M70 42h8a9 9 0 0 1 0 18h-8"/>
+            <path d="M30 26c0-5 6-5 6-10M46 26c0-5 6-5 6-10M62 26c0-5 6-5 6-10"/><path d="M16 80h60"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>차 도감</h3>
+          <div class="card-en">TEA DICTIONARY</div>
+          <p>동아리가 소장한 찻잎의 산지와 적정 우림 온도, 개봉 여부를 확인합니다.
+             다 마신 차도 기록으로 남겨 보관합니다.</p>
+          <span class="card-cta" id="cnt-tea">도감 보기</span>
+        </div>
+      </a>
+
+      <a class="card" href="tea-map.html">
+        <div class="card-visual">
+          <span class="card-tag">ARCHIVE 02</span>
+          <svg width="88" height="88" viewBox="0 0 92 92" fill="none" aria-hidden="true"
+               stroke="#e9e4d6" stroke-width="1" opacity=".5">
+            <path d="M14 68l20-44 18 30 10-16 16 30H14Z"/><circle cx="62" cy="22" r="7"/>
+            <path d="M10 80h72"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>차 지도</h3>
+          <div class="card-en">TEA MAP</div>
+          <p>하동·보성부터 중국 우이산까지, 세계의 다산지(茶産地)와
+             그곳 차의 성격을 지역별로 살펴봅니다.</p>
+          <span class="card-cta" id="cnt-map">지도 보기</span>
+        </div>
+      </a>
+
+      <a class="card" href="tea-ware.html">
+        <div class="card-visual">
+          <span class="card-tag">ARCHIVE 03</span>
+          <svg width="88" height="88" viewBox="0 0 92 92" fill="none" aria-hidden="true"
+               stroke="#e9e4d6" stroke-width="1" opacity=".5">
+            <path d="M26 34h40l-4 30a10 10 0 0 1-10 9H40a10 10 0 0 1-10-9l-4-30Z"/>
+            <path d="M22 28h48"/><path d="M46 20V10"/><path d="M14 80h64"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>다구 사용법</h3>
+          <div class="card-en">TEA UTENSILS</div>
+          <p>개완·자사호·숙우 등 전통 다구의 이름과 올바른 사용 순서,
+             관리 요령을 단계별로 안내합니다.</p>
+          <span class="card-cta" id="cnt-ware">사용법 보기</span>
+        </div>
+      </a>
+
+      <a class="card" href="tea-story.html">
+        <div class="card-visual">
+          <span class="card-tag">ARCHIVE 04</span>
+          <svg width="88" height="88" viewBox="0 0 92 92" fill="none" aria-hidden="true"
+               stroke="#e9e4d6" stroke-width="1" opacity=".5">
+            <rect x="18" y="16" width="56" height="60"/><path d="M30 32h32M30 44h32M30 56h20"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>차 이야기</h3>
+          <div class="card-en">TEA STORIES</div>
+          <p>집행부가 직접 쓰는, 차에 얽힌 짧은 글들입니다.
+             찻자리에서 나눈 이야기를 기록합니다.</p>
+          <span class="card-cta" id="cnt-story">이야기 보기</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===================== 03 / JOURNAL & SCHEDULE ===================== -->
+  <section class="section bg-dark alt dotgrid">
+    <div class="bracket">
+      <div class="sec-no">03 &nbsp;/&nbsp; JOURNAL &amp; SCHEDULE</div>
+      <h2 class="serif" style="font-weight:300;color:var(--ivory);letter-spacing:.08em;
+          line-height:1.65;font-size:clamp(1.35rem,2.4vw,2.3rem);
+          margin-bottom:clamp(32px,4vw,58px);max-width:24em">
+        “한 잔의 차가 식어가는 동안,<br>마음의 풍경은 비로소 선명해집니다.”
+      </h2>
+
+      <div class="jr-wrap">
+        <div>
+          <div class="jr-h"><b>다가오는 일정</b><span>SCHEDULE</span></div>
+          <div id="schedulePreview"><p class="jr-msg">불러오는 중…</p></div>
+          <a class="jr-more" href="schedule.html">전체 일정 보기</a>
+        </div>
+
+        <div class="jr-div"></div>
+
+        <div>
+          <div class="jr-h"><b>최근 학술지 글</b><span>JOURNAL</span></div>
+          <div id="journalPreview"><p class="jr-msg">불러오는 중…</p></div>
+          <a class="jr-more" href="journal.html">학술지 보기</a>
+        </div>
+
+        <div class="jr-vert">茶禪一味</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 04 / INVITATION =====================
+       ★ v1 버그 : class="section" + 인라인 배경이라 어두운 면 토큰이
+         적용되지 않아 보조 글자가 거의 보이지 않았습니다.
+         bg-dark 클래스를 붙여 해결합니다. -->
+  <section class="section bg-dark inv-sec">
+    <div class="sec-no">04 &nbsp;/&nbsp; INVITATION</div>
+
+    <div class="inv">
+      <div>
+        <h2 class="big on-dark">함께 차 한 잔<br>하시겠습니까</h2>
+        <p class="lead">
+          차를 처음 접하는 분도 언제든 환영합니다.
+          다구를 쥐는 법부터 천천히 알려드리니, 빈손으로 오셔도 괜찮습니다.
+        </p>
+      </div>
+      <div class="inv-acts">
+        <a class="btn btn-ghost" data-sv-if="recruit.link" data-sv-attr="href:recruit.link"
+           target="_blank" rel="noopener" href="#">가입 신청하기</a>
+        <a class="btn btn-ghost" href="about.html">동아리 소개 보기</a>
+        <a class="btn btn-ghost" href="schedule.html">일정 확인하기</a>
+      </div>
+    </div>
+
+    <dl class="facts">
+      <div><dt>RECRUITMENT</dt><dd data-sv="recruit.period">—</dd></div>
+      <div><dt>MEMBERSHIP FEE</dt><dd data-sv="recruit.fee">—</dd></div>
+      <div><dt>CLUB ROOM</dt><dd data-sv="club.room">—</dd></div>
+    </dl>
+  </section>
+
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+const dOnly = v => v ? String(v).slice(0,10) : '';
+
+/* ---------- 1. 히어로 배경 (DB: site_values['hero.media']) ---------- */
+(async () => {
+  const box = document.getElementById('heroMedia');
+  let url = '';
+  try { url = (await HW.api.values())['hero.media'] || ''; } catch (e) {}
+  if (!url) url = 'assets/img/hero.jpg';      // 없으면 딥그린 바탕만 남습니다
+  box.innerHTML = HW.media(url, 'hero-bg', '', '효원다회');
+  const el = box.firstElementChild;
+  if (el) {
+    /* ★ 이미지뿐 아니라 영상 로드 실패도 처리합니다 */
+    el.addEventListener('error', () => el.remove());
+  }
+})();
+
+/* ---------- 2. 찻물 번짐 캔버스 ---------- */
+(() => {
+  const cv = document.getElementById('effectCanvas'); if (!cv) return;
+  const ctx = cv.getContext('2d'), FILL = '#16251e';
+  let covered = true, busy = false, lastW = 0, lastH = 0;
+
+  function paint(){
+    if (covered){
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = FILL;
+      ctx.fillRect(0, 0, cv.width, cv.height);
+    } else {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+    }
+  }
+  function resize(){
+    const w = cv.parentElement.offsetWidth;
+    const h = cv.parentElement.offsetHeight;
+    /* ★ 모바일 주소창이 접히고 펴질 때마다 높이가 몇 px 흔들립니다.
+       그때마다 초기화되지 않도록 의미 있는 변화일 때만 반영합니다. */
+    if (Math.abs(w - lastW) < 2 && Math.abs(h - lastH) < 80) return;
+    lastW = w; lastH = h;
+    cv.width = w; cv.height = h;
+    paint();
+  }
+  function spread(x, y, op, done){
+    busy = true; let r = 0;
+    const max  = Math.hypot(cv.width, cv.height) * 1.2;
+    const step = Math.max(cv.width, cv.height) / 70;
+    (function f(){
+      r += step;
+      ctx.save();
+      ctx.globalCompositeOperation = op;
+      if (op === 'source-over') ctx.fillStyle = FILL;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      if (r < max) requestAnimationFrame(f);
+      else { busy = false; done(); }
+    })();
+  }
+  function hit(clientX, clientY){
+    if (busy) return;
+    const b = cv.getBoundingClientRect();
+    const x = clientX - b.left, y = clientY - b.top;
+    covered ? spread(x, y, 'destination-out', () => covered = false)
+            : spread(x, y, 'source-over',     () => covered = true);
+  }
+  cv.addEventListener('click', e => hit(e.clientX, e.clientY));
+  cv.addEventListener('touchstart', e => {
+    const t = e.touches[0]; if (t) hit(t.clientX, t.clientY);
+  }, { passive:true });
+
+  window.addEventListener('resize', resize);
+  resize();
+})();
+
+/* ---------- 3. 01 소개글 → 一 二 三 3단 (DB: intro_sections) ----------
+   ★ v1 버그 : s.subtitle 컬럼은 intro_sections 에 없습니다.
+     그래서 `s.subtitle || s.title` 폴백이 작동해 번호줄과 h3 에
+     같은 제목이 두 번 찍혔습니다. 번호줄은 번호 + 영문 소제목만 둡니다. */
+(async () => {
+  const box = document.getElementById('intro');
+  const NUM = ['一','二','三','四','五','六'];
+
+  function col(s, i){
+    const img  = s.image_url ? HW.media(s.image_url, 'intro-img', '', s.title) : '';
+    const body = (s.content || '').replace(/\s+/g, ' ').trim();
+    const en   = (s.eyebrow || '').trim();
+    return `<div>
+      <div class="c-no">
+        <b>${NUM[i] || (i + 1)}.</b>
+        <span>${E(en || ('CHAPTER ' + String(i + 1).padStart(2,'0')))}</span>
+      </div>
+      ${img}
+      <h3>${E(s.title)}</h3>
+      <p>${E(body)}</p>
+    </div>`;
+  }
+
+  try{
+    const rows = await HW.api.intro('index');
+
+    if (!rows.length){
+      box.innerHTML = `<div class="col3" style="grid-template-columns:1fr">
+        <div><div class="c-no"><b>一.</b><span>NOTICE</span></div>
+        <h3>소개글이 아직 없습니다</h3>
+        <p>집행부 → <b>홈 소개글</b>에서 글을 등록하면 이 자리에 3단으로 표시됩니다.</p></div></div>`;
+      return;
+    }
+
+    const list = rows.slice(0, 3);          // 3개까지 3단으로
+    const rest = rows.slice(3);             // 넘치면 아래에 이어서
+
+    box.innerHTML =
+      `<div class="col3" style="grid-template-columns:repeat(${list.length},minmax(0,1fr))">
+         ${list.map(col).join('')}
+       </div>` +
+      (rest.length
+        ? `<div class="col3" style="margin-top:clamp(40px,5vw,72px);
+             grid-template-columns:repeat(${Math.min(rest.length,3)},minmax(0,1fr))">
+             ${rest.map((s,i) => col(s, i + 3)).join('')}
+           </div>`
+        : '');
+  }catch(e){
+    box.innerHTML = '<p class="jr-msg">소개글을 불러오지 못했습니다.</p>';
+  }
+})();
+
+/* ---------- 4. 茶書 카드 개수 ---------- */
+(async () => {
+  const set = (id, txt) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  };
+  try{
+    const [tea, map, ware, story] = await Promise.all([
+      HW.sb.from('teas').select('id',       { count:'exact', head:true }),
+      HW.sb.from('tea_map').select('id',    { count:'exact', head:true }),
+      HW.sb.from('tea_ware').select('id',   { count:'exact', head:true }),
+      HW.sb.from('tea_stories').select('id',{ count:'exact', head:true }).eq('status','published')
+    ]);
+    set('cnt-tea',   `${tea.count   || 0}종 · 도감 보기`);
+    set('cnt-map',   `${map.count   || 0}곳 · 지도 보기`);
+    set('cnt-ware',  `${ware.count  || 0}점 · 사용법 보기`);
+    set('cnt-story', `${story.count || 0}편 · 이야기 보기`);
+  }catch(e){ /* 실패 시 기본 문구 유지 */ }
+})();
+
+/* ---------- 5. 다가오는 일정 4건 (DB: schedules) ---------- */
+(async () => {
+  const box = document.getElementById('schedulePreview');
+  const KIND = { regular:'정기 모임', special:'특별 행사',
+                 notice:'공지', closed:'휴무', normal:'' };
+  try{
+    const rows = (await HW.api.schedules(HW.ymd(new Date()))).slice(0, 4);
+    if (!rows.length){
+      box.innerHTML = '<p class="jr-msg">예정된 일정이 없습니다.</p>';
+      return;
+    }
+    box.innerHTML = rows.map(s => {
+      /* ★ date 컬럼이 timestamp 여도 안전하게 자릅니다 */
+      const d = new Date(dOnly(s.date) + 'T00:00:00');
+      const ok = !isNaN(d);
+      const k  = KIND[s.kind] || '';
+      const meta = [HW.hm(s.start_time), s.location].filter(Boolean).join(' · ');
+      return `<div class="pitem">
+        <div class="pd">
+          <b>${ok ? String(d.getDate()).padStart(2,'0') : '—'}</b>
+          <span>${ok ? String(d.getMonth()+1).padStart(2,'0') + '月' : ''}</span></div>
+        <div>
+          ${k ? `<div class="pk">${E(k)}</div>` : ''}
+          <div class="pt">${E(s.title)}</div>
+          ${meta ? `<div class="pm">${E(meta)}</div>` : ''}
+        </div></div>`;
+    }).join('');
+  }catch(e){
+    box.innerHTML = '<p class="jr-msg">일정을 불러오지 못했습니다.</p>';
+  }
+})();
+
+/* ---------- 6. 최근 학술지 4건 (DB: journal_public) ----------
+   ★ api.js 의 posts() 는 sort_order 를 1순위로 정렬하기 때문에
+     "최근 글"이 최신순이 아닐 수 있습니다. (api.js 수정 전 임시 방어)
+     여기서는 날짜 기준으로 다시 정렬한 뒤 4건만 보여줍니다. */
+(async () => {
+  const box = document.getElementById('journalPreview');
+  try{
+    const all = await HW.api.posts({ limit: 30 });
+    const rows = (all || []).slice().sort((a,b) =>
+      String(b.published_at || b.created_at || '')
+        .localeCompare(String(a.published_at || a.created_at || ''))
+    ).slice(0, 4);
+
+    if (!rows.length){
+      box.innerHTML = '<p class="jr-msg">아직 게재된 글이 없습니다.</p>';
+      return;
+    }
+    box.innerHTML = rows.map(p => {
+      const raw = p.published_at || p.created_at || '';
+      const d   = raw ? new Date(raw) : null;
+      const ok  = d && !isNaN(d);
+      const dd  = ok ? String(d.getDate()).padStart(2,'0')    : '—';
+      const mm  = ok ? String(d.getMonth()+1).padStart(2,'0') : '';
+      return `<button type="button" class="pitem click"
+                   data-id="${A(p.id)}">
+        <div class="pd"><b>${dd}</b><span>${mm ? mm + '月' : ''}</span></div>
+        <div>
+          <div class="pk">${E(p.series_name || '자유 투고')}</div>
+          <div class="pt">${E(p.title)}</div>
+          <div class="pm">${E(p.author || '익명')}</div>
+        </div></button>`;
+    }).join('');
+
+    /* ★ 인라인 onclick 제거 → 위임 방식 (id 에 따옴표가 섞여도 안전) */
+    box.addEventListener('click', e => {
+      const b = e.target.closest('.pitem.click'); if(!b) return;
+      location.href = 'journal-post.html?id=' + encodeURIComponent(b.dataset.id);
+    });
+  }catch(e){
+    box.innerHTML = '<p class="jr-msg">학술지를 불러오지 못했습니다.</p>';
+  }
+})();
+</script>
+</body>
+</html>

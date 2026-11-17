@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차 도감 — 효원다회(曉原茶會)</title>
+<meta name="description" content="효원다회가 소장한 차의 산지, 적정 우림 온도, 개봉 여부를 확인하세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     차 도감  v3
+     v3 변경점
+     ★ A-3 : common.css 의 '레거시 폭 해제' 규칙이 .grid 의 margin 을 0 으로
+             지우고 padding:var(--pad) 를 넣습니다. 그런데 .grid 의 배경이
+             선색(--line)이라 데스크탑에서 좌우에 최대 190px 베이지 띠가
+             그대로 드러났습니다. #arcgrid 만 예외 처리돼 있어 두 그리드가
+             서로 다르게 보이던 문제까지 함께 잡습니다.
+     ★ B-1 : body main .grid{...!important} 가 모바일 미디어쿼리를 덮어
+             휴대폰에서 2열이 1열로 떨어지던 문제 수정
+     ★ B-8 : CSS 선택자 조립 제거 (카테고리명에 따옴표가 있으면 필터 먹통)
+     ★ B-9 : .sr-only 정의 + hidden 제거
+     ========================================================= */
+
+  /* ★ B-9 : 화면에는 안 보이지만 스크린리더는 읽는 라벨 */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  .phead{background:var(--jade-d);padding:clamp(66px,7.5vw,124px) var(--pad) clamp(42px,4.6vw,74px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:18px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.7rem,3.1vw,3rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:#b6c2b5;font-size:.92rem;line-height:2;margin-top:15px;max-width:var(--read)}
+  .phead p b{color:var(--gold);font-weight:400}
+  .phead .vert{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:2;
+    writing-mode:vertical-rl;text-orientation:upright;font-family:var(--serif);
+    font-size:.88rem;letter-spacing:.42em;color:#8d9b8c;opacity:.7}
+  .crumb{padding:18px var(--pad) 0;font-size:.72rem;letter-spacing:.16em}
+  .crumb a{color:var(--sumi);text-decoration:none;border-bottom:1px solid var(--line-2);padding-bottom:3px}
+  .crumb a:hover{color:var(--jade);border-color:var(--jade)}
+
+  /* ---------- 필터 ---------- */
+  .filters{padding:clamp(22px,2.6vw,42px) var(--pad) 0;display:flex;flex-direction:column;gap:14px}
+  .fbtns{display:flex;gap:0;flex-wrap:wrap;border-top:1px solid var(--line);
+    border-left:1px solid var(--line)}
+  .fb{padding:11px 20px;border:none;border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);background:transparent;border-radius:0;cursor:pointer;
+    font-family:inherit;font-size:.78rem;letter-spacing:.12em;color:var(--sumi);
+    transition:all .2s;user-select:none}
+  .fb:hover{background:var(--cream-2);color:var(--ink)}
+  .fb.on{background:var(--jade);color:var(--ivory)}
+  .fb.off{color:var(--clay);text-decoration:line-through;background:var(--cream-2)}
+  .fb:focus-visible{outline:2px solid var(--jade);outline-offset:-2px;z-index:2}
+  .frow{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .srch{flex:1;min-width:200px;max-width:340px;padding:11px 0;border:none;
+    border-bottom:1px solid var(--line-2);background:transparent;font-family:inherit;
+    font-size:.88rem;color:var(--ink);outline:none;letter-spacing:.04em}
+  .srch:focus{border-color:var(--jade)}
+  .srch::placeholder{color:#8b8878}
+  .ckl{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;letter-spacing:.12em;
+    color:var(--sumi);cursor:pointer;user-select:none}
+  .ckl input{width:13px;height:13px;accent-color:var(--jade);cursor:pointer}
+  .cntinfo{margin-left:auto;font-size:.72rem;letter-spacing:.16em;color:var(--sumi)}
+
+  /* ---------- 카드 ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));
+    gap:1px;background:var(--line);border:1px solid var(--line);
+    margin:clamp(22px,2.6vw,40px) var(--pad) 0}
+
+  /* ★★ A-3 핵심 : common.css 의 레거시 폭 규칙을 되돌립니다 ★★
+     #grid 는 <main> 직계라 common.css 의 예외(.arcbox .grid)에 걸리지 않아
+     padding 이 들어가면서 좌우에 베이지 띠가 생겼습니다. */
+  body main > .grid{
+    padding-left:0 !important;
+    padding-right:0 !important;
+    margin:clamp(22px,2.6vw,40px) var(--pad) 0 !important;
+    width:auto !important;
+  }
+  /* 다 마신 차 그리드는 .arcwrap 이 이미 좌우 여백을 갖고 있습니다 */
+  body .arcbox .grid{margin:18px 0 0 !important;width:auto !important}
+
+  .tcard{background:var(--cream);padding:clamp(16px,1.6vw,24px);cursor:pointer;
+    border:none;border-radius:0;font-family:inherit;color:inherit;text-align:left;width:100%;
+    transition:background .22s;display:flex;flex-direction:column}
+  .tcard:hover{background:var(--cream-2)}
+  .tcard:focus-visible{outline:2px solid var(--jade);outline-offset:-2px;z-index:2}
+  .tcard.arch{opacity:.62}
+  .tcard .thumb{width:100%;height:clamp(130px,10vw,168px);object-fit:cover;
+    margin-bottom:14px;display:block;filter:saturate(.82)}
+  .tcard .ph{width:100%;height:clamp(130px,10vw,168px);margin-bottom:14px;background:var(--cream-3);
+    display:flex;align-items:center;justify-content:center;font-family:var(--serif);
+    font-size:1.8rem;color:var(--sumi);letter-spacing:.1em}
+  .tname{font-family:var(--serif);font-size:1.16rem;font-weight:500;color:var(--jade);
+    letter-spacing:.06em;line-height:1.4}
+  .thanja{font-size:.74rem;color:var(--sumi);letter-spacing:.14em;margin-top:3px}
+  .bdgs{display:flex;gap:6px;flex-wrap:wrap;margin:11px 0 10px}
+  .bd{font-size:.66rem;letter-spacing:.14em;padding:3px 9px;border-radius:0;
+    border:1px solid var(--line-2);color:var(--sumi);background:transparent}
+  .bd.op{border-color:var(--jade);color:var(--jade)}
+  .bd.un{border-color:var(--line-2);color:var(--sumi)}
+  .bd.ar{border-color:var(--line);color:var(--sumi);text-decoration:line-through}
+  .meta{font-size:.74rem;color:var(--jade);letter-spacing:.1em;margin-bottom:7px}
+  .desc{font-size:.86rem;color:var(--sumi);line-height:1.75;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .msg{color:var(--sumi);padding:20px;font-size:.86rem;grid-column:1/-1}
+
+  /* ---------- 다 마신 차 ---------- */
+  .arcwrap{padding:clamp(40px,4.4vw,72px) var(--pad) clamp(60px,6vw,100px)}
+  .arcbtn{width:100%;padding:20px 0;background:transparent;border:none;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    font-family:var(--serif);font-size:1rem;font-weight:500;color:var(--ink);
+    letter-spacing:.1em;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .arcbtn:hover{color:var(--jade)}
+  .arcbtn i{font-style:normal;font-size:.76rem;color:var(--sumi);letter-spacing:.2em}
+  .arcbox{display:none;margin-top:0}
+  .arcbox.open{display:block}
+  .arcbox > p{font-size:.84rem;color:var(--sumi);letter-spacing:.04em;padding:20px 0 0}
+
+  /* ---------- 모달 ---------- */
+  .ov{position:fixed;inset:0;background:rgba(22,37,30,.72);backdrop-filter:blur(3px);z-index:1000;
+    display:flex;justify-content:center;align-items:center;padding:20px;
+    opacity:0;visibility:hidden;transition:all .25s}
+  .ov.open{opacity:1;visibility:visible}
+  .mbox{background:var(--cream);width:100%;max-width:560px;border:1px solid var(--line-2);
+    border-top:2px solid var(--jade);border-radius:0;padding:clamp(22px,2.4vw,38px);
+    max-height:90vh;overflow-y:auto;position:relative;transform:translateY(14px);transition:transform .25s}
+  .ov.open .mbox{transform:translateY(0)}
+  .mclose{position:absolute;top:14px;right:14px;background:transparent;
+    border:1px solid var(--line-2);width:34px;height:34px;border-radius:0;
+    font-size:1rem;cursor:pointer;color:var(--sumi)}
+  .mclose:hover{background:var(--jade);color:var(--ivory);border-color:var(--jade)}
+  .mname{font-family:var(--serif);font-size:1.5rem;font-weight:500;color:var(--jade);
+    letter-spacing:.08em;padding-right:44px}
+  .mhanja{color:var(--sumi);font-size:.78rem;letter-spacing:.16em;margin-top:4px}
+  .mimg{width:100%;height:230px;object-fit:cover;margin-bottom:20px;filter:saturate(.85)}
+  .mdesc{font-size:.94rem;color:var(--ink-2);line-height:2}
+  .spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));
+    border-top:1px solid var(--line);margin:20px 0}
+  .spec div{padding:14px 12px 0;border-left:1px solid var(--line);text-align:left}
+  .spec div:first-child{padding-left:0;border-left:none}
+  .spec b{display:block;font-size:.62rem;letter-spacing:.2em;color:var(--sumi);
+    font-weight:400;margin-bottom:6px}
+  .spec span{font-family:var(--serif);font-size:.98rem;color:var(--jade);letter-spacing:.04em}
+
+  /* common.css 호환 보정 — 크림 배경 모달 안의 뱃지 */
+  body .mbox .bd{border-color:var(--line-2) !important;color:var(--sumi) !important;
+    background:transparent !important}
+  body .mbox .bd.op{border-color:var(--jade) !important;color:var(--jade) !important}
+  body .mbox .bd.ar{border-color:var(--line) !important;color:var(--sumi) !important}
+
+  @media(max-width:768px){
+    .phead .vert{display:none}
+    /* ★ B-1 : common.css 의 body main .grid !important 를 이겨야 합니다 */
+    body main > .grid{
+      grid-template-columns:repeat(auto-fill,minmax(150px,1fr)) !important;
+      margin-left:0 !important;margin-right:0 !important;
+      border-left:none;border-right:none;
+    }
+    body .arcbox .grid{
+      grid-template-columns:repeat(auto-fill,minmax(150px,1fr)) !important;
+    }
+    .tcard{padding:13px}
+    .tcard .thumb,.tcard .ph{height:104px}
+    .tname{font-size:1rem}
+    .cntinfo{margin-left:0}
+    .fb{padding:9px 14px;font-size:.72rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .ov,.mbox,.tcard{transition:none}
+  }
+</style>
+</head>
+<body data-page="dasho">
+
+<div id="hw-header"></div>
+
+<main>
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">ARCHIVE 01 &nbsp;/&nbsp; TEA DICTIONARY</div>
+      <h1>효원다회가 소장한<br>찻잎의 기록</h1>
+      <p>카테고리를 누르면 <b>선택</b>, 한 번 더 누르면 <b>제외</b>, 또 누르면 해제됩니다.</p>
+    </div>
+    <div class="vert">茶圖鑑</div>
+  </section>
+
+  <div class="crumb"><a href="dasho.html">茶書 허브로 돌아가기</a></div>
+
+  <div class="filters">
+    <div class="fbtns" id="fbtns"></div>
+    <div class="frow">
+      <!-- ★ B-9 : hidden 을 빼야 라벨이 실제로 읽힙니다 -->
+      <label class="sr-only" for="srch">차 이름 · 산지 검색</label>
+      <input class="srch" id="srch" placeholder="차 이름 · 산지 검색" autocomplete="off">
+      <label class="ckl"><input type="checkbox" id="onlyopen"><span>개봉한 차만 보기</span></label>
+      <span class="cntinfo" id="cntinfo" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <div class="grid" id="grid">
+    <p class="msg">불러오는 중…</p>
+  </div>
+
+  <div class="arcwrap">
+    <button type="button" class="arcbtn" id="arcbtn" aria-expanded="false" aria-controls="arcbox">
+      <span id="arctxt">다 마신 차 기록 (0)</span><i id="arcar" aria-hidden="true">＋</i>
+    </button>
+    <div class="arcbox" id="arcbox">
+      <p>효원다회에서 과거에 즐겼던 차들의 기록입니다.</p>
+      <div class="grid" id="arcgrid"></div>
+    </div>
+  </div>
+</main>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="m-name">
+  <div class="mbox">
+    <button class="mclose" type="button" id="mclose" aria-label="닫기">&times;</button>
+    <div id="mbody"></div>
+  </div>
+</div>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+
+const BASE = ['백차','녹차','청차','황차','홍차','흑차','보이차'];
+const ST   = { unopened:['미개봉','un'], opened:['개봉','op'], archived:['다 마심','ar'] };
+const MSG  = t => `<p class="msg">${E(t)}</p>`;
+
+let TEAS = [], pick = null, ex = new Set();
+
+/* =========================================================
+   1. 불러오기
+   ========================================================= */
+(async () => {
+  try{
+    TEAS = await HW.api.teas();
+  }catch(e){
+    HW.qs('#grid').innerHTML = MSG('차 목록을 불러오지 못했습니다.');
+    return;
+  }
+  buildBtns();
+  apply();
+})();
+
+/* =========================================================
+   2. 카테고리 버튼
+   ★ B-8 수정 : 기존에는 `.fb[data-cat="${keepCat}"]` 처럼 선택자를
+     문자열로 조립했습니다. 카테고리명에 따옴표(")나 대괄호가 섞이면
+     querySelector 가 예외를 던져 tog() 가 통째로 멈추고
+     필터 전체가 먹통이 되었습니다. 선택자를 쓰지 않습니다.
+   ========================================================= */
+function buildBtns(keepCat){
+  const live = new Set();
+  TEAS.forEach(t => (t.catNames || []).forEach(n => live.add(n)));
+
+  const extra = [...live]
+    .filter(n => !BASE.includes(n) && n !== '기타')
+    .sort((a,b) => a.localeCompare(b));
+  const list = ['전체', ...BASE.filter(b => live.has(b)), ...extra, '기타'];
+  const neutral = !pick && ex.size === 0;
+
+  HW.qs('#fbtns').innerHTML = list.map(c => {
+    let k = '';
+    if (c === '전체')      k = neutral ? 'on' : '';
+    else if (pick === c)   k = 'on';
+    else if (ex.has(c))    k = 'off';
+    const state = k === 'on' ? '선택됨' : (k === 'off' ? '제외됨' : '해제됨');
+    return `<button type="button" class="fb ${k}" data-cat="${A(c)}"
+                    aria-pressed="${k === 'on' ? 'true' : 'false'}"
+                    aria-label="${A(c + ' — ' + state)}">${E(c)}</button>`;
+  }).join('');
+
+  if (keepCat){
+    const el = HW.qsa('.fb', HW.qs('#fbtns')).find(x => x.dataset.cat === keepCat);
+    if (el) el.focus();
+  }
+}
+
+function tog(c){
+  if (c === '전체')        { pick = null; ex.clear(); }
+  else if (pick === c)     { pick = null; ex.add(c); }
+  else if (ex.has(c))      { ex.delete(c); }
+  else                     { pick = c; ex.delete(c); }
+  buildBtns(c);
+  apply();
+}
+
+HW.qs('#fbtns').addEventListener('click', e => {
+  const b = e.target.closest('.fb');
+  if (b) tog(b.dataset.cat);
+});
+
+/* =========================================================
+   3. 필터 적용 (검색은 디바운스)
+   ========================================================= */
+function hasBase(names){ return names.some(n => BASE.includes(n)); }
+
+function apply(){
+  const q = HW.qs('#srch').value.toLowerCase().trim();
+  const onlyOpen = HW.qs('#onlyopen').checked;
+
+  const ok = TEAS.filter(t => {
+    const names = t.catNames || [];
+
+    for (const x of ex){
+      if (x === '기타'){ if (!hasBase(names)) return false; }
+      else if (names.includes(x)) return false;
+    }
+    if (pick){
+      if (pick === '기타'){ if (hasBase(names)) return false; }
+      else if (!names.includes(pick)) return false;
+    }
+    if (onlyOpen && t.status !== 'opened') return false;
+
+    const hay = `${t.name||''} ${t.name_hanja||''} ${t.origin||''}`.toLowerCase();
+    return hay.includes(q);
+  });
+
+  const live = ok.filter(t => t.status !== 'archived');
+  const arch = ok.filter(t => t.status === 'archived');
+
+  HW.qs('#cntinfo').textContent = `보관 중 ${live.length}종 · 기록 ${arch.length}종`;
+
+  HW.qs('#grid').innerHTML = live.length
+    ? live.map(c => card(c, false)).join('')
+    : MSG('조건에 맞는 차가 없습니다.');
+
+  HW.qs('#arctxt').textContent = `다 마신 차 기록 (${arch.length})`;
+  HW.qs('#arcgrid').innerHTML = arch.length
+    ? arch.map(c => card(c, true)).join('')
+    : MSG('기록이 없습니다.');
+}
+
+let tmr = null;
+HW.qs('#srch').addEventListener('input', () => {
+  clearTimeout(tmr);
+  tmr = setTimeout(apply, 180);
+});
+HW.qs('#onlyopen').addEventListener('change', apply);
+
+/* =========================================================
+   4. 카드
+   ========================================================= */
+function card(t, isArc){
+  const s    = ST[t.status] || ST.unopened;
+  const cats = (t.catNames || []).map(n => `<span class="bd">${E(n)}</span>`).join('');
+  const pic  = t.image_url
+    ? `<img class="thumb" src="${A(t.image_url)}" alt="" loading="lazy"
+           style="${isArc ? 'filter:grayscale(55%)' : ''}"
+           onerror="this.outerHTML='&lt;span class=\\'ph\\'&gt;茶&lt;/span&gt;'">`
+    : `<span class="ph">茶</span>`;
+
+  return `<button type="button" class="tcard ${isArc ? 'arch' : ''}" data-id="${A(t.id)}"
+                  aria-label="${A(t.name + ' 상세 보기')}">
+    ${pic}
+    <span class="tname">${E(t.name)}</span>
+    ${t.name_hanja ? `<span class="thanja">${E(t.name_hanja)}</span>` : ''}
+    <span class="bdgs">${cats}<span class="bd ${s[1]}">${s[0]}</span></span>
+    ${t.temp ? `<span class="meta">적정 온도 ${E(t.temp)}</span>` : ''}
+    <span class="desc">${E(t.description || '')}</span>
+  </button>`;
+}
+
+['#grid','#arcgrid'].forEach(sel => {
+  HW.qs(sel).addEventListener('click', e => {
+    const b = e.target.closest('.tcard[data-id]');
+    if (b) openM(b.dataset.id, b);
+  });
+});
+
+/* =========================================================
+   5. 모달 — 포커스 트랩 · 포커스 복귀
+   ========================================================= */
+const OV = HW.qs('#ov');
+let lastFocus = null;
+
+function openM(id, fromEl){
+  const t = TEAS.find(x => String(x.id) === String(id));
+  if (!t) return;
+
+  const s    = ST[t.status] || ST.unopened;
+  const cats = (t.catNames || []).map(n => `<span class="bd">${E(n)}</span>`).join('');
+  const spec = [['TEMPERATURE', t.temp], ['BREW TIME', t.brew_time],
+                ['AMOUNT', t.amount],    ['ORIGIN',    t.origin]]
+    .filter(x => x[1])
+    .map(x => `<div><b>${x[0]}</b><span>${E(x[1])}</span></div>`).join('');
+
+  HW.qs('#mbody').innerHTML = `
+    ${t.image_url
+      ? `<img class="mimg" src="${A(t.image_url)}" alt="${A(t.name)}" onerror="this.remove()">` : ''}
+    <div class="mname" id="m-name">${E(t.name)}</div>
+    ${t.name_hanja ? `<div class="mhanja">${E(t.name_hanja)}</div>` : ''}
+    <div class="bdgs" style="margin-top:12px">${cats}<span class="bd ${s[1]}">${s[0]}</span></div>
+    ${spec ? `<div class="spec">${spec}</div>` : ''}
+    <div class="mdesc">${t.description ? HW.nl2br(t.description) : '등록된 상세 설명이 없습니다.'}</div>`;
+
+  lastFocus = fromEl || document.activeElement;
+  OV.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  HW.qs('#mclose').focus();
+}
+
+function closeM(){
+  if (!OV.classList.contains('open')) return;
+  OV.classList.remove('open');
+  document.body.style.overflow = '';
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus = null;
+}
+
+HW.qs('#mclose').addEventListener('click', closeM);
+OV.addEventListener('click', e => { if (e.target === OV) closeM(); });
+
+document.addEventListener('keydown', e => {
+  if (!OV.classList.contains('open')) return;
+  if (e.key === 'Escape'){ closeM(); return; }
+  if (e.key !== 'Tab') return;
+
+  const f = HW.qsa('button, a[href], input, [tabindex]:not([tabindex="-1"])', HW.qs('.mbox', OV))
+            .filter(el => !el.disabled && el.offsetParent !== null);
+  if (!f.length) return;
+
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
+
+/* =========================================================
+   6. 다 마신 차 토글
+   ========================================================= */
+HW.qs('#arcbtn').addEventListener('click', () => {
+  const b    = HW.qs('#arcbox');
+  const open = b.classList.toggle('open');
+  HW.qs('#arcar').textContent = open ? '－' : '＋';
+  HW.qs('#arcbtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+</script>
+</body>
+</html>

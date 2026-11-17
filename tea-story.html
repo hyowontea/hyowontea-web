@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차 이야기 — 효원다회(曉原茶會)</title>
+<meta name="description" content="효원다회 집행부가 직접 쓰는 차에 얽힌 짧은 글들입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     차 이야기  v2
+     v2 변경점
+     ① 없는 컬럼(published_at) 으로 정렬하던 것을 api.js 로 통일
+     ② tags 가 문자열로 올 때 글자 단위로 쪼개지던 버그 수정
+     ③ 카드 키보드 접근 + 모달 포커스 가둠/복귀
+     ④ 보조 글자 명암비 보정
+     ========================================================= */
+
+  .phead{background:var(--jade-d);padding:clamp(66px,7.5vw,124px) var(--pad) clamp(42px,4.6vw,74px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:18px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.7rem,3.1vw,3rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:#b6c2b5;font-size:.92rem;line-height:2;margin-top:15px;max-width:var(--read)}
+  .phead .vert{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:2;
+    writing-mode:vertical-rl;text-orientation:upright;font-family:var(--serif);
+    font-size:.88rem;letter-spacing:.42em;color:#8d9b8c;opacity:.7}
+  .crumb{padding:18px var(--pad) 0;font-size:.72rem;letter-spacing:.16em}
+  .crumb a{color:var(--sumi);text-decoration:none;border-bottom:1px solid var(--line-2);padding-bottom:3px}
+  .crumb a:hover{color:var(--jade);border-color:var(--jade)}
+
+  /* ---------- 상단 바 ----------
+     ★ common.css 가 .tb 에 테두리를 !important 로 넣기 때문에
+       공유 테두리 방식은 선이 두 겹으로 보입니다. gap 방식으로 바꿉니다. */
+  .bar{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;
+    margin:clamp(22px,2.6vw,40px) var(--pad) 0}
+  .tabs{display:flex;flex-wrap:wrap;gap:clamp(6px,.6vw,10px)}
+  .tb{padding:11px 20px;background:transparent;border:1px solid var(--line);cursor:pointer;
+    font-family:inherit;font-size:.78rem;letter-spacing:.1em;color:var(--sumi);transition:all .2s}
+  .tb:hover{background:var(--cream-2)}
+  .tb.on{background:var(--jade);color:var(--ivory);border-color:var(--jade)}
+  .tb:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+  .srch{flex:1;min-width:190px;max-width:320px;padding:11px 0;border:none;
+    border-bottom:1px solid var(--line-2);background:transparent;font-family:inherit;
+    font-size:.88rem;color:var(--ink);outline:none;letter-spacing:.04em}
+  .srch:focus{border-color:var(--jade)}
+  .srch::placeholder{color:var(--sumi)}
+  .cntinfo{margin-left:auto;font-size:.72rem;letter-spacing:.16em;color:var(--sumi)}
+
+  /* ---------- 목록 ---------- */
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));
+    gap:1px;background:var(--line);border:1px solid var(--line);
+    margin:clamp(22px,2.6vw,40px) var(--pad) clamp(60px,6vw,100px)}
+  /* 카드를 button 으로 바꿨으므로 기본 모양을 지웁니다 */
+  .st{background:var(--cream);display:flex;flex-direction:column;cursor:pointer;
+    border:none;border-radius:0;padding:0;margin:0;text-align:left;font-family:inherit;
+    color:inherit;transition:background .22s;width:100%}
+  .st:hover{background:var(--cream-2)}
+  .st:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+  .st img,.st video{width:100%;height:clamp(140px,10.5vw,174px);object-fit:cover;display:block;
+    filter:saturate(.82)}
+  .st .ph{height:clamp(140px,10.5vw,174px);background:var(--cream-3);display:flex;
+    align-items:center;justify-content:center;font-family:var(--serif);
+    font-size:1.8rem;color:var(--sumi);letter-spacing:.1em}
+  .st .in{padding:clamp(16px,1.7vw,24px);flex:1;display:flex;flex-direction:column}
+  .st h4{font-family:var(--serif);font-size:1.08rem;font-weight:500;color:var(--jade);
+    letter-spacing:.06em;line-height:1.5;margin-bottom:9px}
+  .st .ex{font-size:.86rem;color:var(--sumi);line-height:1.8;flex:1;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .tg{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .tg span{font-size:.64rem;letter-spacing:.14em;padding:3px 9px;
+    border:1px solid var(--line-2);color:var(--sumi)}
+  .st .mt{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:.72rem;letter-spacing:.1em;color:var(--sumi);display:flex;
+    justify-content:space-between;gap:8px}
+
+  /* common.css 가 .st 를 딥그린 카드로 덮어쓰므로 그 위 글자를 밝게 */
+  body .st .mt{color:#9fae9e !important}
+
+  /* ---------- 모달 ---------- */
+  .ov{position:fixed;inset:0;background:rgba(22,37,30,.72);backdrop-filter:blur(3px);z-index:1000;
+    display:flex;justify-content:center;align-items:center;padding:20px;
+    opacity:0;visibility:hidden;transition:all .25s}
+  .ov.open{opacity:1;visibility:visible}
+  .mbox{background:var(--cream);width:100%;max-width:640px;border:1px solid var(--line-2);
+    border-top:2px solid var(--jade);border-radius:0;padding:clamp(22px,2.4vw,40px);
+    max-height:90vh;overflow-y:auto;position:relative;transform:translateY(14px);transition:transform .25s}
+  .ov.open .mbox{transform:translateY(0)}
+  .mclose{position:absolute;top:14px;right:14px;background:transparent;
+    border:1px solid var(--line-2);width:34px;height:34px;border-radius:0;
+    font-size:1rem;cursor:pointer;color:var(--sumi)}
+  .mclose:hover{background:var(--jade);color:var(--ivory);border-color:var(--jade)}
+  .mbox h2{font-family:var(--serif);font-size:clamp(1.25rem,1.9vw,1.6rem);font-weight:500;
+    color:var(--jade);letter-spacing:.07em;line-height:1.5;margin-bottom:12px;padding-right:40px}
+  .mbox .minfo{font-size:.72rem;letter-spacing:.14em;color:var(--sumi);padding-bottom:14px;
+    border-bottom:1px solid var(--line);display:flex;gap:16px;flex-wrap:wrap}
+  .mbox .ct{font-size:.96rem;color:var(--sumi);line-height:2.05;padding-top:22px}
+  .mbox .cov{width:100%;height:240px;object-fit:cover;margin-bottom:22px;filter:saturate(.85)}
+  /* HW.embed() 의 유튜브 래퍼 — common.css 에 규칙이 없어 높이가 0 이었습니다 */
+  .hw-embed{position:relative;width:100%;aspect-ratio:16/9;margin-bottom:22px;
+    background:var(--jade-d);border:1px solid var(--line)}
+  .hw-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+
+  .msg{color:var(--sumi);padding:20px;font-size:.86rem;grid-column:1/-1;line-height:1.9}
+
+  @media(max-width:768px){
+    .phead .vert{display:none}
+    .list{grid-template-columns:1fr;margin-left:0;margin-right:0;border-left:none;border-right:none}
+    .cntinfo{margin-left:0}
+  }
+</style>
+</head>
+<body data-page="dasho">
+
+<div id="hw-header"></div>
+
+<main>
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">ARCHIVE 04 &nbsp;/&nbsp; TEA STORIES</div>
+      <h1>찻자리에서<br>오간 이야기들</h1>
+      <p>집행부가 직접 쓰는, 차에 얽힌 짧은 글들입니다.</p>
+    </div>
+    <div class="vert">茶談</div>
+  </section>
+
+  <div class="crumb"><a href="dasho.html">茶書 허브로 돌아가기</a></div>
+
+  <div class="bar">
+    <nav class="tabs" id="tabs" aria-label="태그 선택"></nav>
+    <input class="srch" id="srch" placeholder="제목 · 글쓴이 검색" aria-label="이야기 검색">
+    <span class="cntinfo" id="cntinfo" aria-live="polite"></span>
+  </div>
+
+  <div class="list" id="list">
+    <p class="msg">불러오는 중…</p>
+  </div>
+</main>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+  <div class="mbox">
+    <button class="mclose" type="button" id="mclose" aria-label="닫기">&times;</button>
+    <div id="mbody"></div>
+  </div>
+</div>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+const MSG = t => `<p class="msg">${E(t)}</p>`;
+
+let ROWS = [], LOADED = false, tag = '전체';
+
+/* =========================================================
+   1. 태그 파싱
+   ★ v1 버그 : tags 컬럼이 jsonb 가 아니라 text 로 만들어져 있으면
+     문자열이 그대로 와서 flatMap 이 글자 단위로 쪼갰습니다.
+     ("봄,녹차" → 봄 / , / 녹 / 차)
+   ========================================================= */
+function parseTags(v){
+  if(Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+  if(typeof v === 'string'){
+    const s = v.trim();
+    if(!s) return [];
+    if(s[0] === '['){
+      try{
+        const p = JSON.parse(s);
+        if(Array.isArray(p)) return p.map(x => String(x).trim()).filter(Boolean);
+      }catch(e){}
+    }
+    return s.split(/[,\n]/).map(t => t.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/* =========================================================
+   2. 불러오기
+   ★ v1 버그 : tea_stories 를 published_at 으로 정렬했는데
+     집행부 화면의 필드 정의에는 그 컬럼이 없습니다.
+     없는 컬럼으로 정렬하면 Supabase 가 오류를 돌려주어
+     목록 전체가 통째로 사라졌습니다. api.js 로 넘깁니다.
+   ========================================================= */
+(async () => {
+  const box = HW.qs('#list');
+  try{
+    ROWS = await HW.api.teaStories();
+  }catch(err){
+    console.error('[tea-story]', err);
+    box.innerHTML = MSG('목록을 불러오지 못했습니다.');
+    return;
+  }
+
+  LOADED = true;
+  if(!ROWS.length){ box.innerHTML = MSG('아직 공개된 이야기가 없습니다.'); return; }
+
+  /* 태그는 한 번만 파싱해 둡니다 */
+  ROWS.forEach(r => { r._tags = parseTags(r.tags); });
+
+  const tags = [...new Set(ROWS.flatMap(x => x._tags))].sort((a,b) => a.localeCompare(b));
+  HW.qs('#tabs').innerHTML = ['전체', ...tags].map(t =>
+    `<button type="button" class="tb ${t==='전체'?'on':''}" data-t="${A(t)}"
+             aria-pressed="${t==='전체'?'true':'false'}">${E(t)}</button>`).join('');
+
+  draw();
+})();
+
+HW.qs('#tabs').addEventListener('click', e => {
+  const b = e.target.closest('.tb'); if(!b) return;
+  tag = b.dataset.t;
+  HW.qsa('.tb').forEach(x => {
+    const on = x === b;
+    x.classList.toggle('on', on);
+    x.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  draw();
+});
+
+/* 입력할 때마다 전부 다시 그리지 않도록 잠깐 기다립니다 */
+let timer = null;
+HW.qs('#srch').addEventListener('input', () => {
+  clearTimeout(timer);
+  timer = setTimeout(draw, 180);
+});
+
+/* =========================================================
+   3. 그리기
+   ========================================================= */
+function draw(){
+  if(!LOADED) return;
+  const q = HW.qs('#srch').value.toLowerCase().trim();
+
+  const rows = ROWS.filter(s => {
+    if(tag !== '전체' && !s._tags.includes(tag)) return false;
+    return `${s.title||''} ${s.author||''} ${s.summary||''}`.toLowerCase().includes(q);
+  });
+
+  HW.qs('#cntinfo').textContent = `${tag} · ${rows.length}편`;
+
+  const box = HW.qs('#list');
+  if(!rows.length){ box.innerHTML = MSG('조건에 맞는 이야기가 없습니다.'); return; }
+
+  box.innerHTML = rows.map(s => {
+    const ex  = s.summary || (s.content || '').replace(/\s+/g,' ').slice(0,90);
+    const tg  = s._tags.slice(0,3).map(t => `<span>${E(t)}</span>`).join('');
+    const pic = s.cover_url
+      ? HW.media(s.cover_url, '', '', s.title)
+      : `<div class="ph">話</div>`;
+
+    return `<button type="button" class="st" data-id="${A(s.id)}">
+      ${pic}
+      <div class="in">
+        <h4>${E(s.title)}</h4>
+        <div class="ex">${E(ex)}</div>
+        ${tg ? `<div class="tg">${tg}</div>` : ''}
+        <div class="mt">
+          <span>${E(s.author || '효원다회')}</span>
+          <span>${E(dateOf(s))}</span>
+        </div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function dateOf(s){
+  return String(s.published_at || s.created_at || '').slice(0,10);
+}
+
+/* =========================================================
+   4. 상세 모달 (포커스 가둠 · 복귀 포함)
+   ========================================================= */
+let lastFocus = null;
+
+HW.qs('#list').addEventListener('click', e => {
+  const c = e.target.closest('.st'); if(!c) return;
+  const s = ROWS.find(x => String(x.id) === c.dataset.id); if(!s) return;
+  openM(s, c);
+});
+
+function openM(s, trigger){
+  const tg = s._tags.map(t => `<span>${E(t)}</span>`).join('');
+  /* 표지가 유튜브 주소여도 그대로 재생되도록 embed 를 씁니다 */
+  const cov = s.cover_url
+    ? (HW.isEmbeddable(s.cover_url)
+        ? HW.embed(s.cover_url, '', '', s.title)
+        : HW.media(s.cover_url, 'cov', '', s.title))
+    : '';
+
+  HW.qs('#mbody').innerHTML = `
+    ${cov}
+    <h2 id="mtitle">${E(s.title)}</h2>
+    <div class="minfo">
+      <span>글 ${E(s.author || '효원다회')}</span>
+      <span>${E(dateOf(s))}</span>
+    </div>
+    ${tg ? `<div class="tg" style="margin-top:14px">${tg}</div>` : ''}
+    <div class="ct">${s.content ? HW.nl2br(s.content) : '본문이 등록되지 않았습니다.'}</div>`;
+
+  lastFocus = trigger || document.activeElement;
+  HW.qs('#ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  HW.qs('#mclose').focus();
+}
+
+function closeM(){
+  const ov = HW.qs('#ov');
+  if(!ov.classList.contains('open')) return;
+  ov.classList.remove('open');
+  document.body.style.overflow = '';
+  if(lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus = null;
+}
+
+HW.qs('#mclose').addEventListener('click', closeM);
+HW.qs('#ov').addEventListener('click', e => { if(e.target.id === 'ov') closeM(); });
+
+document.addEventListener('keydown', e => {
+  const ov = HW.qs('#ov');
+  if(!ov.classList.contains('open')) return;
+
+  if(e.key === 'Escape'){ closeM(); return; }
+
+  /* Tab 이 모달 밖으로 빠져나가지 않게 가둡니다 */
+  if(e.key !== 'Tab') return;
+  const f = HW.qsa('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
+                   HW.qs('.mbox', ov))
+            .filter(el => !el.disabled && el.offsetParent !== null);
+  if(!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>효원다회 집행부</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     집행부 화면 — 메인과 같은 한지·먹 톤
+     v2 : 보조 글자 명암비 보정 + 포커스 표시
+     v2.1 : ★ 상단바 글자 안 보임(A-1) 수정
+            common.css 의 어두운 면 토큰 블록에 #dash .ad-top 이 포함되어
+            .ad-top 안에서 --ink 가 아이보리(#e9e4d6) 로 바뀝니다.
+            그 결과 background:var(--ink) / color:var(--paper) 조합이
+            '아이보리 바탕 + 크림 글자'(대비 1.1:1)가 되어
+            로고·사이트 보기·로그아웃이 전부 사라졌습니다.
+            → 토큰에 의존하지 않는 고정값(--jade-d / --ivory)으로 바꿉니다.
+              두 토큰은 어두운 면 블록에서 재정의되지 않아 항상 안전합니다.
+     ========================================================= */
+  body{background:var(--paper-2)}
+
+  /* ---------- 로그인 ---------- */
+  #login-box{max-width:380px;margin:12vh auto;background:var(--paper);
+    border:1px solid var(--line-2);padding:46px 38px 34px;text-align:center}
+  #login-box .lk{font-size:.66rem;letter-spacing:.32em;color:var(--sumi);margin-bottom:18px}
+  #login-box h2{font-family:var(--serif);font-size:1.2rem;font-weight:600;
+    letter-spacing:.3em;color:var(--ink);padding-left:.3em}
+  #login-box h2::after{content:'';display:block;width:28px;height:1px;
+    background:var(--ink);margin:20px auto 26px}
+  #login-box .acc{font-size:.76rem;color:var(--sumi);margin-bottom:18px;letter-spacing:.04em}
+  #login-box .field{margin-bottom:14px;text-align:left}
+  #login-box .back{display:inline-block;margin-top:20px;font-size:.78rem;
+    color:var(--sumi);text-decoration:none;letter-spacing:.08em;
+    border-bottom:1px solid var(--line-2);padding-bottom:2px}
+  #login-box .back:hover{color:var(--ink);border-color:var(--ink)}
+
+  #dash{display:none}
+
+  /* ---------- 상단 ----------
+     ★ A-1 수정 : 아래 규칙들은 --ink / --paper 를 쓰지 않습니다.
+       선택자도 #dash .ad-top 으로 올려 common.css 와 충돌하지 않게 했습니다. */
+  #dash .ad-top{
+    background:var(--jade-l);            /* index 상단바와 동일 */
+    color:var(--ivory);                  /* 고정 : 아이보리 */
+    border-bottom:1px solid rgba(233,228,214,.14);
+    padding:.8rem 26px;display:flex;
+    justify-content:space-between;align-items:center;
+    position:sticky;top:0;z-index:120;
+  }
+  #dash .ad-top b{
+    font-family:var(--serif);letter-spacing:.34em;font-size:.98rem;
+    font-weight:600;color:var(--ivory);
+  }
+  /* 딥그린(#16251e) 위에서 약 5.6:1 */
+  #dash .ad-top .who{font-size:.74rem;color:#9fad9e;letter-spacing:.08em;margin-left:10px}
+  #dash .ad-top a,
+  #dash .ad-top button{
+    color:var(--ivory);font-size:.76rem;font-weight:500;
+    letter-spacing:.1em;text-decoration:none;background:transparent;
+    border:1px solid rgba(233,228,214,.38);padding:8px 14px;border-radius:0;
+    cursor:pointer;margin-left:8px;font-family:inherit;transition:all .2s;
+  }
+  #dash .ad-top a:hover,
+  #dash .ad-top button:hover{
+    background:var(--ivory);color:var(--jade-l);border-color:var(--ivory);
+  }
+  #dash .ad-top a:focus-visible,
+  #dash .ad-top button:focus-visible{outline:2px solid var(--ivory);outline-offset:2px}
+
+  /* ---------- 레이아웃 ---------- */
+  .ad-body{display:grid;grid-template-columns:208px 1fr;gap:28px;
+    max-width:1320px;margin:28px auto;padding:0 24px;align-items:start}
+  .ad-side{position:sticky;top:84px;background:var(--paper);border:1px solid var(--line);
+    padding:14px 0;max-height:calc(100vh - 112px);overflow:auto}
+  .ad-side h6{font-size:.62rem;letter-spacing:.26em;color:var(--sumi);
+    font-weight:600;margin:16px 18px 7px;text-transform:uppercase}
+  .ad-side h6:first-child{margin-top:4px}
+  .ad-side button{display:block;width:100%;text-align:left;background:none;border:none;
+    border-left:1px solid transparent;padding:9px 18px;font-size:.86rem;font-weight:500;
+    letter-spacing:.03em;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:all .2s}
+  .ad-side button:hover{background:var(--paper-2);border-left-color:var(--line-2)}
+  .ad-side button.on{background:var(--paper-3);color:var(--ink);
+    font-weight:600;border-left-color:var(--ink)}
+
+  /* ---------- 패널 ---------- */
+  .pane{display:none;background:var(--paper);border:1px solid var(--line);padding:34px 36px 40px}
+  .pane.on{display:block}
+  .pane h2{font-family:var(--serif);font-size:1.4rem;font-weight:600;
+    letter-spacing:.08em;color:var(--ink)}
+  .pane h2::after{content:'';display:block;width:26px;height:1px;background:var(--ink);margin:16px 0 0}
+  .pane .desc{color:var(--sumi);font-size:.86rem;margin:16px 0 26px;line-height:1.9}
+  .pane h3{font-family:var(--serif);font-size:1.02rem;font-weight:600;
+    letter-spacing:.06em;color:var(--ink)}
+
+  .box{background:var(--paper-2);border:1px solid var(--line);padding:24px;margin-bottom:26px}
+  .box>b{font-size:.68rem;letter-spacing:.24em;color:var(--sumi);
+    font-weight:600;text-transform:uppercase}
+  .half{grid-column:span 1}.full{grid-column:1/-1}
+  .uprow{display:flex;gap:8px}.uprow input{flex:1;min-width:0}
+  .upbtn{background:transparent;color:var(--ink);border:1px solid var(--line-2);
+    padding:12px 15px;cursor:pointer;font-size:.76rem;font-weight:500;
+    letter-spacing:.1em;white-space:nowrap;transition:all .2s}
+  .upbtn:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .upbtn input{display:none}
+  /* ★ 기존 var(--muted) 는 작은 글씨에서 흐렸습니다 */
+  .fhint{font-size:.74rem;color:var(--sumi);margin-top:6px;line-height:1.75}
+  .fhint b{color:var(--ink)}
+
+  /* ---------- 버튼 ---------- */
+  .rowbtns{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+  .b{border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:0;
+    padding:12px 20px;font-weight:500;font-size:.82rem;letter-spacing:.1em;
+    cursor:pointer;font-family:inherit;transition:all .22s}
+  .b:hover{background:transparent;color:var(--ink)}
+  .b-main{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .b-gray{background:transparent;color:var(--sumi);border-color:var(--line-2)}
+  .b-gray:hover{background:var(--sumi);color:var(--paper);border-color:var(--sumi)}
+  .b-blue{background:var(--jade);color:var(--paper);border-color:var(--jade)}
+  .b-blue:hover{background:transparent;color:var(--jade)}
+  .b-red{background:transparent;color:var(--clay);border-color:var(--clay)}
+  .b-red:hover{background:var(--clay);color:var(--paper)}
+  .b-sm{padding:7px 13px;font-size:.74rem;letter-spacing:.08em}
+  .b:disabled{opacity:.5;cursor:not-allowed}
+
+  /* ---------- 목록 ---------- */
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1px;
+    background:var(--line);border:1px solid var(--line)}
+  .it{border:none;background:var(--paper);padding:20px;
+    display:flex;flex-direction:column;justify-content:space-between;transition:background .25s}
+  .it:hover{background:var(--paper-2)}
+  .it h4{font-family:var(--serif);font-size:1.02rem;color:var(--ink);
+    font-weight:600;letter-spacing:.04em;margin-bottom:6px;line-height:1.5}
+  .it .sub{font-size:.74rem;color:var(--sumi);margin-bottom:9px;letter-spacing:.03em}
+  /* ★ 이 .bd 는 '밝은 면' 이므로 먹색이어야 합니다 (common.css v3.2에서 보호됨) */
+  .it .bd{font-size:.83rem;color:var(--ink-2);line-height:1.8;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .it .thumb{width:100%;height:120px;object-fit:cover;margin-bottom:12px;filter:saturate(.92)}
+  .chip{display:inline-block;background:transparent;border:1px solid var(--line-2);
+    color:var(--sumi);font-size:.64rem;font-weight:500;letter-spacing:.1em;
+    padding:2px 9px;margin:0 4px 8px 0}
+  .chip.gray{color:var(--muted-2);border-color:var(--line)}
+  .chip.red{color:var(--clay);border-color:var(--clay)}
+  .chip.blue{color:var(--jade);border-color:var(--jade)}
+
+  .emptyline{padding:30px;text-align:center;color:var(--sumi);font-size:.88rem}
+
+  /* ---------- 사이트 값 표 ---------- */
+  table.vt{width:100%;border-collapse:collapse}
+  table.vt td{padding:14px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.vt tr:last-child td{border-bottom:none}
+  table.vt td:first-child{width:38%}
+  table.vt .lb{font-weight:600;font-size:.88rem;color:var(--ink);letter-spacing:.02em}
+  table.vt .hi{font-size:.74rem;color:var(--sumi);margin-top:3px;line-height:1.7}
+  table.vt .hi.key{color:var(--muted-2)}
+
+  /* ---------- 캘린더 ---------- */
+  .cal-wrap{display:grid;grid-template-columns:1.15fr 1fr;gap:24px;align-items:start}
+  .calhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .calhd h3{font-size:1rem;letter-spacing:.1em}
+  .cnav{background:transparent;border:1px solid var(--line-2);width:32px;height:32px;
+    border-radius:0;cursor:pointer;font-weight:500;color:var(--sumi);font-family:inherit}
+  .cnav:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
+    text-align:center;background:var(--line);border:1px solid var(--line)}
+  .cnm{font-size:.7rem;font-weight:600;letter-spacing:.1em;color:var(--sumi);
+    padding:8px 0;background:var(--paper-2)}
+  .cd{min-height:60px;border:none;background:var(--paper);cursor:pointer;
+    padding:5px;font-size:.78rem;text-align:left;transition:background .2s}
+  .cd:hover{background:var(--paper-3)}
+  .cd.empty{background:var(--paper-2);cursor:default}
+  .cd.sel{background:var(--ink);color:var(--paper)}
+  .cd .n{font-weight:600;font-size:.74rem}
+  .ev{background:var(--paper-3);color:var(--ink-2);font-size:.62rem;font-weight:500;
+    padding:1px 4px;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .cd.sel .ev{background:rgba(242,238,227,.22);color:var(--paper)}
+
+  .evrow{border:1px solid var(--line);padding:12px 14px;margin-bottom:9px;background:var(--paper)}
+
+  @media(max-width:900px){
+    .ad-body{grid-template-columns:1fr;padding:0 14px;gap:18px}
+    .ad-side{position:static;max-height:none;display:flex;gap:4px;overflow-x:auto;padding:8px}
+    .ad-side h6{display:none}
+    .ad-side button{width:auto;white-space:nowrap;border-left:none;border-bottom:1px solid transparent}
+    .ad-side button.on{border-left:none;border-bottom-color:var(--ink)}
+    .cal-wrap{grid-template-columns:1fr}
+    .pane{padding:22px 18px 28px}
+  }
+</style>
+</head>
+<body data-page="admin">
+
+<!-- ===================== 로그인 ===================== -->
+<div id="login-box">
+  <div class="lk">ADMINISTRATOR</div>
+  <h2>집행부</h2>
+  <div class="acc" id="acc-hint">—</div>
+  <form onsubmit="doLogin(event)">
+    <div class="field">
+      <label for="lg-pw">비밀번호</label>
+      <input id="lg-pw" type="password" required autocomplete="current-password"
+             placeholder="집행부 비밀번호">
+    </div>
+    <button class="b b-main" style="width:100%" id="lg-btn">로그인</button>
+  </form>
+  <a href="index.html" class="back">← 메인으로</a>
+</div>
+
+<!-- ===================== 대시보드 ===================== -->
+<div id="dash">
+  <div class="ad-top">
+    <div><b>曉原茶會</b><span class="who" id="whoami"></span></div>
+    <div>
+      <a href="index.html" target="_blank" rel="noopener">사이트 보기 ↗</a>
+      <button type="button" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="ad-body">
+    <nav class="ad-side" id="side"></nav>
+    <div>
+      <!-- 홈 -->
+      <section class="pane" id="p-home">
+        <h2>환영합니다</h2>
+        <p class="desc">효원다회 웹사이트 통합 관리 센터입니다.</p>
+        <div class="box" id="stat">불러오는 중…</div>
+        <div class="box" style="border-left:2px solid var(--clay)">
+          <b style="color:var(--clay)">자주 쓰는 작업</b>
+          <p style="font-size:.86rem;color:var(--ink-2);margin-top:10px;line-height:2">
+            ① 모집 시기가 되면 <b>사이트 값 → 모집</b> 에서 기간·회비·신청 링크 수정<br>
+            ② 알릴 일이 있으면 <b>공지 팝업</b> 에 등록 (노출 기간을 꼭 지정하세요)<br>
+            ③ 투고가 들어오면 <b>투고 심사</b> 에서 게재 / 반려<br>
+            ④ 실수로 지웠다면 <b>변경 이력</b> 에서 복원
+          </p>
+        </div>
+      </section>
+
+      <!-- 사이트 값 -->
+      <section class="pane" id="p-values">
+        <h2>사이트 값</h2>
+        <p class="desc">
+          여러 페이지에서 함께 쓰이는 <b>배경 파일 주소 · 모집 정보 · 연락처</b>입니다.
+          수정 후 각 줄의 저장을 누르거나, 맨 아래 전체 저장을 누르세요.
+        </p>
+        <div id="vbox">불러오는 중…</div>
+      </section>
+
+      <!-- 제네릭 패널 -->
+      <section class="pane" id="p-intro-index"></section>
+      <section class="pane" id="p-intro-about"></section>
+      <section class="pane" id="p-history"></section>
+      <section class="pane" id="p-rules"></section>
+      <section class="pane" id="p-popups"></section>
+      <section class="pane" id="p-teas"></section>
+      <section class="pane" id="p-teamap"></section>
+      <section class="pane" id="p-teaware"></section>
+      <section class="pane" id="p-stories"></section>
+      <section class="pane" id="p-series"></section>
+
+      <!-- 일정 -->
+      <section class="pane" id="p-schedule">
+        <h2>일정 관리</h2>
+        <p class="desc">날짜를 누르면 그 날의 일정이 오른쪽에 나옵니다.</p>
+        <div class="cal-wrap">
+          <div class="box" style="margin:0">
+            <div class="calhd">
+              <button type="button" class="cnav" onclick="calMove(-1)" aria-label="이전 달">‹</button>
+              <h3 id="cal-title"></h3>
+              <button type="button" class="cnav" onclick="calMove(1)" aria-label="다음 달">›</button>
+            </div>
+            <div class="cgrid" id="cal-grid"></div>
+          </div>
+          <div>
+            <div class="box">
+              <div style="display:flex;justify-content:space-between;align-items:center;
+                   border-bottom:1px solid var(--line-2);padding-bottom:10px;margin-bottom:14px">
+                <b id="sel-date" style="color:var(--ink)">날짜를 선택하세요</b>
+                <button type="button" class="b b-main b-sm" onclick="schNew()">+ 추가</button>
+              </div>
+              <div id="sel-list"></div>
+            </div>
+            <div class="box" style="margin:0">
+              <b id="sch-ttl">일정 추가</b>
+              <form id="sch-form" onsubmit="schSave(event)" style="margin-top:16px">
+                <input type="hidden" id="sch-id">
+                <div class="form-grid">
+                  <div class="field"><label for="sch-date">날짜 *</label><input type="date" id="sch-date" required></div>
+                  <div class="field"><label for="sch-end">종료일 (여러 날)</label><input type="date" id="sch-end"></div>
+                  <div class="field"><label for="sch-time">시작 시간</label><input type="time" id="sch-time"></div>
+                  <div class="field"><label for="sch-kind">구분</label>
+                    <select id="sch-kind">
+                      <option value="normal">일반</option><option value="regular">정기 모임</option>
+                      <option value="special">특별 행사</option><option value="notice">공지</option>
+                      <option value="closed">휴무</option>
+                    </select></div>
+                </div>
+                <div class="field"><label for="sch-title">제목 *</label><input id="sch-title" required placeholder="봄맞이 야외 찻자리"></div>
+                <div class="field"><label for="sch-loc">장소</label><input id="sch-loc" placeholder="동아리방"></div>
+                <div class="field"><label for="sch-desc">설명</label><textarea id="sch-desc" rows="3"></textarea></div>
+                <div class="rowbtns">
+                  <button class="b b-main" style="flex:1">저장</button>
+                  <button type="button" class="b b-gray" id="sch-cancel" style="display:none" onclick="schReset()">취소</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 학술지 심사 -->
+      <section class="pane" id="p-journal">
+        <h2>투고 심사</h2>
+        <p class="desc">투고된 글을 확인하고 게재하거나 반려합니다. 게재된 글은 바로 사이트에 올라갑니다.</p>
+        <h3 style="margin-bottom:14px">심사 대기</h3>
+        <div id="jp-pending" class="list"></div>
+        <h3 style="margin:30px 0 14px">게재된 글</h3>
+        <div class="box" style="padding:18px">
+          <div class="form-grid">
+            <div class="field" style="margin:0"><label for="asg-issue">묶을 호 선택</label><select id="asg-issue"></select></div>
+            <div class="field" style="margin:0;display:flex;align-items:flex-end">
+              <button type="button" class="b b-blue" style="width:100%" onclick="assignChecked()">체크한 글을 이 호로 묶기</button>
+            </div>
+          </div>
+        </div>
+        <div id="jp-pub" class="list"></div>
+      </section>
+
+      <!-- 호 관리 -->
+      <section class="pane" id="p-issues">
+        <h2>호(號) 관리</h2>
+        <p class="desc">글이 모이면 호를 만들어 묶습니다.</p>
+        <div class="box">
+          <b>호 등록 · 수정</b>
+          <form id="is-form" onsubmit="isSave(event)" style="margin-top:16px">
+            <input type="hidden" id="is-id">
+            <div class="form-grid">
+              <div class="field"><label for="is-series">학술지 *</label><select id="is-series" required></select></div>
+              <div class="field"><label for="is-no">호수 *</label><input type="number" id="is-no" required placeholder="1"></div>
+              <div class="field"><label for="is-date">발행일</label><input type="date" id="is-date"></div>
+              <div class="field"><label for="is-status">상태</label>
+                <select id="is-status"><option value="draft">준비중</option><option value="published">발행</option></select></div>
+            </div>
+            <div class="field"><label for="is-title">호 제목</label><input id="is-title" placeholder="창간호 — 차와 사람"></div>
+            <div class="field"><label for="is-cover">호 표지</label>
+              <div class="uprow">
+                <input id="is-cover" placeholder="주소 직접 입력 또는 파일 선택">
+                <label class="upbtn">파일 선택
+                  <input type="file" accept="image/*" onchange="HW.pickFile(this,'is-cover','journal')"></label>
+              </div>
+            </div>
+            <div class="field"><label for="is-note">편집자의 말</label><textarea id="is-note" rows="3"></textarea></div>
+            <div class="rowbtns">
+              <button class="b b-main" style="flex:1">저장</button>
+              <button type="button" class="b b-gray" id="is-cancel" style="display:none" onclick="isReset()">취소</button>
+            </div>
+          </form>
+        </div>
+        <div id="is-list" class="list"></div>
+      </section>
+
+      <!-- 댓글 -->
+      <section class="pane" id="p-comments">
+        <h2>댓글 관리</h2>
+        <p class="desc">댓글은 즉시 게재됩니다. 문제가 있는 댓글만 숨기거나 삭제하세요.</p>
+        <div id="cm-list"></div>
+      </section>
+
+      <!-- 변경 이력 -->
+      <section class="pane" id="p-audit">
+        <h2>변경 이력 · 복원</h2>
+        <p class="desc">최근 100건입니다. 삭제·수정한 내용을 되돌릴 수 있습니다.</p>
+        <div id="au-list"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+/* ui.js v2 의 escAttr 가 없을 때를 대비한 안전장치 */
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+
+/* =========================================================
+   0. 메뉴
+   ========================================================= */
+const MENU = [
+  ['기본',   [['home','홈'],['values','사이트 값']]],
+  ['페이지', [['intro-index','홈 소개글'],['intro-about','동아리 소개글'],
+              ['history','연혁'],['rules','회칙'],['popups','공지 팝업']]],
+  ['일정',   [['schedule','일정']]],
+  ['茶書',   [['teas','차 도감'],['teamap','차 지도'],['teaware','다구'],['stories','차 이야기']]],
+  ['학술지', [['journal','투고 심사'],['issues','호 관리'],['series','학술지 종류'],['comments','댓글']]],
+  ['기타',   [['audit','변경 이력']]]
+];
+
+/* =========================================================
+   1. 제네릭 CRUD 정의
+   ========================================================= */
+const F = (k,l,t,o={}) => Object.assign({k,l,t},o);
+const DEFS = {
+  'intro-index': { table:'intro_sections', name:'홈 소개글',
+    desc:'메인 페이지 중간의 소개 문단입니다. 개수는 자유롭게 늘릴 수 있습니다.',
+    fixed:{page_key:'index'}, where:['page_key','index'], order:['sort_order',true],
+    fields:[ F('sort_order','표시 순서','number',{def:0,half:1}),
+             F('eyebrow','영문 소제목','text',{ph:'TEA CULTURE',half:1}),
+             F('title','제목','text',{req:1}),
+             F('content','본문','textarea',{rows:5}),
+             F('image_url','이미지 / 영상','media'),
+             F('is_visible','공개','bool',{def:true,half:1}) ],
+    card:r=>({t:r.title, s:`#${r.sort_order} · ${r.eyebrow||''}`, b:r.content,
+      chips:[[r.is_visible?'공개':'숨김', r.is_visible?'':'gray']]}) },
+
+  'intro-about': { table:'intro_sections', name:'동아리 소개글',
+    desc:'about.html 에 나오는 소개 문단입니다.',
+    fixed:{page_key:'about'}, where:['page_key','about'], order:['sort_order',true],
+    fields:[ F('sort_order','표시 순서','number',{def:0,half:1}),
+             F('eyebrow','영문 소제목','text',{ph:'ABOUT US',half:1}),
+             F('title','제목','text',{req:1}),
+             F('content','본문','textarea',{rows:5}),
+             F('image_url','이미지 / 영상','media'),
+             F('is_visible','공개','bool',{def:true,half:1}) ],
+    card:r=>({t:r.title, s:`#${r.sort_order} · ${r.eyebrow||''}`, b:r.content,
+      chips:[[r.is_visible?'공개':'숨김', r.is_visible?'':'gray']]}) },
+
+  'history': { table:'history', name:'연혁', desc:'창립부터의 발자취입니다.',
+    order:['sort_order',true],
+    fields:[ F('sort_order','표시 순서','number',{def:0,half:1}),
+             F('year','연도 / 시기','text',{req:1,ph:'1986 또는 2026.03',half:1}),
+             F('content','내용','text',{req:1,ph:'효원다회 창립'}),
+             F('is_major','주요 사건으로 강조','bool',{def:false}) ],
+    card:r=>({t:r.year, s:'', b:r.content,
+      chips:r.is_major?[['주요','blue']]:[]}) },
+
+  'rules': { table:'rules', name:'회칙', desc:'조항 단위로 등록합니다.',
+    order:['sort_order',true],
+    fields:[ F('sort_order','표시 순서','number',{def:0,half:1}),
+             F('chapter','장','text',{ph:'제1장 총칙',half:1}),
+             F('article','조','text',{ph:'제1조 (명칭)'}),
+             F('content','내용','textarea',{rows:3,req:1}) ],
+    card:r=>({t:r.article||r.chapter||'조항', s:r.chapter||'', b:r.content}) },
+
+  'popups': { table:'popups', name:'공지 팝업',
+    desc:'사이트에 접속하면 떠오르는 공지창입니다. 노출 기간을 지정하면 그 기간에만 나타나고, ' +
+         '방문자가 “오늘 하루 보지 않기”를 누르면 그 날은 다시 뜨지 않습니다.',
+    order:['sort_order',true],
+    fields:[ F('sort_order','표시 순서','number',{def:0,half:1}),
+             F('is_active','지금 사용','bool',{def:true,half:1}),
+             F('title','제목','text',{req:1,ph:'2026학년도 1학기 신입 부원 모집'}),
+             F('body','내용','textarea',{rows:4,ph:'줄바꿈은 그대로 반영됩니다.'}),
+             F('image_url','이미지 / 영상','media',
+               {hint:'포스터 이미지, mp4 파일, 또는 유튜브 주소를 넣을 수 있습니다.'}),
+             F('link_url','연결할 주소','text',{ph:'https:// 또는 submit.html',half:1}),
+             F('link_label','버튼 글자','text',{def:'자세히 보기',half:1}),
+             F('start_at','노출 시작일','date',{half:1}),
+             F('end_at','노출 종료일','date',{half:1}),
+             F('position','위치','select',
+               {opts:[['center','가운데'],['left','왼쪽'],['right','오른쪽']],def:'center',half:1}) ],
+    card:r=>{ const ps = popupState(r);
+      return { t:r.title, img:r.image_url,
+        s:`${dOnly(r.start_at)||'시작 제한 없음'} ~ ${dOnly(r.end_at)||'종료 제한 없음'}`,
+        b:r.body, chips:[[ps[0], ps[1]]] }; } },
+
+  'teas': { table:'teas', name:'차 도감', desc:'카테고리는 쉼표로 여러 개 입력하면 자동 생성됩니다.',
+    order:['sort_order',true],
+    fields:[ F('name','차 이름','text',{req:1,half:1}),
+             F('name_hanja','한자 이름','text',{half:1}),
+             F('_cats','카테고리 (쉼표 구분)','text',{req:1,ph:'녹차, 한국차'}),
+             F('origin','산지','text',{ph:'하동',half:1}),
+             F('temp','적정 온도','text',{ph:'70',half:1}),
+             F('brew_time','우림 시간','text',{ph:'1분',half:1}),
+             F('amount','투차량','text',{ph:'3g',half:1}),
+             F('status','상태','select',{opts:[['unopened','미개봉'],['opened','개봉'],['archived','다 마심']],def:'unopened',half:1}),
+             F('sort_order','표시 순서','number',{def:0,half:1}),
+             F('description','설명','textarea',{rows:3}),
+             F('image_url','사진','media') ],
+    card:r=>({t:r.name, s:(r.catNames||[]).join(', '), b:r.description, img:r.image_url,
+      chips:[[{unopened:'미개봉',opened:'개봉',archived:'다 마심'}[r.status]||'',
+              r.status==='opened'?'blue':r.status==='archived'?'gray':'']]}) },
+
+  'teamap': { table:'tea_map', name:'차 지도', desc:'다산지와 명소입니다.',
+    order:['sort_order',true],
+    fields:[ F('sort_order','표시 순서','number',{def:0,half:1}),
+             F('country','국가','text',{def:'대한민국',half:1}),
+             F('region','지역 / 산지','text',{req:1,ph:'하동',half:1}),
+             F('title','명소 / 대표 차','text',{req:1,ph:'화개장터 차밭',half:1}),
+             F('lat','위도','number',{half:1,step:'any'}),
+             F('lng','경도','number',{half:1,step:'any'}),
+             F('description','설명','textarea',{rows:3}),
+             F('image_url','사진','media') ],
+    card:r=>({t:r.title, s:`${r.country||''} ${r.region||''}`, b:r.description, img:r.image_url}) },
+
+  'teaware': { table:'tea_ware', name:'다구',
+    desc:'다구 목록은 차 도감처럼 카드로 보이고, 카드를 누르면 사진·영상과 사용 순서가 펼쳐집니다.',
+    order:['display_order',true],
+    fields:[ F('display_order','표시 순서','number',{def:1,half:1}),
+             F('name','다구 이름','text',{req:1,ph:'개완 (蓋碗)',half:1}),
+             F('subtitle','부제목','text',{ph:'Gaiwan — 뚜껑 달린 찻잔'}),
+             F('description','설명','textarea',{rows:4,req:1}),
+             F('usage_steps','사용 순서','steps',{rows:7}),
+             F('image_url','대표 사진','media'),
+             F('video_url','사용법 영상','video') ],
+       card:r=>({t:r.name, s:`#${r.display_order} · ${r.subtitle||''}`, b:r.description, img:r.image_url,
+      /* ★ B-6 : text 컬럼이면 문자열 길이("37단계")가 찍히던 문제 */
+      chips:[[ `${parseStepsLike(r.usage_steps).length}단계`,
+               parseStepsLike(r.usage_steps).length ? '' : 'gray' ],
+             r.video_url ? ['영상','blue'] : null ].filter(Boolean) }) },
+
+  'stories': { table:'tea_stories', name:'차 이야기', desc:'집행부가 직접 쓰는 글입니다.',
+    order:['created_at',false],
+    fields:[ F('title','제목','text',{req:1}),
+             F('author','글쓴이','text',{half:1}),
+             F('status','상태','select',{opts:[['draft','초안'],['published','공개']],def:'draft',half:1}),
+             F('summary','한 줄 요약','text'),
+             F('tags','태그 (쉼표 구분)','tags'),
+             F('content','본문','textarea',{rows:8}),
+             F('cover_url','표지','media') ],
+    card:r=>({t:r.title, s:r.author||'', b:r.summary||r.content, img:r.cover_url,
+      chips:[[r.status==='published'?'공개':'초안', r.status==='published'?'':'gray']]}) },
+
+  'series': { table:'journal_series', name:'학술지 종류', desc:'차마을·다바라기 같은 학술지 자체 정보입니다.',
+    order:['sort_order',true],
+    fields:[ F('sort_order','표시 순서','number',{def:0,half:1}),
+             F('slug','영문 주소(slug)','text',{req:1,ph:'chamaeul',half:1}),
+             F('name','이름','text',{req:1,half:1}),
+             F('name_hanja','한자 이름','text',{half:1}),
+             F('tagline','한 줄 소개','text'),
+             F('since_year','창간 연도','text',{half:1}),
+             F('open_submission','자유 투고 허용','bool',{def:true,half:1}),
+             F('is_active','사용','bool',{def:true,half:1}),
+             F('description','설명','textarea',{rows:3}),
+             F('cover_url','표지','media') ],
+    card:r=>({t:r.name, s:`${r.slug} · ${r.since_year||''}`, b:r.tagline, img:r.cover_url}) }
+};
+
+/* ★ 날짜 컬럼이 timestamptz 여도 안전하게 YYYY-MM-DD 로 자릅니다 */
+function dOnly(v){ return v ? String(v).slice(0,10) : ''; }
+
+function popupState(r){
+  const t = HW.ymd(new Date());
+  const s = dOnly(r.start_at), e = dOnly(r.end_at);
+  if (!r.is_active)       return ['사용 안 함','gray'];
+  if (s && s > t)         return ['예정','blue'];
+  if (e && e < t)         return ['종료','gray'];
+  return ['노출 중','red'];
+}
+
+/* =========================================================
+   2. 로그인 (계정 1개)
+   ========================================================= */
+(async () => {
+  HW.qs('#acc-hint').textContent =
+    (HW_CONFIG.ADMIN_EMAIL || '').replace(/(.{2}).*(@.*)/, '$1***$2') || '집행부 공용 계정';
+  try{ if (await HW.api.session() && await HW.api.isAdmin()) boot(); }catch(e){}
+})();
+
+async function doLogin(e){
+  e.preventDefault();
+  const btn = HW.qs('#lg-btn');
+  btn.disabled = true; btn.textContent = '확인 중…';
+  try{
+    await HW.api.login('', HW.qs('#lg-pw').value);
+    HW.qs('#lg-pw').value = '';
+    HW.okMsg('인증되었습니다');
+    boot();
+  }catch(err){ HW.errMsg(err); }
+  btn.disabled = false; btn.textContent = '로그인';
+}
+async function doLogout(){ await HW.api.logout(); location.reload(); }
+
+async function boot(){
+  HW.qs('#login-box').style.display = 'none';
+  HW.qs('#dash').style.display = 'block';
+  HW.qs('#side').innerHTML = MENU.map(([g,items]) =>
+    `<h6>${E(g)}</h6>` + items.map(([k,l]) =>
+      `<button type="button" data-k="${A(k)}">${E(l)}</button>`).join('')).join('');
+
+  /* 사이드 메뉴도 위임 방식 */
+  HW.qs('#side').addEventListener('click', e => {
+    const b = e.target.closest('button[data-k]'); if(b) go(b.dataset.k);
+  });
+
+  Object.keys(DEFS).forEach(buildPane);
+  const s = await HW.api.session();
+  HW.qs('#whoami').textContent = s ? '집행부' : '';
+  go('home');
+}
+
+function go(k){
+  HW.qsa('.pane').forEach(p => p.classList.remove('on'));
+  HW.qsa('.ad-side button').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+  const p = HW.qs('#p-'+k); if(p) p.classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if (DEFS[k])             loadList(k);
+  else if (k==='values')   loadValues();
+  else if (k==='schedule') loadSch();
+  else if (k==='journal')  loadJournal();
+  else if (k==='issues')   loadIssues();
+  else if (k==='comments') loadComments();
+  else if (k==='audit')    loadAudit();
+  else if (k==='home')     loadStat();
+}
+
+async function loadStat(){
+  const box = HW.qs('#stat');
+  try{
+    const [tea, sch, pend, cm, pop] = await Promise.all([
+      HW.api.teas(),
+      HW.api.schedules(HW.ymd(new Date())),
+      HW.api.postsByStatus('pending'),
+      HW.sb.from('journal_comments').select('id',{count:'exact',head:true}),
+      HW.sb.from('popups').select('*').eq('is_active',true)
+    ]);
+    const livePop = (pop.data || []).filter(p => popupState(p)[0] === '노출 중').length;
+    const cell = (n,l,hot) =>
+      `<div style="min-width:92px">
+         <b style="font-family:var(--serif);font-size:1.7rem;font-weight:600;
+            color:${hot?'var(--clay)':'var(--ink)'}">${n}</b>
+         <div style="font-size:.74rem;letter-spacing:.14em;color:var(--sumi);margin-top:4px">${E(l)}</div>
+       </div>`;
+    box.innerHTML = `<div style="display:flex;gap:40px;flex-wrap:wrap">
+      ${cell(tea.length,'등록된 차')}
+      ${cell(sch.length,'예정 일정')}
+      ${cell(pend.length,'심사 대기', pend.length>0)}
+      ${cell(cm.count||0,'전체 댓글')}
+      ${cell(livePop,'노출 중 팝업', livePop>0)}
+    </div>`;
+  }catch(e){ box.textContent = '집계를 불러오지 못했습니다.'; }
+}
+
+/* =========================================================
+   3. 제네릭 CRUD 엔진
+   ========================================================= */
+/* =========================================================
+   ★ A-4 / A-5 공통 : DB 컬럼이 jsonb 가 아니라 text 로 만들어져 있으면
+     기존 코드는 Array.isArray 가 false → 빈 값으로 처리했습니다.
+     - tags  : editRow 에서 .join TypeError → 수정 폼이 안 채워짐
+     - steps : 사용 순서 칸이 빈 칸으로 보임 → 저장하면 기존 단계 전멸
+     tea-story.html / tea-ware.html 의 방어 로직과 동일하게 맞춥니다.
+   ========================================================= */
+function parseStepsLike(v){
+  if (Array.isArray(v)) return v;
+  if (typeof v === 'string'){
+    const s = v.trim();
+    if (!s) return [];
+    if (s[0] === '['){
+      try{ const p = JSON.parse(s); if (Array.isArray(p)) return p; }catch(e){}
+    }
+    return s.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+      const i = l.indexOf('|');
+      return i < 0 ? { title:l, desc:'' }
+                   : { title:l.slice(0,i).trim(), desc:l.slice(i+1).trim() };
+    });
+  }
+  return [];
+}
+
+function parseTagsLike(v){
+  if (Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+  if (typeof v === 'string'){
+    const s = v.trim();
+    if (!s) return [];
+    if (s[0] === '['){
+      try{ const p = JSON.parse(s); if (Array.isArray(p)) return p.map(x=>String(x).trim()).filter(Boolean); }catch(e){}
+    }
+    return s.split(/[,\n]/).map(x => x.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function stepsToText(v){
+  return parseStepsLike(v).map(s => {
+    if (typeof s === 'string') return s;
+    if (s && typeof s === 'object'){
+      const t = s.title || s.name || s.step || '';
+      const d = s.desc  || s.text || s.description || '';
+      return (t && d) ? `${t} | ${d}` : (t || d);
+    }
+    return '';
+  }).filter(Boolean).join('\n');
+}
+
+function textToSteps(txt){
+  return String(txt || '').split('\n')
+    .map(l => l.trim()).filter(Boolean)
+    .map(l => {
+      const i = l.indexOf('|');
+      return i < 0 ? { title:l, desc:'' }
+                   : { title:l.slice(0,i).trim(), desc:l.slice(i+1).trim() };
+    });
+}
+
+function buildPane(key){
+  const d = DEFS[key];
+  HW.qs('#p-'+key).innerHTML = `
+    <h2>${E(d.name)}</h2><p class="desc">${E(d.desc||'')}</p>
+    <div class="box">
+      <b id="${key}-ttl">새 ${E(d.name)} 등록</b>
+      <form id="${key}-form" onsubmit="saveRow(event,'${key}')" style="margin-top:16px">
+        <input type="hidden" id="${key}--id">
+        <div class="form-grid">${d.fields.map(f=>fieldHtml(key,f)).join('')}</div>
+        <div class="rowbtns">
+          <button class="b b-main" style="flex:1">저장</button>
+          <button type="button" class="b b-gray" id="${key}-cancel" style="display:none"
+                  onclick="resetRow('${key}')">취소</button>
+        </div>
+      </form>
+    </div>
+    <div id="${key}-list" class="list"></div>`;
+}
+
+/* ★ placeholder · label · hint 전부 이스케이프합니다 (B4) */
+function fieldHtml(key,f){
+  const id = `${key}--${f.k}`;
+  const cls = f.half ? 'half' : 'full';
+  const req = f.req ? 'required' : '';
+  const ph  = A(f.ph || '');
+  const lab = E(f.l);
+  const hint = f.hint ? `<div class="fhint">${E(f.hint)}</div>` : '';
+  let inner;
+  switch(f.t){
+    case 'textarea':
+      inner = `<textarea id="${id}" rows="${f.rows||3}" ${req} placeholder="${ph}"></textarea>`; break;
+    case 'number':
+      inner = `<input type="number" id="${id}" ${req} step="${A(f.step||1)}" placeholder="${ph}">`; break;
+    case 'date':
+      inner = `<input type="date" id="${id}" ${req}>`; break;
+    case 'bool':
+      return `<div class="field ${cls}"><label for="${id}">${lab}</label>
+        <label style="font-weight:400;font-size:.86rem;letter-spacing:0;text-transform:none;color:var(--ink-2)">
+        <input type="checkbox" id="${id}" style="width:auto;margin-right:7px">사용</label>${hint}</div>`;
+    case 'select':
+      inner = `<select id="${id}">${(f.opts||[]).map(o=>
+        `<option value="${A(o[0])}">${E(o[1])}</option>`).join('')}</select>`; break;
+    case 'media':
+      return `<div class="field full"><label for="${id}">${lab}</label><div class="uprow">
+        <input id="${id}" placeholder="주소 직접 입력 또는 파일 선택">
+        <label class="upbtn">파일 선택
+        <input type="file" accept="image/*,video/*" onchange="HW.pickFile(this,'${id}','${key}')"></label>
+      </div>${hint}</div>`;
+    case 'video':
+      return `<div class="field full"><label for="${id}">${lab}</label><div class="uprow">
+        <input id="${id}" placeholder="https://youtu.be/… 또는 mp4 파일 주소">
+        <label class="upbtn">파일 선택
+        <input type="file" accept="video/*" onchange="HW.pickFile(this,'${id}','${key}')"></label>
+      </div>
+      <div class="fhint">
+        <b>유튜브</b> 주소를 그대로 붙여넣으면 사이트에서 바로 재생됩니다
+        (youtu.be / watch?v= / shorts 모두 가능).<br>
+        직접 찍은 영상은 <b>파일 선택</b>으로 올리세요. 비우면 영상 칸이 나타나지 않습니다.
+      </div></div>`;
+    case 'steps':
+      return `<div class="field full"><label for="${id}">${lab}</label>
+        <textarea id="${id}" rows="${f.rows||6}"
+          placeholder="개완을 뜨거운 물로 데웁니다 | 찻잔도 함께 데우면 좋습니다&#10;찻잎 3g을 넣습니다&#10;물을 붓고 40초 기다립니다"></textarea>
+        <div class="fhint">
+          한 줄에 <b>한 단계</b>씩 적습니다. 세로줄 <b>|</b> 로 나누면
+          앞은 <b>단계 제목</b>, 뒤는 <b>작은 설명</b>으로 표시됩니다.
+        </div></div>`;
+    case 'tags':
+      inner = `<input id="${id}" placeholder="${A(f.ph||'봄, 녹차')}">`; break;
+    default:
+      inner = `<input id="${id}" ${req} placeholder="${ph}">`;
+  }
+  return `<div class="field ${cls}"><label for="${id}">${lab}</label>${inner}${hint}</div>`;
+}
+
+const CACHE = {};
+async function loadList(key){
+  const d = DEFS[key], box = HW.qs('#'+key+'-list');
+  HW.loading(box);
+  try{
+    let rows;
+    if (key==='teas'){ rows = await HW.api.teas(); }
+    else {
+      let q = HW.sb.from(d.table).select('*');
+      if (d.where) q = q.eq(d.where[0], d.where[1]);
+      q = q.order(d.order[0], {ascending:d.order[1]});
+      const r = await q; if(r.error) throw new Error(r.error.message); rows = r.data || [];
+    }
+    CACHE[key] = rows;
+    if (!rows.length) return HW.empty(box, `등록된 ${d.name}이(가) 없습니다.`);
+    box.innerHTML = rows.map(r=>{
+      const c = d.card(r);
+      const chips = (c.chips||[]).filter(Boolean)
+        .map(x=>`<span class="chip ${A(x[1]||'')}">${E(x[0]||'')}</span>`).join('');
+      const img = c.img && !HW.isVideo(c.img) && /^https?:|^assets\//.test(c.img)
+        ? `<img class="thumb" src="${A(c.img)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+      return `<div class="it"><div>
+          ${img}${chips}
+          <h4>${E(c.t||'')}</h4>
+          <div class="sub">${E(c.s||'')}</div>
+          <div class="bd">${E(c.b||'')}</div></div>
+        <div class="rowbtns">
+          <button type="button" class="b b-blue b-sm" data-act="edit" data-id="${A(r.id)}">수정</button>
+          <button type="button" class="b b-red  b-sm" data-act="del"  data-id="${A(r.id)}">삭제</button>
+        </div></div>`;
+    }).join('');
+
+    if (!box.dataset.bound){
+      box.dataset.bound = '1';
+      box.addEventListener('click', e => {
+        const b = e.target.closest('[data-act]'); if(!b) return;
+        b.dataset.act === 'edit' ? editRow(key, b.dataset.id) : delRow(key, b.dataset.id);
+      });
+    }
+  }catch(e){ HW.errMsg(e); HW.empty(box,'불러오지 못했습니다.'); }
+}
+
+function editRow(key,id){
+  const d = DEFS[key], r = (CACHE[key]||[]).find(x=>String(x.id)===String(id));
+  if(!r) return;
+  HW.qs(`#${key}--id`).value = r.id;
+  d.fields.forEach(f=>{
+    const el = HW.qs(`#${key}--${f.k}`); if(!el) return;
+    if (f.k==='_cats')      el.value = (r.catNames||[]).join(', ');
+    else if (f.t==='bool')  el.checked = !!r[f.k];
+    else if (f.t==='tags')  el.value = parseTagsLike(r[f.k]).join(', ');
+    else if (f.t==='steps') el.value = stepsToText(r[f.k]);
+    else if (f.t==='date')  el.value = dOnly(r[f.k]);
+    else                    el.value = r[f.k] ?? '';
+  });
+  HW.qs(`#${key}-ttl`).textContent = `${d.name} 수정`;
+  HW.qs(`#${key}-cancel`).style.display = 'block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetRow(key){
+  const d = DEFS[key];
+  HW.qs(`#${key}-form`).reset();
+  HW.qs(`#${key}--id`).value = '';
+  d.fields.forEach(f=>{
+    const el = HW.qs(`#${key}--${f.k}`); if(!el||f.def===undefined) return;
+    if (f.t==='bool') el.checked = !!f.def; else el.value = f.def;
+  });
+  HW.qs(`#${key}-ttl`).textContent = `새 ${d.name} 등록`;
+  HW.qs(`#${key}-cancel`).style.display = 'none';
+}
+
+async function saveRow(e,key){
+  e.preventDefault();
+  const d = DEFS[key], id = HW.qs(`#${key}--id`).value;
+  const btn = e.target.querySelector('button.b-main');
+  const data = {}; let cats = null;
+  d.fields.forEach(f=>{
+    const el = HW.qs(`#${key}--${f.k}`); if(!el) return;
+    if (f.k==='_cats'){ cats = el.value.split(',').map(s=>s.trim()).filter(Boolean); return; }
+    if (f.t==='bool')        data[f.k] = el.checked;
+    else if (f.t==='tags')   data[f.k] = el.value.split(',').map(s=>s.trim()).filter(Boolean);
+    else if (f.t==='steps')  data[f.k] = textToSteps(el.value);
+    else if (f.t==='number') data[f.k] = el.value==='' ? null : Number(el.value);
+    else                     data[f.k] = el.value.trim()==='' ? null : el.value;
+  });
+
+  if (key==='popups' && data.start_at && data.end_at && data.start_at > data.end_at)
+    return HW.toast('노출 종료일이 시작일보다 빠릅니다','warn');
+
+  if (btn){ btn.disabled = true; btn.textContent = '저장 중…'; }
+  try{
+    if (key==='teas'){
+      if (data.temp && /^\d+$/.test(data.temp)) data.temp += '℃';
+      await HW.api.saveTea(Object.assign({}, data, {id: id||''}), cats);
+    } else {
+      Object.assign(data, d.fixed||{});
+      if (id) data.id = id;
+      await HW.api.save(d.table, data);
+    }
+    HW.okMsg(id ? '수정되었습니다' : '저장되었습니다');
+    resetRow(key); loadList(key);
+  }catch(err){ HW.errMsg(err); }
+  if (btn){ btn.disabled = false; btn.textContent = '저장'; }
+}
+
+async function delRow(key,id){
+  if(!confirm('정말 삭제할까요? (변경 이력에서 복원할 수 있습니다)')) return;
+  try{ await HW.api.remove(DEFS[key].table, id); HW.okMsg('삭제되었습니다'); loadList(key); }
+  catch(e){ HW.errMsg(e); }
+}
+
+/* =========================================================
+   4. 사이트 값
+   ========================================================= */
+const GORDER = ['메인','모집','연락처'];
+async function loadValues(){
+  const box = HW.qs('#vbox'); HW.loading(box);
+  try{
+    const rows = await HW.api.valuesFull();
+    if(!rows.length) return HW.empty(box,'등록된 사이트 값이 없습니다.');
+
+    const groups = {};
+    rows.forEach(r => { (groups[r.group_name || '기타'] ||= []).push(r); });
+    const keys = Object.keys(groups).sort((a,b)=>{
+      const ia = GORDER.indexOf(a), ib = GORDER.indexOf(b);
+      return (ia<0?99:ia) - (ib<0?99:ib);
+    });
+
+    box.innerHTML = keys.map(g => `
+      <div class="box">
+        <b>${E(g)}</b>
+        <table class="vt" style="margin-top:12px">${groups[g].map(r => `
+          <tr>
+            <td>
+              <div class="lb">${E(r.label || r.key)}</div>
+              <div class="hi">${E(r.hint || '')}</div>
+              <div class="hi key">key: ${E(r.key)}</div>
+            </td>
+            <td><div class="uprow">
+              <input class="sv-input" data-key="${A(r.key)}" value="${A(r.value ?? '')}">
+              ${r.key === 'hero.media'
+                ? `<label class="upbtn">파일 선택
+                     <input type="file" accept="image/*,video/*" onchange="pickHero(this)"></label>` : ''}
+              <button type="button" class="b b-main b-sm" onclick="saveValue(this)">저장</button>
+            </div></td>
+          </tr>`).join('')}</table>
+      </div>`).join('')
+      + `<div style="text-align:right">
+           <button type="button" class="b b-blue" onclick="saveAllValues(this)">전체 저장</button>
+         </div>`;
+  }catch(e){ HW.errMsg(e); HW.empty(box,'불러오지 못했습니다.'); }
+}
+
+async function pickHero(input){
+  const f = input.files && input.files[0]; if(!f) return;
+  const inp = input.closest('.uprow').querySelector('.sv-input');
+  HW.toast('업로드 중입니다…');
+  try{ inp.value = await HW.api.upload(f, 'hero'); HW.okMsg('업로드 완료 — 저장을 눌러주세요'); }
+  catch(e){ HW.errMsg(e); }
+  input.value = '';
+}
+
+async function saveValue(btn){
+  const input = btn.closest('.uprow').querySelector('.sv-input');
+  if(!input) return HW.errMsg(new Error('입력칸을 찾지 못했습니다'));
+  const key = input.dataset.key, old = btn.textContent;
+  btn.disabled = true; btn.textContent = '저장중';
+  try{
+    const res = await HW.api.setValue(key, input.value);
+    if(!res || res.length === 0)
+      throw new Error('저장되지 않았습니다. 집행부 권한을 확인해 주세요 (' + key + ')');
+    HW.okMsg('저장되었습니다');
+  }catch(e){ HW.errMsg(e); }
+  btn.disabled = false; btn.textContent = old;
+}
+
+async function saveAllValues(btn){
+  const inputs = HW.qsa('.sv-input');
+  btn.disabled = true; btn.textContent = '저장중…';
+  let ok = 0, fail = 0;
+  for (const el of inputs){
+    try{
+      const res = await HW.api.setValue(el.dataset.key, el.value);
+      (res && res.length) ? ok++ : fail++;
+    }catch(e){ fail++; }
+  }
+  btn.disabled = false; btn.textContent = '전체 저장';
+  fail ? HW.toast(`${ok}건 저장 · ${fail}건 실패`, 'warn') : HW.okMsg(`${ok}건 모두 저장되었습니다`);
+}
+
+/* =========================================================
+   5. 일정
+   ========================================================= */
+let SCH=[], cy=new Date().getFullYear(), cm=new Date().getMonth(), selD=HW.ymd(new Date());
+async function loadSch(){
+  try{ SCH = await HW.api.schedules(); }catch(e){ SCH=[]; }
+  drawCal(); drawDay();
+}
+function calMove(n){ cm+=n; if(cm>11){cm=0;cy++;} if(cm<0){cm=11;cy--;} drawCal(); }
+function drawCal(){
+  HW.qs('#cal-title').textContent = `${cy}년 ${cm+1}월`;
+  const first = new Date(cy,cm,1).getDay(), last = new Date(cy,cm+1,0).getDate();
+  let h = ['일','월','화','수','목','금','토'].map(d=>`<div class="cnm">${d}</div>`).join('');
+  for(let i=0;i<first;i++) h += '<div class="cd empty"></div>';
+  for(let d=1;d<=last;d++){
+    const key = `${cy}-${String(cm+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const ev = SCH.filter(s=>s.date===key);
+    h += `<div class="cd ${key===selD?'sel':''}" data-d="${key}">
+            <div class="n">${d}</div>
+            ${ev.map(e=>`<div class="ev">${E(e.title)}</div>`).join('')}
+          </div>`;
+  }
+  const grid = HW.qs('#cal-grid');
+  grid.innerHTML = h;
+  if(!grid.dataset.bound){
+    grid.dataset.bound = '1';
+    grid.addEventListener('click', e => {
+      const c = e.target.closest('.cd[data-d]'); if(c) pickDay(c.dataset.d);
+    });
+  }
+}
+function pickDay(k){ selD=k; HW.qs('#sch-date').value=k; drawCal(); drawDay(); }
+function drawDay(){
+  HW.qs('#sel-date').textContent = selD;
+  const ev = SCH.filter(s=>s.date===selD), box = HW.qs('#sel-list');
+  if(!ev.length){
+    box.innerHTML = '<p style="color:var(--sumi);font-size:.85rem">등록된 일정이 없습니다.</p>';
+    return;
+  }
+  box.innerHTML = ev.map(s=>`
+    <div class="evrow">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <b style="font-family:var(--serif);color:var(--ink)">${E(s.title)}</b>
+        <span style="display:flex;gap:6px;flex:none">
+          <button type="button" class="b b-blue b-sm" data-sact="edit" data-id="${A(s.id)}">수정</button>
+          <button type="button" class="b b-red  b-sm" data-sact="del"  data-id="${A(s.id)}">삭제</button></span>
+      </div>
+      <div style="font-size:.78rem;color:var(--sumi);margin-top:4px">
+        ${E(HW.hm(s.start_time))}${s.start_time&&s.location?' · ':''}${E(s.location||'')}</div>
+      ${s.description?`<div style="font-size:.82rem;color:var(--ink-2);margin-top:6px;line-height:1.8">${HW.nl2br(s.description)}</div>`:''}
+    </div>`).join('');
+
+  if(!box.dataset.bound){
+    box.dataset.bound = '1';
+    box.addEventListener('click', e => {
+      const b = e.target.closest('[data-sact]'); if(!b) return;
+      b.dataset.sact === 'edit' ? schEdit(b.dataset.id) : schDel(b.dataset.id);
+    });
+  }
+}
+function schNew(){ schReset(); HW.qs('#sch-date').value = selD; HW.qs('#sch-title').focus(); }
+function schEdit(id){
+  const s = SCH.find(x=>String(x.id)===String(id)); if(!s) return;
+  HW.qs('#sch-id').value=s.id; HW.qs('#sch-date').value=dOnly(s.date);
+  HW.qs('#sch-end').value=dOnly(s.end_date); HW.qs('#sch-time').value=s.start_time||'';
+  HW.qs('#sch-title').value=s.title||''; HW.qs('#sch-loc').value=s.location||'';
+  HW.qs('#sch-desc').value=s.description||''; HW.qs('#sch-kind').value=s.kind||'normal';
+  HW.qs('#sch-ttl').textContent='일정 수정'; HW.qs('#sch-cancel').style.display='block';
+}
+function schReset(){
+  HW.qs('#sch-form').reset(); HW.qs('#sch-id').value='';
+  HW.qs('#sch-date').value=selD;
+  HW.qs('#sch-ttl').textContent='일정 추가'; HW.qs('#sch-cancel').style.display='none';
+}
+async function schSave(e){
+  e.preventDefault();
+  const id = HW.qs('#sch-id').value;
+  const p = { date:HW.qs('#sch-date').value, end_date:HW.qs('#sch-end').value||null,
+    start_time:HW.qs('#sch-time').value||null, title:HW.qs('#sch-title').value.trim(),
+    location:HW.qs('#sch-loc').value.trim()||null,
+    description:HW.qs('#sch-desc').value.trim()||null, kind:HW.qs('#sch-kind').value };
+  if(p.end_date && p.end_date < p.date) return HW.toast('종료일이 시작일보다 빠릅니다','warn');
+  if(id) p.id = id;
+  try{ await HW.api.save('schedules',p); HW.okMsg('저장되었습니다'); selD=p.date; schReset(); loadSch(); }
+  catch(err){ HW.errMsg(err); }
+}
+async function schDel(id){
+  if(!confirm('이 일정을 삭제할까요?')) return;
+  try{ await HW.api.remove('schedules',id); HW.okMsg('삭제되었습니다'); loadSch(); }
+  catch(e){ HW.errMsg(e); }
+}
+
+/* =========================================================
+   6. 투고 심사
+   ========================================================= */
+async function loadJournal(){
+  const pb=HW.qs('#jp-pending'), ub=HW.qs('#jp-pub');
+  HW.loading(pb); HW.loading(ub);
+  try{
+    const [pend, pub, iss] = await Promise.all([
+      HW.api.postsByStatus('pending'), HW.api.postsByStatus('published'), HW.api.issues()
+    ]);
+    HW.qs('#asg-issue').innerHTML =
+      '<option value="">— 호 선택 —</option>' +
+      iss.map(i=>`<option value="${A(i.id)}">${E(i.issue_no)}호 ${E(i.title||'')}</option>`).join('');
+
+    pb.innerHTML = pend.length ? pend.map(p=>`
+      <div class="it"><div>
+        <span class="chip red">대기</span><h4>${E(p.title)}</h4>
+        <div class="sub">${E(p.author)} · ${E(HW.korDate(p.created_at))}${p.contact?' · '+E(p.contact):''}</div>
+        <div class="bd" style="-webkit-line-clamp:6">${E(p.body)}</div></div>
+        <div class="rowbtns">
+          <button type="button" class="b b-main b-sm" data-jact="pub"  data-id="${A(p.id)}">게재</button>
+          <button type="button" class="b b-gray b-sm" data-jact="rej"  data-id="${A(p.id)}">반려</button>
+          <button type="button" class="b b-red  b-sm" data-jact="del"  data-id="${A(p.id)}">삭제</button>
+        </div></div>`).join('')
+      : '<p class="emptyline">심사 대기 중인 글이 없습니다.</p>';
+
+    ub.innerHTML = pub.length ? pub.map(p=>`
+      <div class="it"><div>
+        <label style="font-size:.76rem;font-weight:500;letter-spacing:.06em;color:var(--sumi)">
+          <input type="checkbox" class="jp-ck" value="${A(p.id)}" style="margin-right:6px">묶기 선택</label>
+        <h4 style="margin-top:8px">${E(p.title)}</h4>
+        <div class="sub">${E(p.author)} · ${p.issue_id?'호 편성됨':'미편성'}</div>
+        <div class="bd">${E(p.body)}</div></div>
+        <div class="rowbtns">
+          <button type="button" class="b b-gray b-sm" data-jact="unpub" data-id="${A(p.id)}">게재 취소</button>
+          <button type="button" class="b b-red  b-sm" data-jact="del" data-id="${A(p.id)}">삭제</button>
+        </div></div>`).join('')
+      : '<p class="emptyline">게재된 글이 없습니다.</p>';
+
+    [pb, ub].forEach(box => {
+      if(box.dataset.bound) return;
+      box.dataset.bound = '1';
+      box.addEventListener('click', e => {
+        const b = e.target.closest('[data-jact]'); if(!b) return;
+        const id = b.dataset.id;
+        if(b.dataset.jact==='pub')        jpPublish(id);
+        else if(b.dataset.jact==='rej')   jpReject(id);
+        else if(b.dataset.jact==='unpub') jpUnpublish(id);   /* ★ B-7 */
+        else jpDelete(id);
+      });
+    });
+  }catch(e){ HW.errMsg(e); }
+}
+async function jpPublish(id){ try{ HW.okMsg(await HW.api.publishPost(id)); loadJournal(); }catch(e){HW.errMsg(e);} }
+async function jpReject(id){
+  const memo = prompt('반려 사유를 적어주세요 (투고자가 확인합니다)');
+  if(memo===null) return;
+  try{ await HW.api.rejectPost(id, memo); HW.okMsg('반려되었습니다'); loadJournal(); }catch(e){HW.errMsg(e);}
+}
+async function jpDelete(id){
+  if(!confirm('완전히 삭제할까요?')) return;
+  try{ await HW.api.remove('journal_posts',id); HW.okMsg('삭제되었습니다'); loadJournal(); }catch(e){HW.errMsg(e);}
+}
+async function assignChecked(){
+  const ids = HW.qsa('.jp-ck:checked').map(c=>c.value);
+  const iss = HW.qs('#asg-issue').value;
+  if(!ids.length) return HW.toast('묶을 글을 체크해 주세요','warn');
+  if(!iss)        return HW.toast('호를 먼저 선택해 주세요','warn');
+  try{ HW.okMsg(await HW.api.assignIssue(ids, iss)); loadJournal(); }catch(e){HW.errMsg(e);}
+}
+/* ★ B-7 : '게재 취소' 는 반려가 아닙니다.
+   기존에는 같은 jpReject() 를 불러 "반려 사유를 적어주세요" 가 떴습니다. */
+async function jpUnpublish(id){
+  if(!confirm('게재를 취소하고 심사 대기 상태로 되돌릴까요?\n글은 삭제되지 않습니다.')) return;
+  try{
+    const r = await HW.sb.from('journal_posts')
+      .update({ status:'pending' }).eq('id', id).select('id');
+    if(r.error) throw new Error(r.error.message);
+    if(!r.data || !r.data.length) throw new Error('변경되지 않았습니다. 집행부 권한을 확인해 주세요.');
+    HW.okMsg('게재가 취소되었습니다 (심사 대기)');
+    loadJournal();
+  }catch(e){ HW.errMsg(e); }
+}
+
+/* =========================================================
+   7. 호 관리
+   ========================================================= */
+let ISSUES = [];          /* ★ window._ISS 전역 제거 */
+async function loadIssues(){
+  const box = HW.qs('#is-list');
+  try{
+    const [ser, iss] = await Promise.all([HW.api.series(), HW.api.issues()]);
+    ISSUES = iss;
+    HW.qs('#is-series').innerHTML = ser.map(s=>
+      `<option value="${A(s.id)}">${E(s.name)}</option>`).join('');
+
+    box.innerHTML = iss.length ? iss.map(i=>{
+      const s = ser.find(x=>String(x.id)===String(i.series_id));
+      return `<div class="it"><div>
+        ${i.cover_url?`<img class="thumb" src="${A(i.cover_url)}" alt="" loading="lazy" onerror="this.remove()">`:''}
+        <span class="chip ${i.status==='published'?'':'gray'}">${i.status==='published'?'발행':'준비중'}</span>
+        <h4>${E(i.issue_no)}호 ${E(i.title||'')}</h4>
+        <div class="sub">${E(s?s.name:'')} · ${E(dOnly(i.published_at) || '발행일 미정')}</div>
+        <div class="bd">${E(i.editor_note||'')}</div></div>
+        <div class="rowbtns">
+          <button type="button" class="b b-blue b-sm" data-iact="edit" data-id="${A(i.id)}">수정</button>
+          <button type="button" class="b b-red  b-sm" data-iact="del"  data-id="${A(i.id)}">삭제</button>
+        </div></div>`;
+    }).join('') : '<p class="emptyline">등록된 호가 없습니다.</p>';
+
+    if(!box.dataset.bound){
+      box.dataset.bound = '1';
+      box.addEventListener('click', e => {
+        const b = e.target.closest('[data-iact]'); if(!b) return;
+        b.dataset.iact === 'edit' ? isEdit(b.dataset.id) : isDel(b.dataset.id);
+      });
+    }
+  }catch(e){ HW.errMsg(e); }
+}
+function isEdit(id){
+  const i = ISSUES.find(x=>String(x.id)===String(id)); if(!i) return;
+  HW.qs('#is-id').value=i.id; HW.qs('#is-series').value=i.series_id;
+  HW.qs('#is-no').value=i.issue_no; HW.qs('#is-date').value=dOnly(i.published_at);
+  HW.qs('#is-status').value=i.status||'draft'; HW.qs('#is-title').value=i.title||'';
+  HW.qs('#is-cover').value=i.cover_url||''; HW.qs('#is-note').value=i.editor_note||'';
+  HW.qs('#is-cancel').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function isReset(){ HW.qs('#is-form').reset(); HW.qs('#is-id').value=''; HW.qs('#is-cancel').style.display='none'; }
+async function isSave(e){
+  e.preventDefault();
+  const id=HW.qs('#is-id').value;
+  const p={ series_id:HW.qs('#is-series').value, issue_no:Number(HW.qs('#is-no').value),
+    published_at:HW.qs('#is-date').value||null, status:HW.qs('#is-status').value,
+    title:HW.qs('#is-title').value.trim()||null, editor_note:HW.qs('#is-note').value.trim()||null,
+    cover_url:HW.qs('#is-cover').value.trim()||null };
+  if(id) p.id=id;
+  try{ await HW.api.save('journal_issues',p); HW.okMsg('저장되었습니다'); isReset(); loadIssues(); }
+  catch(err){ HW.errMsg(err); }
+}
+async function isDel(id){
+  if(!confirm('이 호를 삭제할까요? 글은 삭제되지 않고 미편성 상태가 됩니다.')) return;
+  try{ await HW.api.remove('journal_issues',id); HW.okMsg('삭제되었습니다'); loadIssues(); }catch(e){HW.errMsg(e);}
+}
+
+/* =========================================================
+   8. 댓글
+   ★ B2 : content 만 select 하면 body 컬럼인 DB에서 내용이 비어 보였습니다.
+          '*' 로 바꿔 content / body 어느 쪽이든 표시됩니다.
+   ========================================================= */
+async function loadComments(){
+  const box=HW.qs('#cm-list'); HW.loading(box);
+  const r = await HW.sb.from('journal_comments')
+    .select('*, journal_posts(title)')
+    .order('created_at',{ascending:false}).limit(200);
+  if(r.error){ console.error(r.error); return HW.empty(box,'불러오지 못했습니다.'); }
+  const rows = r.data || [];
+  if(!rows.length) return HW.empty(box,'댓글이 없습니다.');
+
+  box.innerHTML = rows.map(c=>`
+    <div class="box" style="padding:16px 18px;margin-bottom:10px;${c.is_hidden?'opacity:.6':''}">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          ${c.is_hidden?'<span class="chip red">숨김</span>':''}
+          <b style="font-family:var(--serif);color:var(--ink)">${E(c.nickname||'익명')}</b>
+          <span style="font-size:.74rem;color:var(--sumi)">
+            · ${E(HW.korDate(c.created_at))} · ${E(c.journal_posts?c.journal_posts.title:'삭제된 글')}</span>
+          <div style="font-size:.88rem;color:var(--ink-2);margin-top:6px;line-height:1.85">${HW.nl2br(c.content ?? c.body ?? '')}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:flex-start;flex:none">
+          <button type="button" class="b b-gray b-sm" data-cact="hide"
+                  data-id="${A(c.id)}" data-hide="${c.is_hidden?'0':'1'}">
+            ${c.is_hidden?'다시 보이기':'숨기기'}</button>
+          <button type="button" class="b b-red b-sm" data-cact="del" data-id="${A(c.id)}">삭제</button>
+        </div>
+      </div></div>`).join('');
+
+  if(!box.dataset.bound){
+    box.dataset.bound = '1';
+    box.addEventListener('click', e => {
+      const b = e.target.closest('[data-cact]'); if(!b) return;
+      b.dataset.cact === 'hide'
+        ? cmHide(b.dataset.id, b.dataset.hide === '1')
+        : cmDel(b.dataset.id);
+    });
+  }
+}
+async function cmHide(id,hide){
+  try{ await HW.api.hideComment(id,hide); loadComments(); }catch(e){HW.errMsg(e);}
+}
+async function cmDel(id){
+  if(!confirm('이 댓글을 삭제할까요?')) return;
+  try{ await HW.api.deleteComment(id,''); HW.okMsg('삭제되었습니다'); loadComments(); }catch(e){HW.errMsg(e);}
+}
+
+/* =========================================================
+   9. 변경 이력 / 복원
+   ★ B3 : doRestore 인자에 따옴표가 없어 uuid 일 때 문법 오류가 났습니다.
+   ========================================================= */
+const TNAME = {site_values:'사이트 값',intro_sections:'소개글',history:'연혁',rules:'회칙',
+  popups:'공지 팝업',schedules:'일정',teas:'차',tea_map:'차 지도',tea_ware:'다구',
+  tea_stories:'차 이야기',journal_posts:'학술지 글',journal_issues:'호',journal_series:'학술지',
+  categories:'카테고리',tea_categories:'차-카테고리'};
+const ANAME = {INSERT:['추가','blue'],UPDATE:['수정',''],DELETE:['삭제','red']};
+
+async function loadAudit(){
+  const box=HW.qs('#au-list'); HW.loading(box);
+  try{
+    const rows = await HW.api.auditLog(100);
+    if(!rows.length) return HW.empty(box,'변경 이력이 없습니다.');
+    box.innerHTML = rows.map(r=>{
+      const a = ANAME[r.action]||[r.action,''];
+      const label = (r.after_data&&(r.after_data.title||r.after_data.name||r.after_data.label))
+                 || (r.before_data&&(r.before_data.title||r.before_data.name||r.before_data.label)) || '';
+      return `<div class="box" style="padding:14px 18px;margin-bottom:9px">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+          <div>
+            <span class="chip ${A(a[1])}">${E(a[0])}</span>
+            <b style="font-size:.9rem">${E(TNAME[r.table_name]||r.table_name)}</b>
+            <span style="font-size:.86rem;color:var(--ink-2)">${E(label)}</span>
+            <div style="font-size:.74rem;color:var(--sumi);margin-top:3px">
+              ${E(HW.korDate(r.created_at))} · ${E(r.actor_name||'알 수 없음')}
+              ${r.restored?' · <b style="color:var(--jade)">복원됨</b>':''}</div>
+          </div>
+          ${r.before_data && !r.restored
+            ? `<button type="button" class="b b-blue b-sm" data-rid="${A(r.id)}">이 상태로 복원</button>` : ''}
+        </div></div>`;
+    }).join('');
+
+    if(!box.dataset.bound){
+      box.dataset.bound = '1';
+      box.addEventListener('click', e => {
+        const b = e.target.closest('[data-rid]'); if(b) doRestore(b.dataset.rid);
+      });
+    }
+  }catch(e){ HW.errMsg(e); HW.empty(box,'불러오지 못했습니다.'); }
+}
+async function doRestore(id){
+  if(!confirm('이 시점의 내용으로 되돌릴까요?')) return;
+  /* audit_log.id 가 숫자형이면 숫자로, uuid 면 문자열 그대로 보냅니다 */
+  const arg = /^\d+$/.test(String(id)) ? Number(id) : id;
+  try{ HW.okMsg(await HW.api.restore(arg)); loadAudit(); }catch(e){ HW.errMsg(e); }
+}
+</script>
+</body>
+</html>

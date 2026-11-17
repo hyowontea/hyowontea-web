@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다구 사용법 — 효원다회(曉原茶會)</title>
+<meta name="description" content="개완·자사호·숙우 등 전통 다구의 이름과 올바른 사용 순서를 안내합니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     다구 사용법  v3
+     v3 변경점
+     ★ B-2 : .no span{font-size:.62rem;color:var(--sumi)} 가 번호(一.)와
+             영문(UTENSIL 01) 양쪽에 모두 걸려, 번호가 작은 회색으로
+             나왔습니다. 번호와 영문을 각각의 클래스로 분리합니다.
+     ★ C-4 : .anchor{scroll-margin-top} 가 .no 에 붙어 있었는데 실제
+             스크롤 타깃은 #w{i} 섹션이라 전혀 동작하지 않았습니다.
+             .step 으로 옮깁니다.
+     ========================================================= */
+
+  .phead{background:var(--jade-d);padding:clamp(66px,7.5vw,124px) var(--pad) clamp(42px,4.6vw,74px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:18px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.7rem,3.1vw,3rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:#b6c2b5;font-size:.92rem;line-height:2;margin-top:15px;max-width:var(--read)}
+  .phead .vert{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:2;
+    writing-mode:vertical-rl;text-orientation:upright;font-family:var(--serif);
+    font-size:.88rem;letter-spacing:.42em;color:#8d9b8c;opacity:.7}
+  .crumb{padding:18px var(--pad) 0;font-size:.72rem;letter-spacing:.16em}
+  .crumb a{color:var(--sumi);text-decoration:none;border-bottom:1px solid var(--line-2);padding-bottom:3px}
+  .crumb a:hover{color:var(--jade);border-color:var(--jade)}
+
+  /* ---------- 목차 ---------- */
+  .nav{display:flex;flex-wrap:wrap;gap:clamp(6px,.6vw,10px);
+    margin:clamp(20px,2.4vw,36px) var(--pad) 0}
+  .nav a{padding:11px 18px;font-size:.78rem;letter-spacing:.1em;color:var(--sumi);
+    text-decoration:none;border:1px solid var(--line);
+    display:inline-flex;align-items:baseline;gap:8px;transition:all .2s}
+  .nav a em{font-style:normal;font-size:.62rem;letter-spacing:.16em;color:var(--sumi);opacity:.75}
+  .nav a:hover{background:var(--jade);color:var(--ivory);border-color:var(--jade)}
+  .nav a:hover em{color:var(--ivory);opacity:.85}
+  .nav a:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+
+  .body{padding:0 var(--pad) clamp(60px,6vw,100px)}
+
+  /* ★ C-4 : 스크롤 타깃인 .step 에 여백을 둡니다 (sticky 헤더 높이) */
+    /* ★ 한 단락 = [미디어 열] + [글 열] */
+  .step{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:clamp(24px,3vw,56px);align-items:start;
+    padding:clamp(36px,4vw,68px) 0;border-bottom:1px solid var(--line);
+    scroll-margin-top:78px}
+  .step:last-child{border-bottom:none}
+  .step.rev .media{order:2}
+  .step.rev .txt{order:1}
+
+  /* ★ 사진 + 영상을 같은 열에 세로로 쌓고 크기를 완전히 똑같이 */
+  .media{display:flex;flex-direction:column;gap:clamp(14px,1.6vw,24px);min-width:0}
+  .pic{margin:0}
+  .pic img,
+  .pic .ph,
+  .vid .hw-embed,
+  .vid video{
+    width:100%;aspect-ratio:16/9;height:auto;max-height:none;
+    object-fit:cover;display:block;border-radius:0;
+  }
+  .pic img{filter:saturate(.82)}
+  .pic .ph{background:var(--cream-3);display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-size:2.2rem;color:var(--sumi);letter-spacing:.12em}
+
+  /* ---------- 번호줄 ----------
+     ★ B-2 : 번호(.n)와 영문(.en)을 분리해 각각 스타일을 줍니다 */
+  .no{padding-bottom:14px;margin-bottom:18px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .no .n{font-family:var(--serif);font-size:1.05rem;color:var(--jade);
+    letter-spacing:.3em;font-weight:500}
+  .no .en{font-size:.62rem;letter-spacing:.22em;color:var(--sumi);flex:none}
+
+  .txt h3{font-family:var(--serif);font-size:clamp(1.25rem,1.9vw,1.75rem);font-weight:500;
+    color:var(--ink);letter-spacing:.08em;line-height:1.45;margin-bottom:6px}
+  .txt .sub{font-size:.74rem;letter-spacing:.18em;color:var(--sumi);margin-bottom:18px}
+  .txt > p{font-size:.95rem;color:var(--sumi);line-height:2;max-width:var(--read)}
+
+  /* ---------- 사용 순서 ---------- */
+  .steps{margin-top:clamp(24px,2.6vw,40px);padding-left:clamp(16px,1.6vw,26px);
+    border-left:1px solid var(--line-2)}
+  .steps h4{font-size:.64rem;letter-spacing:.26em;color:var(--sumi);margin-bottom:18px}
+  .steps ol{list-style:none;display:flex;flex-direction:column;gap:0}
+  .steps li{display:grid;grid-template-columns:42px minmax(0,1fr);gap:14px;
+    padding:14px 0;border-bottom:1px solid var(--line)}
+  .steps li:last-child{border-bottom:none}
+  .steps .sn{font-family:var(--serif);font-size:.92rem;color:var(--jade);
+    letter-spacing:.06em;line-height:1.7}
+  .steps li b{display:block;font-size:.93rem;font-weight:400;color:var(--ink);line-height:1.75}
+  .steps li span.sd{display:block;font-size:.84rem;color:var(--sumi);line-height:1.8;margin-top:4px}
+
+    /* ---------- 사용법 영상 ---------- */
+  .vid{margin:0}
+  .vid h4{font-size:.64rem;letter-spacing:.26em;color:var(--sumi);margin-bottom:10px}
+  .hw-embed{position:relative;width:100%;background:var(--jade-d);border:1px solid var(--line)}
+  .hw-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+  .vid video{background:#000;border:1px solid var(--line)}
+
+  .msg{color:var(--sumi);font-size:.86rem;padding-top:30px;line-height:1.9}
+
+  @media(max-width:900px){
+    .step,.step.rev{grid-template-columns:1fr;gap:20px;padding:30px 0}
+    .step.rev .media{order:1}
+    .step.rev .txt{order:2}
+    /* 1열이 되어도 두 미디어는 여전히 같은 폭·같은 16:9 */
+  }
+  @media(max-width:768px){
+    .phead .vert{display:none}
+    .step{scroll-margin-top:62px}
+  }
+</style>
+</head>
+<body data-page="dasho">
+
+<div id="hw-header"></div>
+
+<main>
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">ARCHIVE 03 &nbsp;/&nbsp; TEA UTENSILS</div>
+      <h1>손에 익어야<br>비로소 도구가 됩니다</h1>
+      <p>전통 다구의 이름과 올바른 사용 순서, 관리 요령입니다.</p>
+    </div>
+    <div class="vert">茶器</div>
+  </section>
+
+  <div class="crumb"><a href="dasho.html">茶書 허브로 돌아가기</a></div>
+  <nav class="nav" id="nav" aria-label="다구 목차"></nav>
+  <div class="body" id="body">
+    <p class="msg">불러오는 중…</p>
+  </div>
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+
+const NUM  = ['一','二','三','四','五','六','七','八','九','十'];
+const kNum = i => NUM[i] || String(i + 1);
+const MSG  = t => `<p class="msg">${E(t)}</p>`;
+
+/* =========================================================
+   1. 불러오기
+   ========================================================= */
+(async () => {
+  const body = HW.qs('#body');
+  let rows;
+
+  try{
+    rows = await HW.api.teaWare();
+  }catch(err){
+    console.error('[tea-ware]', err);
+    body.innerHTML = MSG('다구 정보를 불러오지 못했습니다.');
+    return;
+  }
+
+  if(!rows.length){
+    body.innerHTML = MSG('등록된 다구 정보가 없습니다.');
+    return;
+  }
+
+  /* 목차 */
+  HW.qs('#nav').innerHTML = rows.map((w,i) =>
+    `<a href="#w${i}"><em>${String(i+1).padStart(2,'0')}</em>${E(w.name)}</a>`).join('');
+
+  /* 본문 */
+  body.innerHTML = rows.map((w,i) => {
+    const pic = w.image_url
+      ? `<img src="${A(w.image_url)}" alt="${A(w.name)}" loading="lazy"
+             onerror="this.outerHTML='&lt;div class=\\'ph\\'&gt;器&lt;/div&gt;'">`
+      : `<div class="ph">器</div>`;
+
+    return `<section class="step ${i % 2 === 1 ? 'rev' : ''}" id="w${i}" aria-labelledby="wt${i}">
+      <div class="media">
+        <div class="pic">${pic}</div>
+        ${videoHtml(w.video_url, w.name)}
+      </div>
+      <div class="txt">
+        <div class="no">
+          <span class="n">${kNum(i)}.</span>
+          <span class="en">UTENSIL ${String(i+1).padStart(2,'0')}</span>
+        </div>
+        <h3 id="wt${i}">${E(w.name)}</h3>
+        ${w.subtitle ? `<div class="sub">${E(w.subtitle)}</div>` : ''}
+        <p>${HW.nl2br(w.description || '')}</p>
+        ${stepsHtml(w.usage_steps)}
+      </div>
+    </section>`;
+  }).join('');
+})();
+
+/* =========================================================
+   2. 사용 순서
+   usage_steps 가 jsonb 가 아니라 text 로 들어와도 동작합니다.
+   ========================================================= */
+function parseSteps(v){
+  if(Array.isArray(v)) return v;
+  if(typeof v === 'string'){
+    const s = v.trim();
+    if(!s) return [];
+    if(s[0] === '['){
+      try{ const p = JSON.parse(s); return Array.isArray(p) ? p : []; }catch(e){}
+    }
+    return s.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+      const i = l.indexOf('|');
+      return i < 0 ? { title:l, desc:'' }
+                   : { title:l.slice(0,i).trim(), desc:l.slice(i+1).trim() };
+    });
+  }
+  return [];
+}
+
+function stepsHtml(raw){
+  const v = parseSteps(raw);
+  if(!v.length) return '';
+
+  const li = v.map((s,i) => {
+    const t = (typeof s === 'string') ? s : ((s && (s.title || s.name || s.step)) || '');
+    const d = (typeof s === 'string') ? '' : ((s && (s.desc || s.text || s.description)) || '');
+    if(!t && !d) return '';
+    return `<li><span class="sn">${kNum(i)}</span>
+      <div><b>${E(t || d)}</b>${(t && d) ? `<span class="sd">${E(d)}</span>` : ''}</div></li>`;
+  }).filter(Boolean).join('');
+
+  return li
+    ? `<div class="steps"><h4>USAGE ORDER &nbsp;·&nbsp; 사용 순서</h4><ol>${li}</ol></div>`
+    : '';
+}
+
+/* =========================================================
+   3. 사용법 영상
+   ========================================================= */
+function videoHtml(url, name){
+  if(!url) return '';
+  const u = String(url).trim();
+  if(!u) return '';
+  if(!HW.isEmbeddable(u)) return '';
+  return `<div class="vid">
+    <h4>HOW TO USE &nbsp;·&nbsp; 사용법 영상</h4>
+    ${HW.embed(u, '', '', name + ' 사용법')}
+  </div>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>글 투고 — 효원다회(曉原茶會)</title>
+<meta name="description" content="효원다회 학술지에 글을 보내주세요. 회원이 아니어도 투고할 수 있습니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     글 투고  v2
+     v2 변경점
+     ① 비밀번호 확인칸 추가 (오타 시 영구 접근 불가 방지)
+     ② 공백만 적고 제출하면 통과되던 것 수정
+     ③ 이미지 업로드 중 제출되어 사진이 빠지던 것 수정
+     ④ 글 종류 선택 추가 · 고정 인덱스 그리드 제거
+     ========================================================= */
+
+  .phead{background:var(--jade-d);padding:clamp(60px,7vw,110px) var(--pad) clamp(38px,4.2vw,66px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:18px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.6rem,2.9vw,2.7rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:#b6c2b5;font-size:.92rem;line-height:2;margin-top:15px;max-width:var(--read)}
+
+  .wrapn{max-width:780px;margin:0 auto;padding:clamp(26px,3vw,48px) var(--pad) clamp(60px,6vw,100px)}
+  .note{background:var(--cream-2);border:1px solid var(--line);border-left:2px solid var(--jade);
+    padding:clamp(16px,1.8vw,22px);font-size:.88rem;color:var(--sumi);line-height:2;
+    margin-bottom:clamp(24px,2.6vw,38px)}
+  .note b{color:var(--ink);font-weight:500}
+  .note a{color:var(--jade);text-decoration:none;border-bottom:1px solid var(--jade);padding-bottom:2px}
+
+  .fc{border:1px solid var(--line);border-top:2px solid var(--jade);
+    background:var(--cream);padding:clamp(20px,2.4vw,36px)}
+
+  /* ---------- ★ 2단 배치 ----------
+     common.css 는 .fg:nth-child(5),(6),(7) 처럼 '몇 번째 칸인지'로
+     2단을 잡습니다. 칸을 하나만 넣거나 빼도 배치가 무너집니다.
+     그래서 순서가 아니라 클래스로 지정하도록 바꿉니다. */
+  body .fc > form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}
+  body .fc > form > .fg{grid-column:auto !important}
+  body .fc > form > .fg.full,
+  body .fc > form > .sbtn,
+  body .fc > form > .divider{grid-column:1/-1 !important}
+
+  .divider{border-top:1px solid var(--line);margin:4px 0 clamp(18px,2vw,26px)}
+
+  .fg{margin-bottom:clamp(18px,2vw,26px);min-width:0}
+  .fg label{display:block;font-size:.66rem;letter-spacing:.22em;color:var(--sumi);margin-bottom:10px}
+  .fg input,.fg select{width:100%;padding:11px 0;border:none;border-bottom:1px solid var(--line-2);
+    background:transparent;font-family:inherit;font-size:.95rem;color:var(--ink);outline:none}
+  .fg textarea{width:100%;padding:14px 16px;border:1px solid var(--line-2);background:transparent;
+    font-family:inherit;font-size:.95rem;color:var(--ink);outline:none;line-height:2;resize:vertical}
+  .fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--jade)}
+  .fg input::placeholder,.fg textarea::placeholder{color:var(--sumi)}
+  .fg .hint{font-size:.76rem;color:var(--sumi);line-height:1.85;margin-top:8px}
+  .fg .hint.ok{color:var(--jade)}
+  .fg .hint.bad{color:var(--clay)}
+  .lbrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .lbrow .cnt{font-size:.68rem;letter-spacing:.12em;color:var(--sumi)}
+
+  .uprow{display:flex;gap:12px;align-items:flex-end}
+  .uprow input{flex:1;min-width:0}
+  .uplabel{border:1px solid var(--line-2);color:var(--sumi);padding:11px 18px;cursor:pointer;
+    font-size:.72rem;letter-spacing:.16em;white-space:nowrap;transition:all .25s}
+  .uplabel:hover{background:var(--jade);color:var(--ivory);border-color:var(--jade)}
+  .uplabel input{display:none}
+  .uplabel.busy{opacity:.5;pointer-events:none}
+  .prev{margin-top:14px;display:none}
+  .prev img,.prev video{width:100%;max-height:220px;object-fit:cover;filter:saturate(.85)}
+  .prev .rm{margin-top:8px;background:none;border:none;font-family:inherit;
+    font-size:.72rem;letter-spacing:.14em;color:var(--sumi);cursor:pointer;
+    border-bottom:1px solid var(--line-2);padding:0 0 3px}
+  .prev .rm:hover{color:var(--clay);border-color:var(--clay)}
+
+  .sbtn{width:100%;background:var(--jade);color:var(--ivory);border:none;padding:16px;
+    font-family:inherit;font-size:.86rem;letter-spacing:.2em;cursor:pointer;
+    margin-top:clamp(10px,1.2vw,18px);transition:background .25s}
+  .sbtn:hover{background:var(--jade-d)}
+  .sbtn:disabled{background:var(--line);color:#9a9686;cursor:not-allowed}
+
+  .done{display:none;border:1px solid var(--line);border-top:2px solid var(--jade);
+    background:var(--cream);padding:clamp(40px,5vw,70px) clamp(20px,2.4vw,36px)}
+  .done .ic{font-family:var(--serif);font-size:2.6rem;color:var(--sumi);
+    letter-spacing:.14em;margin-bottom:20px}
+  .done h3{font-family:var(--serif);font-size:1.32rem;font-weight:500;color:var(--jade);
+    letter-spacing:.1em;line-height:1.55;margin-bottom:14px}
+  .done p{font-size:.92rem;color:var(--sumi);line-height:2;margin-bottom:clamp(24px,2.6vw,36px)}
+  .done .acts{display:flex;gap:10px;flex-wrap:wrap}
+  .done .acts a{font-size:.74rem;letter-spacing:.16em;text-decoration:none;padding:13px 24px;
+    border:1px solid var(--line-2);color:var(--sumi);transition:all .25s}
+  .done .acts a:hover{background:var(--jade);border-color:var(--jade);color:var(--ivory)}
+
+  @media(max-width:768px){
+    body .fc > form{grid-template-columns:1fr}
+    body .fc > form > *{grid-column:1/-1 !important}
+    .uprow{flex-direction:column;align-items:stretch}
+    .uplabel{text-align:center}
+    .done .acts a{flex:1;text-align:center}
+  }
+</style>
+</head>
+<body data-page="journal">
+
+<div id="hw-header"></div>
+
+<main>
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">SUBMIT &nbsp;/&nbsp; 投稿</div>
+      <h1>차에 얽힌 이야기를<br>보내주세요</h1>
+      <p>회원이 아니어도 누구나 투고하실 수 있습니다. 로그인은 필요하지 않습니다.</p>
+    </div>
+  </section>
+
+  <div class="wrapn">
+    <div class="note">
+      보내주신 글은 <b>집행부 검토 후</b> 학술지에 공개됩니다.<br>
+      이미 투고하셨나요? <a href="my-post.html">내 투고 확인 · 수정하기 →</a>
+    </div>
+
+    <div class="fc" id="formcard">
+      <form id="pform" novalidate>
+        <div class="fg">
+          <label for="f-author">AUTHOR &nbsp;·&nbsp; 글쓴이 *</label>
+          <input id="f-author" required maxlength="20" autocomplete="off"
+                 placeholder="효원다회 23기 홍길동 / 또는 닉네임">
+          <div class="hint">나중에 글을 찾을 때 <b>이 이름 그대로</b> 입력하셔야 합니다.</div>
+        </div>
+
+        <div class="fg">
+          <label for="f-contact">CONTACT &nbsp;·&nbsp; 연락처 (선택)</label>
+          <input id="f-contact" maxlength="60" autocomplete="off" placeholder="이메일 또는 전화번호">
+          <div class="hint">게재·반려 결과를 알려드릴 때만 사용하며 외부에 공개되지 않습니다.</div>
+        </div>
+
+        <!-- ★ v1 은 비밀번호를 한 번만 받았습니다.
+             복구가 안 되는 비밀번호인데 오타 확인 절차가 없었습니다. -->
+        <div class="fg">
+          <label for="f-pw">PASSWORD &nbsp;·&nbsp; 수정용 비밀번호 *</label>
+          <input id="f-pw" type="password" required minlength="4" maxlength="30"
+                 autocomplete="new-password" placeholder="4자 이상">
+          <div class="hint">본인 글을 확인·수정할 때 필요합니다. <b>분실 시 복구가 안 됩니다.</b></div>
+        </div>
+        <div class="fg">
+          <label for="f-pw2">PASSWORD CHECK &nbsp;·&nbsp; 한 번 더 *</label>
+          <input id="f-pw2" type="password" required minlength="4" maxlength="30"
+                 autocomplete="new-password" placeholder="위와 똑같이">
+          <div class="hint" id="pwmsg">오타 방지를 위해 한 번 더 적어주세요.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="fg">
+          <label for="f-series">DESTINATION &nbsp;·&nbsp; 보낼 곳</label>
+          <select id="f-series"><option value="">자유 투고</option></select>
+          <div class="hint">어디에 실릴지는 집행부 검토 시 조정될 수 있습니다.</div>
+        </div>
+
+        <div class="fg">
+          <label for="f-kind">KIND &nbsp;·&nbsp; 글 종류</label>
+          <select id="f-kind">
+            <option value="article">기고</option>
+            <option value="essay">수필</option>
+            <option value="review">서평</option>
+            <option value="free">자유</option>
+          </select>
+          <div class="hint">고르기 어려우시면 그대로 두셔도 됩니다.</div>
+        </div>
+
+        <div class="fg full">
+          <div class="lbrow">
+            <label for="f-title">TITLE &nbsp;·&nbsp; 제목 *</label>
+            <span class="cnt" id="tcnt">0 / 80</span>
+          </div>
+          <input id="f-title" required maxlength="80" placeholder="겨울 아침에 마신 보이차">
+        </div>
+
+        <div class="fg full">
+          <div class="lbrow">
+            <label for="f-content">BODY &nbsp;·&nbsp; 본문 *</label>
+            <span class="cnt" id="bcnt">0자</span>
+          </div>
+          <textarea id="f-content" rows="14" required
+            placeholder="자유롭게 적어주세요. 줄바꿈은 그대로 반영됩니다."></textarea>
+          <div class="hint" id="draftmsg">작성 중인 내용은 이 브라우저에만 임시 보관됩니다.</div>
+        </div>
+
+        <div class="fg full">
+          <label for="f-img">COVER IMAGE &nbsp;·&nbsp; 대표 이미지 (선택)</label>
+          <div class="uprow">
+            <input id="f-img" placeholder="이미지 주소 직접 입력 또는 파일 선택">
+            <label class="uplabel" id="uplabel">파일 선택
+              <input type="file" accept="image/*,video/*" id="f-file">
+            </label>
+          </div>
+          <div class="hint">유튜브 주소나 mp4 파일도 넣을 수 있습니다.</div>
+          <div class="prev" id="prev"></div>
+        </div>
+
+        <button type="submit" class="sbtn" id="sbtn">투고하기</button>
+      </form>
+    </div>
+
+    <div class="done" id="done">
+      <div class="ic">茶</div>
+      <h3>투고가 접수되었습니다</h3>
+      <p>소중한 글 감사합니다.<br>집행부 검토를 거쳐 학술지에 게재될 예정입니다.</p>
+      <div class="acts">
+        <a href="journal.html">학술지 목록으로</a>
+        <a href="my-post.html">내 투고 확인하기</a>
+        <a href="submit.html">한 편 더 쓰기</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const DRAFT = 'hw-submit-draft';
+let UPLOADING = false, SENT = false;
+
+/* =========================================================
+   1. 학술지 종류
+   ========================================================= */
+(async () => {
+  try{
+    const rows = await HW.api.series();
+    const sel = HW.qs('#f-series');
+    rows.filter(s => s.open_submission !== false).forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.id; o.textContent = s.name;
+      sel.appendChild(o);
+    });
+  }catch(e){ /* 실패해도 '자유 투고'로 보낼 수 있습니다 */ }
+})();
+
+/* =========================================================
+   2. 비밀번호 확인
+   ★ v1 은 확인칸이 없어 한 글자만 잘못 쳐도
+     투고자가 자기 글에 영영 접근하지 못했습니다.
+   ========================================================= */
+function checkPw(){
+  const a = HW.qs('#f-pw').value, b = HW.qs('#f-pw2').value;
+  const m = HW.qs('#pwmsg');
+  if(!b){ m.className = 'hint'; m.textContent = '오타 방지를 위해 한 번 더 적어주세요.'; return false; }
+  if(a === b){ m.className = 'hint ok'; m.textContent = '두 비밀번호가 일치합니다.'; return true; }
+  m.className = 'hint bad'; m.textContent = '두 비밀번호가 다릅니다.';
+  return false;
+}
+HW.qs('#f-pw').addEventListener('input', checkPw);
+HW.qs('#f-pw2').addEventListener('input', checkPw);
+
+/* =========================================================
+   3. 글자 수 · 임시 보관
+   ========================================================= */
+const tEl = HW.qs('#f-title'), bEl = HW.qs('#f-content');
+function counts(){
+  HW.qs('#tcnt').textContent = `${tEl.value.length} / 80`;
+  HW.qs('#bcnt').textContent = `${bEl.value.length}자`;
+}
+let dTimer = null;
+function saveDraft(){
+  clearTimeout(dTimer);
+  dTimer = setTimeout(() => {
+    if(SENT) return;
+    try{
+      localStorage.setItem(DRAFT, JSON.stringify({ t:tEl.value, b:bEl.value, at:Date.now() }));
+    }catch(e){}
+  }, 400);
+}
+[tEl, bEl].forEach(el => el.addEventListener('input', () => { counts(); saveDraft(); }));
+
+(function restore(){
+  let d = null;
+  try{ d = JSON.parse(localStorage.getItem(DRAFT) || 'null'); }catch(e){}
+  if(!d || (!d.t && !d.b)) return;
+  if(Date.now() - (d.at || 0) > 7 * 24 * 3600 * 1000){      /* 일주일 지나면 버립니다 */
+    try{ localStorage.removeItem(DRAFT); }catch(e){} return;
+  }
+  tEl.value = d.t || ''; bEl.value = d.b || '';
+  counts();
+  HW.qs('#draftmsg').innerHTML =
+    '이전에 쓰시던 내용을 되살렸습니다. <b>비밀번호는 저장되지 않습니다.</b>';
+})();
+counts();
+
+/* =========================================================
+   4. 대표 이미지 — 업로드 중에는 제출을 막습니다
+   ★ v1 은 HW.pickFile 만 호출해 업로드가 끝나기 전에 제출되면
+     이미지 없이 접수되었습니다.
+   ========================================================= */
+const imgEl = HW.qs('#f-img');
+
+function drawPreview(){
+  const u = imgEl.value.trim(), box = HW.qs('#prev');
+  if(!u){ box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = 'block';
+  box.innerHTML = (HW.isEmbeddable(u) ? HW.embed(u, '', '', '미리보기')
+                                      : HW.media(u, '', '', '미리보기'))
+    + '<button type="button" class="rm" id="imgrm">이미지 빼기</button>';
+}
+imgEl.addEventListener('input', drawPreview);
+HW.qs('#prev').addEventListener('click', e => {
+  if(e.target.id === 'imgrm'){ imgEl.value = ''; drawPreview(); }
+});
+
+HW.qs('#f-file').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  UPLOADING = true;
+  lockBtn(true, '사진 올리는 중…');
+  HW.qs('#uplabel').classList.add('busy');
+  try{
+    imgEl.value = await HW.api.upload(f, 'journal');
+    drawPreview();
+    HW.okMsg('사진이 올라갔습니다');
+  }catch(err){ HW.errMsg(err); }
+  finally{
+    UPLOADING = false;
+    HW.qs('#uplabel').classList.remove('busy');
+    lockBtn(false, '투고하기');
+    e.target.value = '';
+  }
+});
+
+function lockBtn(on, txt){
+  const b = HW.qs('#sbtn');
+  b.disabled = on;
+  if(txt) b.textContent = txt;
+}
+
+/* =========================================================
+   5. 제출
+   ★ v1 버그 : required 는 공백 문자만 있어도 통과합니다.
+     스페이스만 넣고 보내면 빈 글이 그대로 접수되었습니다.
+   ========================================================= */
+HW.qs('#pform').addEventListener('submit', async e => {
+  e.preventDefault();
+  if(UPLOADING) return HW.toast('사진을 올리는 중입니다. 잠시만 기다려 주세요','warn');
+
+  const author = HW.qs('#f-author').value.trim();
+  const title  = tEl.value.trim();
+  const body   = bEl.value;
+  const pw     = HW.qs('#f-pw').value;
+
+  if(!author)              return bad('#f-author', '글쓴이를 적어주세요');
+  if(!title)               return bad('#f-title',  '제목을 적어주세요 (공백만으로는 등록되지 않습니다)');
+  if(!body.trim())         return bad('#f-content','본문을 적어주세요 (공백만으로는 등록되지 않습니다)');
+  if(!pw || pw.length < 4) return bad('#f-pw',     '비밀번호를 4자 이상으로 적어주세요');
+  if(!checkPw())           return bad('#f-pw2',    '두 비밀번호가 다릅니다');
+
+  lockBtn(true, '보내는 중…');
+  try{
+    await HW.api.submitPost({
+      seriesId: HW.qs('#f-series').value || null,
+      kind:     HW.qs('#f-kind').value || 'article',
+      author:   author,
+      contact:  HW.qs('#f-contact').value.trim() || null,
+      title:    title,
+      body:     body,
+      imageUrl: imgEl.value.trim() || null,
+      pw:       pw
+    });
+
+    SENT = true;
+    try{ localStorage.removeItem(DRAFT); }catch(e){}
+    HW.qs('#pform').reset();                       /* 뒤로가기로 돌아와도 남지 않게 */
+    HW.qs('#formcard').style.display = 'none';
+    HW.qs('#done').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }catch(err){
+    HW.errMsg(err);
+    lockBtn(false, '투고하기');
+  }
+});
+
+function bad(sel, msg){
+  HW.toast(msg, 'warn');
+  const el = HW.qs(sel);
+  if(el){ el.focus(); el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+}
+
+/* 작성 중 이탈 경고 */
+window.addEventListener('beforeunload', e => {
+  if(SENT) return;
+  if(tEl.value.trim() || bEl.value.trim()){ e.preventDefault(); e.returnValue = ''; }
+});
+</script>
+</body>
+</html>

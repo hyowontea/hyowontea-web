@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 투고 확인 — 효원다회(曉原茶會)</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     내 투고 확인  v2
+     v2 변경점
+     ① 상태 배지 class 를 .st → .pst 로 (공통 CSS 카드 규칙과 충돌)
+     ② 비밀번호 자동 잠금 추가
+     ③ 쓰이지 않던 api 보강 코드 삭제
+     ④ 모달 포커스 가둠·복귀, 자체 확인창
+     ========================================================= */
+
+  .pagehead{background:var(--jade-d);padding:clamp(60px,7vw,110px) var(--pad) clamp(38px,4.2vw,66px);
+    position:relative;overflow:hidden}
+  .pagehead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);background-size:28px 28px}
+  .pagehead .inr{position:relative;z-index:2}
+  .pagehead .sec-no{margin-bottom:18px}
+  .pagehead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.6rem,2.9vw,2.7rem);letter-spacing:.14em;line-height:1.45}
+  .pagehead p{color:#b6c2b5;font-size:.92rem;line-height:2;margin-top:15px;max-width:var(--read)}
+
+  .wrapn{max-width:780px;margin:0 auto;padding:clamp(26px,3vw,48px) var(--pad) clamp(60px,6vw,100px)}
+  .note{background:var(--cream-2);border:1px solid var(--line);border-left:2px solid var(--jade);
+    padding:clamp(16px,1.8vw,22px);font-size:.88rem;color:var(--sumi);line-height:2;
+    margin-bottom:clamp(24px,2.6vw,38px)}
+  .note b{color:var(--ink);font-weight:500}
+
+  .gate{border:1px solid var(--line);border-top:2px solid var(--jade);
+    background:var(--cream);padding:clamp(22px,2.6vw,38px)}
+  .gate h3{font-family:var(--serif);font-size:1.12rem;font-weight:500;color:var(--jade);
+    letter-spacing:.1em;margin-bottom:8px}
+  .gate .sm{font-size:.86rem;color:var(--sumi);line-height:1.9;margin-bottom:clamp(20px,2.2vw,30px)}
+  .fg{margin-bottom:clamp(18px,2vw,24px)}
+  .fg label{display:block;font-size:.66rem;letter-spacing:.22em;color:var(--sumi);margin-bottom:10px}
+  .fg input{width:100%;padding:11px 0;border:none;border-bottom:1px solid var(--line-2);
+    background:transparent;font-family:inherit;font-size:.95rem;color:var(--ink);outline:none}
+  .fg textarea{width:100%;padding:14px 16px;border:1px solid var(--line-2);background:transparent;
+    font-family:inherit;font-size:.95rem;color:var(--ink);outline:none;line-height:2;resize:vertical}
+  .fg input:focus,.fg textarea:focus{border-color:var(--jade)}
+  .fg input::placeholder,.fg textarea::placeholder{color:var(--sumi)}
+  .fg .hint{font-size:.76rem;color:var(--sumi);line-height:1.85;margin-top:8px}
+  .sbtn{width:100%;background:var(--jade);color:var(--ivory);border:none;padding:15px;
+    font-family:inherit;font-size:.84rem;letter-spacing:.2em;cursor:pointer;transition:background .25s}
+  .sbtn:hover{background:var(--jade-d)}
+  .sbtn:disabled{background:var(--line);color:#9a9686;cursor:not-allowed}
+
+  #panel{display:none}
+  .rhead{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;
+    border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:clamp(20px,2.2vw,30px)}
+  .rhead b{font-family:var(--serif);font-size:1.08rem;font-weight:500;
+    color:var(--ink);letter-spacing:.08em}
+  .lnk{background:none;border:none;font-size:.74rem;letter-spacing:.12em;color:var(--sumi);
+    border-bottom:1px solid var(--line-2);cursor:pointer;padding:0 0 3px;font-family:inherit}
+  .lnk:hover{color:var(--jade);border-color:var(--jade)}
+
+  .pi{border-bottom:1px solid var(--line);padding:clamp(20px,2.2vw,30px) 0}
+  .pi:first-child{border-top:1px solid var(--line)}
+
+  /* ★ 공통 CSS 의 목록 카드 규칙(.st)과 겹치지 않도록 이름을 바꿨습니다 */
+  .pst{display:inline-block;font-size:.62rem;letter-spacing:.2em;padding:4px 11px;
+    margin-bottom:12px;border:1px solid var(--line-2);color:var(--sumi);background:transparent}
+    /* 기존 : .pst.wait{border-color:var(--gold);color:var(--gold)} */
+  /* ★ B-5 : --gold 는 어두운 면 전용입니다. 크림 배경에서 2.3:1 로
+     거의 안 읽혔습니다. 밝은 면용 --gold-d(4.6:1) 로 바꿉니다. */
+  .pst.wait{border-color:var(--gold-d);color:var(--gold-d)}
+
+  /* 덤 : 비활성 버튼 글자도 흐렸습니다 (#9a9686 → #7d7a6d) */
+  .sbtn:disabled{background:var(--line);color:#7d7a6d;cursor:not-allowed}
+  .pst.pub{border-color:var(--jade);color:var(--jade)}
+  .pst.rej{border-color:var(--clay);color:var(--clay)}
+
+  .pi h4{font-family:var(--serif);font-size:1.12rem;font-weight:500;color:var(--jade);
+    letter-spacing:.06em;line-height:1.5;margin-bottom:8px}
+  .pi .mt{font-size:.74rem;letter-spacing:.08em;color:var(--sumi);line-height:1.9}
+  .pi .ex{font-size:.88rem;color:var(--sumi);line-height:1.9;margin-top:12px;
+    overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+  .memo{background:var(--cream-2);border-left:2px solid var(--clay);padding:14px 16px;
+    margin-top:14px;font-size:.87rem;color:var(--sumi);line-height:1.9}
+  .memo b{display:block;font-size:.64rem;letter-spacing:.22em;color:var(--clay);
+    font-weight:400;margin-bottom:8px}
+  .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .bb{border:1px solid var(--line-2);background:transparent;color:var(--sumi);
+    padding:10px 20px;font-family:inherit;font-size:.74rem;letter-spacing:.14em;
+    cursor:pointer;text-decoration:none;display:inline-block;transition:all .25s}
+  .bb:hover{background:var(--cream-2);color:var(--ink)}
+  .bb:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+  .bb.main{background:var(--jade);border-color:var(--jade);color:var(--ivory)}
+  .bb.main:hover{background:var(--jade-d);color:var(--ivory)}
+  .bb.red{border-color:var(--clay);color:var(--clay)}
+  .bb.red:hover{background:var(--clay);color:var(--ivory)}
+
+  .msg{color:var(--sumi);font-size:.88rem;line-height:1.9;padding:14px 0}
+
+  /* ---------- 모달 공통 ---------- */
+  .ov{position:fixed;inset:0;background:rgba(22,37,30,.72);backdrop-filter:blur(3px);z-index:1000;
+    display:flex;justify-content:center;align-items:center;padding:20px;
+    opacity:0;visibility:hidden;transition:all .25s}
+  .ov.open{opacity:1;visibility:visible}
+  .mbox{background:var(--cream);width:100%;max-width:660px;border:1px solid var(--line-2);
+    border-top:2px solid var(--jade);padding:clamp(22px,2.6vw,38px);max-height:90vh;
+    overflow-y:auto;position:relative;transform:translateY(14px);transition:transform .25s}
+  .ov.open .mbox{transform:translateY(0)}
+  .mbox.sm{max-width:420px}
+  .mclose{position:absolute;top:14px;right:14px;background:transparent;
+    border:1px solid var(--line-2);width:34px;height:34px;font-size:1rem;cursor:pointer;color:var(--sumi)}
+  .mclose:hover{background:var(--jade);color:var(--ivory);border-color:var(--jade)}
+  .mbox h3{font-family:var(--serif);font-size:1.2rem;font-weight:500;color:var(--jade);
+    letter-spacing:.1em;margin-bottom:clamp(18px,2vw,26px);padding-right:40px}
+  .mbox .qtxt{font-size:.92rem;color:var(--sumi);line-height:1.95;margin-bottom:24px}
+  .mbox .qtxt b{color:var(--ink);font-weight:500}
+  .qbtns{display:flex;gap:10px}
+  .qbtns .bb{flex:1;text-align:center}
+
+  @media(max-width:768px){
+    .acts .bb{flex:1;text-align:center}
+  }
+</style>
+</head>
+<body data-page="journal">
+
+<div id="hw-header"></div>
+
+<main>
+  <section class="pagehead">
+    <div class="inr">
+      <div class="sec-no">MY SUBMISSION &nbsp;/&nbsp; 投稿 確認</div>
+      <h1>내 투고 확인</h1>
+      <p>투고하실 때 적으신 글쓴이 이름과 비밀번호로 확인하실 수 있습니다.</p>
+    </div>
+  </section>
+
+  <div class="wrapn">
+    <!-- 조회 -->
+    <div id="gate">
+      <div class="note">
+        <b>투고할 때 입력한 글쓴이 이름과 비밀번호</b>를 그대로 적어주세요.<br>
+        비밀번호는 암호화되어 저장되므로 분실 시 복구해 드릴 수 없습니다.
+      </div>
+      <div class="gate">
+        <h3>투고 조회</h3>
+        <div class="sm">심사 상태와 반려 사유를 확인하고, 대기 중인 글은 수정하실 수 있습니다.</div>
+        <form id="gate-form">
+          <div class="fg">
+            <label for="g-author">글쓴이 *</label>
+            <input id="g-author" required maxlength="20" autocomplete="off"
+                   placeholder="투고할 때 적으신 이름 / 닉네임">
+            <div class="hint">띄어쓰기까지 똑같이 적어주세요.</div>
+          </div>
+          <div class="fg">
+            <label for="g-pw">비밀번호 *</label>
+            <input id="g-pw" type="password" required minlength="4" maxlength="30"
+                   autocomplete="current-password" placeholder="4자 이상">
+            <div class="hint">조회 후 <b>10분간 아무 동작이 없으면</b> 보안을 위해 자동으로 잠깁니다.</div>
+          </div>
+          <button type="submit" class="sbtn" id="g-btn">내 글 찾기</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 결과 -->
+    <div id="panel">
+      <div class="rhead">
+        <b><span id="who"></span> 님의 투고 <span id="cnt">0</span>편</b>
+        <button type="button" class="lnk" id="relock">다른 이름으로 조회</button>
+      </div>
+      <div id="plist" aria-live="polite"></div>
+      <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap">
+        <a class="bb main" href="submit.html">새 글 투고하기</a>
+        <a class="bb" href="journal.html">학술지 목록으로</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- 수정 모달 -->
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="ov-ttl">
+  <div class="mbox">
+    <button class="mclose" type="button" id="mclose" aria-label="닫기">&times;</button>
+    <h3 id="ov-ttl">투고 수정</h3>
+    <form id="edit-form">
+      <input type="hidden" id="e-id">
+      <div class="fg">
+        <label for="e-title">제목 *</label>
+        <input id="e-title" required maxlength="80">
+      </div>
+      <div class="fg">
+        <label for="e-body">본문 *</label>
+        <textarea id="e-body" rows="14" required></textarea>
+        <div class="hint">줄바꿈은 그대로 반영됩니다. 심사 대기 중인 글만 수정할 수 있습니다.</div>
+      </div>
+      <button type="submit" class="sbtn" id="e-btn">저장하기</button>
+    </form>
+  </div>
+</div>
+
+<!-- 확인 모달 (confirm 대체) -->
+<div class="ov" id="cv" role="dialog" aria-modal="true" aria-labelledby="cv-ttl">
+  <div class="mbox sm">
+    <h3 id="cv-ttl">투고 철회</h3>
+    <div class="qtxt" id="cv-msg"></div>
+    <div class="qbtns">
+      <button type="button" class="bb red"  id="cv-yes">철회하기</button>
+      <button type="button" class="bb"      id="cv-no">그대로 두기</button>
+    </div>
+  </div>
+</div>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+/* ★ v1 에 있던 "api.js 보강" 블록은 지웠습니다.
+   거기서 채우던 deleteComment · addComment · hideComment 는
+   api.js 에 이미 전부 정의되어 있어 한 줄도 실행되지 않았고,
+   정의가 달라지면 오히려 덮어쓸 위험만 있었습니다. */
+
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+
+const KIND = { article:'기고', essay:'수필', review:'서평', free:'자유', notice:'공지' };
+const ST   = { pending:['심사 대기','wait'], published:['게재됨','pub'], rejected:['반려됨','rej'] };
+const LOCK_MIN = 10;                       /* 자동 잠금까지의 시간(분) */
+
+/* 비밀번호는 메모리에만 두고 저장소에 남기지 않습니다 */
+let AUTHOR = '', PW = '', ROWS = [];
+let lockTimer = null, lastFocus = null, askResolve = null;
+
+/* =========================================================
+   1. 자동 잠금
+   ★ v1 은 PW 를 평문으로 무기한 들고 있었습니다.
+     화면을 켜둔 채 자리를 비우면 남이 그대로 수정·철회할 수 있습니다.
+   ========================================================= */
+function touch(){
+  if(!PW) return;
+  clearTimeout(lockTimer);
+  lockTimer = setTimeout(() => lock(true), LOCK_MIN * 60 * 1000);
+}
+function lock(byTimeout){
+  AUTHOR = ''; PW = ''; ROWS = [];
+  clearTimeout(lockTimer);
+  closeEdit(); closeAsk(false);
+  HW.qs('#plist').innerHTML = '';
+  HW.qs('#panel').style.display = 'none';
+  HW.qs('#gate').style.display  = 'block';
+  HW.qs('#g-pw').value = '';
+  if(byTimeout) HW.toast(`${LOCK_MIN}분간 동작이 없어 잠갔습니다. 다시 조회해 주세요`, 'warn');
+}
+['click','keydown','input','touchstart'].forEach(ev =>
+  document.addEventListener(ev, touch, { passive:true, capture:true }));
+
+HW.qs('#relock').addEventListener('click', () => lock(false));
+
+/* =========================================================
+   2. 조회
+   ========================================================= */
+HW.qs('#gate-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = HW.qs('#g-btn');
+  const a = HW.qs('#g-author').value.trim();
+  const p = HW.qs('#g-pw').value;
+  btn.disabled = true; btn.textContent = '찾는 중…';
+  try{
+    const rows = await HW.api.myPosts(a, p);
+    if(!rows.length){
+      HW.toast('일치하는 투고가 없습니다. 이름과 비밀번호를 확인해 주세요', 'warn');
+    }else{
+      AUTHOR = a; PW = p; ROWS = rows;
+      HW.qs('#gate').style.display  = 'none';
+      HW.qs('#panel').style.display = 'block';
+      HW.qs('#who').textContent = a;
+      HW.qs('#g-pw').value = '';
+      draw();
+      touch();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+  }catch(err){ HW.errMsg(err); }
+  finally{ btn.disabled = false; btn.textContent = '내 글 찾기'; }
+});
+
+/* =========================================================
+   3. 다시 불러오기
+   ★ v1 버그 : 실패해도 ROWS 를 그대로 둬서
+     이미 철회한 글이 화면에 계속 남아 있었습니다.
+   ========================================================= */
+async function reload(){
+  if(!PW) return;
+  try{
+    ROWS = await HW.api.myPosts(AUTHOR, PW);
+    draw();
+  }catch(err){
+    HW.errMsg(new Error('목록을 새로 불러오지 못했습니다 — ' + (err.message || '')));
+    draw();                                /* 화면과 데이터를 어긋나게 두지 않습니다 */
+  }
+}
+
+/* =========================================================
+   4. 그리기
+   ========================================================= */
+function excerpt(p){
+  const src = p.body || p.content || p.summary || '';
+  return String(src).replace(/\s+/g,' ').trim().slice(0,140);
+}
+
+function draw(){
+  HW.qs('#cnt').textContent = ROWS.length;
+  const box = HW.qs('#plist');
+  if(!ROWS.length){
+    box.innerHTML = '<p class="msg">남아 있는 투고가 없습니다.</p>';
+    return;
+  }
+  box.innerHTML = ROWS.map(p => {
+    const s  = ST[p.status] || ['확인 중',''];
+    const where = (p.issue_no !== null && p.issue_no !== undefined)
+      ? `${p.series_name ? p.series_name + ' ' : ''}${p.issue_no}호`
+      : (p.series_name || '자유 투고');
+
+    let acts;
+    if(p.status === 'pending'){
+      acts = `<button type="button" class="bb main" data-act="edit" data-id="${A(p.id)}">수정하기</button>
+              <button type="button" class="bb red"  data-act="del"  data-id="${A(p.id)}">투고 철회</button>`;
+    }else if(p.status === 'published'){
+      acts = `<a class="bb" href="journal-post.html?id=${encodeURIComponent(p.id)}">게재된 글 보기 ↗</a>`;
+    }else{
+      acts = `<a class="bb" href="submit.html">다시 다듬어 투고하기</a>`;
+    }
+
+    return `<article class="pi">
+      <span class="pst ${s[1]}">${E(s[0])}</span>
+      <h4>${E(p.title)}</h4>
+      <div class="mt">${E(KIND[p.kind] || p.kind || '기고')} · ${E(where)}
+        · 투고 ${E(HW.korDate(p.created_at))}
+        ${p.published_at ? ' · 게재 ' + E(HW.korDate(p.published_at)) : ''}</div>
+      <div class="ex">${E(excerpt(p))}</div>
+      ${p.reject_memo
+        ? `<div class="memo"><b>집행부 의견</b>${HW.nl2br(p.reject_memo)}</div>` : ''}
+      <div class="acts">${acts}</div>
+    </article>`;
+  }).join('');
+}
+
+/* =========================================================
+   5. 버튼 위임
+   ========================================================= */
+HW.qs('#plist').addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const row = ROWS.find(x => String(x.id) === b.dataset.id); if(!row) return;
+
+  if(b.dataset.act === 'edit'){ openEdit(row, b); return; }
+
+  if(b.dataset.act === 'del'){
+    const yes = await ask(`<b>${E(row.title)}</b> 투고를 철회할까요?<br>철회하면 목록에서 사라지며 되돌릴 수 없습니다.`, b);
+    if(!yes) return;
+    b.disabled = true;
+    try{
+      HW.okMsg(await HW.api.withdrawMyPost(row.id, PW));
+      ROWS = ROWS.filter(x => String(x.id) !== String(row.id));  /* 먼저 화면에서 치웁니다 */
+      draw();
+      reload();
+    }catch(err){
+      HW.errMsg(err);
+      if(document.contains(b)) b.disabled = false;
+    }
+  }
+});
+
+/* =========================================================
+   6. 수정 모달 (포커스 가둠 · 복귀)
+   ========================================================= */
+function openEdit(row, trigger){
+  HW.qs('#e-id').value    = row.id;
+  HW.qs('#e-title').value = row.title || '';
+  HW.qs('#e-body').value  = row.body || row.content || '';
+  lastFocus = trigger || document.activeElement;
+  HW.qs('#ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  HW.qs('#e-title').focus();
+}
+function closeEdit(){
+  const ov = HW.qs('#ov');
+  if(!ov.classList.contains('open')) return;
+  ov.classList.remove('open');
+  if(!HW.qs('#cv').classList.contains('open')) document.body.style.overflow = '';
+  if(lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus = null;
+}
+HW.qs('#mclose').addEventListener('click', closeEdit);
+HW.qs('#ov').addEventListener('click', e => { if(e.target.id === 'ov') closeEdit(); });
+
+HW.qs('#edit-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const title = HW.qs('#e-title').value.trim();
+  const body  = HW.qs('#e-body').value;
+  if(!title || !body.trim()) return HW.toast('제목과 본문을 적어주세요','warn');
+
+  const btn = HW.qs('#e-btn');
+  btn.disabled = true; btn.textContent = '저장 중…';
+  try{
+    HW.okMsg(await HW.api.editMyPost(HW.qs('#e-id').value, PW, title, body));
+    closeEdit();
+    await reload();
+  }catch(err){ HW.errMsg(err); }
+  finally{ btn.disabled = false; btn.textContent = '저장하기'; }
+});
+
+/* =========================================================
+   7. 확인창 (confirm 대체)
+   ========================================================= */
+function ask(html, trigger){
+  HW.qs('#cv-msg').innerHTML = html;
+  lastFocus = trigger || document.activeElement;
+  HW.qs('#cv').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  HW.qs('#cv-no').focus();
+  return new Promise(res => { askResolve = res; });
+}
+function closeAsk(result){
+  const cv = HW.qs('#cv');
+  if(!cv.classList.contains('open')) return;
+  cv.classList.remove('open');
+  if(!HW.qs('#ov').classList.contains('open')) document.body.style.overflow = '';
+  if(lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus = null;
+  if(askResolve){ askResolve(!!result); askResolve = null; }
+}
+HW.qs('#cv-yes').addEventListener('click', () => closeAsk(true));
+HW.qs('#cv-no').addEventListener('click',  () => closeAsk(false));
+HW.qs('#cv').addEventListener('click', e => { if(e.target.id === 'cv') closeAsk(false); });
+
+/* =========================================================
+   8. 키보드 — Esc 로 닫고, Tab 이 모달 밖으로 못 나가게 합니다
+   ========================================================= */
+document.addEventListener('keydown', e => {
+  const cvOpen = HW.qs('#cv').classList.contains('open');
+  const ovOpen = HW.qs('#ov').classList.contains('open');
+  if(!cvOpen && !ovOpen) return;
+
+  if(e.key === 'Escape'){ cvOpen ? closeAsk(false) : closeEdit(); return; }
+  if(e.key !== 'Tab') return;
+
+  const box = HW.qs('.mbox', HW.qs(cvOpen ? '#cv' : '#ov'));
+  const f = HW.qsa('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])', box)
+            .filter(el => !el.disabled && el.offsetParent !== null);
+  if(!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
+</script>
+</body>
+</html>
