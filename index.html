@@ -224,11 +224,11 @@
       <div class="hero-name">Hyowon Tea Society</div>
       <p class="hero-slogan">
         차가 좋아서, 사람이 좋아서<br>
-        <b data-sv="club.years">40</b>년을 이어 온 부산대학교 다도 동아리
+        <b data-sv="club.years">40</b>년을 이어 온 부산대학교 다례(다도) 동아리
       </p>
     </div>
 
-    <div class="hero-hint">화면을 누르면 찻물이 번집니다</div>
+
 
     <!-- ★ pointer-events 복구 : 이제 실제로 눌립니다 -->
     <a class="scrolldown" href="#philosophy" aria-label="아래 내용 보기">
@@ -288,7 +288,7 @@
         <div class="card-body">
           <h3>차 지도</h3>
           <div class="card-en">TEA MAP</div>
-          <p>하동·보성부터 중국 우이산까지, 세계의 다산지(茶産地)와
+          <p>하동·보성부터 중국까지, 세계의 다산지(茶産地)와
              그곳 차의 성격을 지역별로 살펴봅니다.</p>
           <span class="card-cta" id="cnt-map">지도 보기</span>
         </div>
@@ -306,7 +306,7 @@
         <div class="card-body">
           <h3>다구 사용법</h3>
           <div class="card-en">TEA UTENSILS</div>
-          <p>개완·자사호·숙우 등 전통 다구의 이름과 올바른 사용 순서,
+          <p>개완·자사호·숙우 등 다양한 다구의 이름과 올바른 사용 순서,
              관리 요령을 단계별로 안내합니다.</p>
           <span class="card-cta" id="cnt-ware">사용법 보기</span>
         </div>
@@ -472,7 +472,12 @@ const dOnly = v => v ? String(v).slice(0,10) : '';
 
   function col(s, i){
     const img  = s.image_url ? HW.media(s.image_url, 'intro-img', '', s.title) : '';
-    const body = (s.content || '').replace(/\s+/g, ' ').trim();
+    /* ★ 줄바꿈은 살리고, 한 줄 안의 연속 공백만 정리합니다 */
+    const body = String(s.content || '')
+      .replace(/\r\n?/g, '\n')        /* 윈도우 줄바꿈 통일 */
+      .replace(/[ \t]+/g, ' ')        /* 가로 공백만 한 칸으로 */
+      .replace(/[ \t]*\n[ \t]*/g, '\n')
+      .trim();
     const en   = (s.eyebrow || '').trim();
     return `<div>
       <div class="c-no">
@@ -481,10 +486,10 @@ const dOnly = v => v ? String(v).slice(0,10) : '';
       </div>
       ${img}
       <h3>${E(s.title)}</h3>
-      <p>${E(body)}</p>
+      <p>${HW.nl2br(body)}</p>
     </div>`;
   }
-
+  
   try{
     const rows = await HW.api.intro('index');
 

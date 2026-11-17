@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>동아리 소개 — 효원다회(曉原茶會)</title>
-<meta name="description" content="부산대학교 전통 차 문화 동아리 효원다회의 소개, 연혁, 회칙 안내입니다.">
+<meta name="description" content="부산대학교 다례(다도) 동아리 효원다회의 소개, 연혁, 회칙 안내입니다.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -134,8 +134,8 @@
   <section class="phead">
     <div class="phead-in">
       <div class="sec-no">ABOUT &nbsp;/&nbsp; 曉原茶會</div>
-      <h1>차를 사이에 두고<br>사람을 만나는 자리</h1>
-      <p>효원다회는 부산대학교 동아리연합회 학술이념분과 소속의 전통 차 문화 동아리입니다.</p>
+      <h1>차가 좋아서,<br>사람이 좋아서</h1>
+      <p>효원다회는 부산대학교 동아리연합회 학술이념분과 소속의 전통 다례(차 문화) 동아리입니다.</p>
     </div>
     <div class="vert">曉原茶會</div>
   </section>
@@ -145,7 +145,7 @@
     <div class="sec-no">01 &nbsp;/&nbsp; INTRODUCTION</div>
     <div class="head-split">
       <h2 class="big on-dark">효원다회 이야기</h2>
-      <p>집행부가 직접 쓴 동아리 소개입니다. 내용은 집행부 페이지에서 언제든 수정할 수 있습니다.</p>
+      <p>효원다회에 대하여...</p>
     </div>
     <div class="rule"></div>
     <div id="intro"><p class="msg-d">불러오는 중…</p></div>
@@ -156,7 +156,7 @@
     <div class="sec-no">02 &nbsp;/&nbsp; HISTORY</div>
     <div class="head-split">
       <h2 class="big on-light">효원다회 발자취</h2>
-      <p>창립부터 오늘까지, 동아리가 지나온 시간입니다.</p>
+      <p>창립 전부터 지금까지, 동아리가 지나온 시간입니다.</p>
     </div>
     <div class="tl" id="tl">
       <div><div class="ct msg-l">불러오는 중…</div></div>
@@ -167,7 +167,7 @@
   <section class="section bg-warm" id="rules">
     <div class="sec-no">03 &nbsp;/&nbsp; RULES</div>
     <div class="head-split">
-      <h2 class="big on-light">회칙</h2>
+      <h2 class="big on-light">효원다회 회칙</h2>
       <p>장 제목을 누르면 조항이 펼쳐집니다.</p>
     </div>
     <div id="rules-box" style="max-width:860px">
@@ -195,6 +195,7 @@
            target="_blank" rel="noopener" href="#">가입 신청하기</a>
         <a class="btn btn-ghost" href="schedule.html">일정 확인하기</a>
         <a class="btn btn-ghost" href="dasho.html">茶書 둘러보기</a>
+        <a class="btn btn-ghost" href="tea-story.html">茶談 둘러보기</a>
       </div>
     </div>
 
@@ -232,7 +233,11 @@ const NUM = ['一','二','三','四','五','六','七','八','九','十'];
 
   function col(s, i){
     const img  = s.image_url ? HW.media(s.image_url, 'intro-img', '', s.title) : '';
-    const body = (s.content || '').replace(/\s+/g, ' ').trim();
+    const body = String(s.content || '')
+      .replace(/\r\n?/g, '\n')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/[ \t]*\n[ \t]*/g, '\n')
+      .trim();
     const en   = (s.eyebrow || '').trim();
     return `<div>
       <div class="c-no">
@@ -241,10 +246,9 @@ const NUM = ['一','二','三','四','五','六','七','八','九','十'];
       </div>
       ${img}
       <h3>${E(s.title)}</h3>
-      <p>${E(body)}</p>
+      <p>${HW.nl2br(body)}</p>
     </div>`;
   }
-
   try{
     const rows = await HW.api.intro('about');
 
