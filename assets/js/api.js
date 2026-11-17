@@ -69,11 +69,7 @@
     async rules() {
       return ok(await sb.from('rules').select('*').order('sort_order', { ascending: true }));
     },
-    async staff(currentOnly) {
-      let q = sb.from('staff').select('*');
-      if (currentOnly) q = q.eq('is_current', true);
-      return ok(await q.order('sort_order', { ascending: true }));
-    },
+
     async schedules(fromDate, toDate) {
       let q = sb.from('schedules').select('*');
       if (fromDate) q = q.gte('date', fromDate);
@@ -85,10 +81,7 @@
     /* =====================================================
        C. 茶書 — 차 도감 / 지도 / 다구 / 이야기
        ===================================================== */
-    async categories() {
-      return ok(await sb.from('categories').select('*')
-        .order('display_order', { ascending: true }));
-    },
+
     async teas() {
       const rows = ok(await sb.from('teas')
         .select('*, tea_categories( categories ( id, name, display_order ) )')
@@ -107,11 +100,6 @@
     async teaWare() {
       return ok(await sb.from('tea_ware').select('*')
         .order('display_order', { ascending: true }));
-    },
-    async teaStories(includeDraft) {
-      let q = sb.from('tea_stories').select('*');
-      if (!includeDraft) q = q.eq('status', 'published');
-      return ok(await q.order('created_at', { ascending: false }));
     },
 
     /* =====================================================
@@ -141,9 +129,7 @@
       if (o.limit) q = q.limit(o.limit);
       return ok(await q);
     },
-    async post(id) {
-      return ok(await sb.from('journal_public').select('*').eq('id', id).maybeSingle());
-    },
+
     // 집행부 전용 : 심사 대기 / 전체
     async postsByStatus(status) {
       return ok(await sb.from('journal_posts').select('*')
@@ -182,11 +168,7 @@
       return ok(r);
     },
     /* --- 댓글 --- */
-    async comments(postId) {
-      return ok(await sb.from('journal_comments')
-        .select('id,post_id,nickname,content,created_at,is_hidden')
-        .eq('post_id', postId).order('created_at', { ascending: true }));
-    },
+
     async addComment(postId, nick, body, pw) {
       return ok(await sb.rpc('add_comment', {
         p_post: postId, p_nick: nick || '', p_body: body, p_pw: pw || '' }));
@@ -260,10 +242,7 @@
       return ok(await sb.from('audit_log').select('*')
         .order('created_at', { ascending: false }).limit(limit || 100));
     },
-    async bumpView(id) {
-      const r = await sb.rpc('bump_view', { pid: String(id) });
-      return r.error ? null : r.data;
-    },
+
     async restore(logId) { return ok(await sb.rpc('restore_row', { p_log_id: logId })); }
   };
 

@@ -692,7 +692,7 @@ body .memo{
 }
 body .memo b{color:var(--clay) !important}
 
-/* 투고 상태 뱃지 — ★ gold → gold-d (크림 위 4.6:1) */
+
 body .st.wait,body .st.pub,body .st.rej{
   background:transparent !important; border:1px solid currentColor !important;
   border-radius:0 !important; font-weight:500 !important;
@@ -733,7 +733,7 @@ body .nav a:hover{background:var(--jade) !important;color:var(--ivory) !importan
   border-color:var(--jade) !important}
 body .nav a:hover em{color:rgba(233,228,214,.75) !important}
 
-/* 본문 글 */
+
 body h1.t{
   font-family:var(--serif) !important;font-weight:500 !important;
   color:var(--ink) !important;letter-spacing:.08em !important;
@@ -752,14 +752,14 @@ body .issuebox .ib{color:var(--sumi) !important}
 body .issuebox b{color:var(--jade) !important}
 body .issuebox p{color:var(--ink-2) !important}
 
-/* 연혁 (about .tl) — ★ 4열 2행부터 좌측 선이 어긋나던 문제 수정 */
+
 body .tl > div:nth-child(4n+1){padding-left:0 !important;border-left:none !important}
 body .tl .ct{color:var(--ink-2) !important;line-height:1.85 !important}
 body .tl .yr small{color:var(--fog-2) !important}
 body .tl .major .yr{color:var(--clay) !important}
 body .tl .major .yr::before{background:var(--clay) !important}
 
-/* 회칙 아코디언 */
+
 body .ch{background:transparent !important;border-bottom:1px solid var(--line) !important}
 body .ch-head{
   background:transparent !important;color:var(--ink) !important;
@@ -771,10 +771,6 @@ body .ch-head i{color:var(--sumi) !important}
 body .art b{color:var(--jade) !important;letter-spacing:.08em !important;font-weight:500 !important}
 body .art p{color:var(--ink-2) !important;line-height:2 !important}
 
-
-/* =========================================================
-   일정(schedule) — ★ 구 갈색 하드코딩을 전부 먹녹으로 덮습니다
-   ========================================================= */
 body .sch-wrap .paper{
   background:var(--cream) !important;border:1px solid var(--line) !important;
   border-radius:0 !important;box-shadow:none !important;
@@ -796,8 +792,8 @@ body .nav-btn:hover,body .today-btn:hover{
 body .cal-body{border:1px solid var(--line-2) !important}
 body .dname{background:var(--cream-2) !important;color:var(--sumi) !important;
   border-color:var(--line) !important;letter-spacing:.14em}
-body .dname:first-child{color:var(--clay) !important}      /* ★ #c85a5a 대체 */
-body .dname:last-child{color:var(--jade) !important}       /* ★ #4a7bb0 대체 */
+body .dname:first-child{color:var(--clay) !important}      
+body .dname:last-child{color:var(--jade) !important}      
 body .day{background:var(--cream) !important;border-color:var(--line) !important}
 body .day:hover{background:var(--cream-2) !important}
 body .day.sel{background:var(--cream-3) !important;outline:1px solid var(--jade) !important}
@@ -812,8 +808,8 @@ body .bdg.k-notice{color:var(--sumi) !important}
 body .bdg.k-closed{color:var(--fog-2) !important}
 body .panel{background:var(--cream) !important;border:1px solid var(--line-2) !important;
   border-top:2px solid var(--jade) !important}
-body .panel #pBody{color:var(--ink-2) !important}          /* ★ #8c7667 대체 */
-body .panel #pBody p{color:var(--sumi) !important}         /* ★ #a08c82 대체 */
+body .panel #pBody{color:var(--ink-2) !important}        
+body .panel #pBody p{color:var(--sumi) !important}        
 body .p-date,body .ev h4,body .upcoming h3,body .up-d b{color:var(--jade) !important}
 body .ev .meta{color:var(--sumi) !important}
 body .ev .dsc{color:var(--ink-2) !important}
@@ -821,11 +817,10 @@ body .upcoming h3::after{color:var(--sumi) !important}
 body .up-item{background:transparent !important;border:none !important;
   border-bottom:1px solid var(--line) !important;border-radius:0 !important}
 body .up-item:hover{background:var(--cream-2) !important}
-body .up-item div[style]{color:var(--ink) !important}      /* ★ #633621 대체 */
+body .up-item div[style]{color:var(--ink) !important}      
 body .up-d{background:transparent !important;border-radius:0 !important}
 body .up-d span{color:var(--sumi) !important}
 
-/* 404 — ★ 짙은 녹색 배경인데 먹색 글자였던 문제 수정 */
 body .nf .cup{color:rgba(233,228,214,.4) !important}
 body .nf .sec-no{color:#9fad9e !important}
 body .nf h1{
@@ -834,13 +829,10 @@ body .nf h1{
 }
 body .nf p{color:#b6c2b5 !important}
 
-/* index 전용 보정 — ★ SCROLL 버튼 클릭 불가 수정 */
 body .scrolldown{pointer-events:auto}
 body .scrolldown span{color:#9fad9e}
 
-/* =========================================================
-   반응형
-   ========================================================= */
+/* 반응형 */
 @media (max-width:1100px){
   .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .col3{grid-template-columns:1fr;gap:34px}
@@ -881,14 +873,18 @@ body .scrolldown span{color:#9fad9e}
 ::-webkit-scrollbar-thumb{background:var(--line-2)}
 ::-webkit-scrollbar-thumb:hover{background:var(--sumi)}
 
-/* =========================================================
-   브랜드 로고 / 버튼형 메뉴 / 드로어 하단
-   ========================================================= */
+/*브랜드 로고 / 버튼형 메뉴 / 드로어 하단*/
 .brand-logo{
   display:inline-flex !important; align-items:center; gap:14px;
   padding-left:0 !important; letter-spacing:normal !important; font-size:inherit !important;
 }
 .brand-logo::before{content:none !important}
+/* 동아리 로고 마크 */
+.brand-mark{
+  flex:none; height:34px; width:auto; display:block;
+  opacity:.94; transition:opacity .25s;
+}
+.brand-logo:hover .brand-mark{opacity:1}
 
 .brand-seal{
   flex:none; width:30px; height:34px; display:flex; align-items:center; justify-content:center;
@@ -919,7 +915,40 @@ nav > ul > li.nav-cta > a.active::after{display:block}
 }
 
 @media(max-width:768px){
+  .brand-mark{height:27px}
   .brand-seal{width:30px;height:34px;font-size:.68rem}
   .brand-text b{font-size:.92rem;letter-spacing:.24em;padding-left:.24em}
   .brand-text i{font-size:.54rem;letter-spacing:.24em;padding-left:.24em}
 }
+/* =========================================================
+   ★ 세로 길이 다이어트
+   한 화면에 조금 더 들어오도록 위아래 여백만 줄입니다. 좌우는 그대로.
+   ========================================================= */
+.section{padding:clamp(52px,6.4vw,104px) var(--pad)}
+.section-head{margin-bottom:clamp(28px,3.4vw,50px)}
+.head-split{margin-bottom:clamp(26px,3vw,42px)}
+.rule{margin-bottom:clamp(26px,3.2vw,46px)}
+.bracket{padding:clamp(30px,3.6vw,62px) clamp(24px,4vw,78px)}
+.row2{padding:clamp(34px,4.4vw,66px) 0}
+
+.col3 .c-no{margin-bottom:26px}
+.col3 h3{margin-bottom:18px}
+.col3 .c-en{margin-top:30px;padding-top:20px}
+
+.card .card-visual{aspect-ratio:1/.6}
+.card .card-body{padding:clamp(20px,1.7vw,32px)}
+.card .card-en{margin-bottom:16px}
+.card .card-cta{margin-top:18px;padding:12px}
+
+footer.hw-footer{padding-top:clamp(22px,2.4vw,38px)}
+.footer-bottom{margin:18px 0 0;padding-top:12px}
+
+/* 페이지 머리 — 각 페이지 <style> 이 뒤에 오므로 !important 가 필요합니다 */
+.phead{
+  padding-top:clamp(46px,5.2vw,88px) !important;
+  padding-bottom:clamp(30px,3.2vw,52px) !important;
+}
+body .pagehead{
+  padding:clamp(46px,5.2vw,88px) var(--pad) clamp(34px,3.6vw,62px) !important;
+}
+body .sch-wrap{padding-top:clamp(16px,2vw,34px) !important;padding-bottom:54px !important}

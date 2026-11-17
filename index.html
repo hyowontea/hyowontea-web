@@ -21,11 +21,11 @@
 
   /* ---------- 히어로 ---------- */
   .hero{
-    position:relative; width:100%; min-height:100vh;
+    position:relative; width:100%; min-height:calc(100vh - 58px);
     display:flex; align-items:center; justify-content:center;
     background:var(--jade-d); overflow:hidden;
   }
-  @supports (min-height:100dvh){ .hero{min-height:100dvh} }
+  @supports (min-height:100dvh){ .hero{min-height:calc(100dvh - 58px)} }
 
   .hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;
     opacity:1;filter:saturate(.88) brightness(.94)}
@@ -44,18 +44,36 @@
   .hero-inner{position:relative;z-index:10;text-align:center;pointer-events:none;padding:0 20px;
     text-shadow:0 2px 20px rgba(22,37,30,.6)}
 
-  /* 로고 타이포 — 프레임 안 2단 */
+  /* 로고 타이포 — 프레임 안 2단 (가운데 가로선 없음)
+     ★ 기준 글자 크기를 .logomark 한 곳에만 두고,
+       여백·자간은 전부 em(글자 크기 배수)으로 적습니다.
+       → 글자가 줄면 박스도 정확히 같은 비율로 줄어듭니다. */
   .logomark{
-    display:inline-block;border:1px solid rgba(233,228,214,.72);
-    background:rgba(22,37,30,.3);
+    --lm-size:clamp(2.1rem,4.2vw,4.4rem);   /* 글자 크기 — 여기만 고치면 박스 전체가 따라옵니다 */
+    --lm-ls:.3em;                            /* 자간 */
+    --lm-px:.74em;                           /* 좌우 여백 */
+    --lm-py:.46em;                           /* 위아래 여백 */
+
+    display:inline-block;
+    border:1px solid rgba(233,228,214,.72);
+    background:rgba(22,37,30,.12);
+    backdrop-filter:blur(1px);
+
+    font-size:var(--lm-size);
+    line-height:1.34;
+    text-align:center;
+
+    padding:var(--lm-py) var(--lm-px);
+    /* 자간 보정 : 마지막 글자 뒤에도 자간이 붙어 오른쪽만 넓어 보이는 것을 빼 줍니다 */
+    padding-right:calc(var(--lm-px) - var(--lm-ls));
   }
   .logomark .lm{
-    font-family:var(--serif);font-weight:300;color:var(--ivory);
-    font-size:clamp(2.2rem,4.2vw,4.4rem);line-height:1;letter-spacing:.3em;
-    padding:clamp(20px,2.2vw,38px) clamp(28px,3.2vw,54px);
-    padding-right:calc(clamp(28px,3.2vw,54px) - .3em);
+    font-family:var(--serif);
+    font-weight:300;
+    color:var(--ivory);
+    font-size:1em;                 /* ★ .logomark 의 크기를 그대로 물려받습니다 */
+    letter-spacing:var(--lm-ls);
   }
-  .logomark .lm + .lm{border-top:1px solid rgba(233,228,214,.72)}
 
   .hero-name{
     margin-top:clamp(24px,2.8vw,42px);font-size:.74rem;letter-spacing:.52em;
@@ -77,7 +95,7 @@
   .scrolldown span{display:block;font-size:.68rem;letter-spacing:.44em;
     color:#8d9b8c;padding-left:.44em;transition:color .25s}      /* ★ 4.85:1 */
   .scrolldown:hover span{color:var(--ivory)}
-  .scrolldown i{display:block;width:1px;height:clamp(56px,7vh,92px);margin:16px auto 0;
+  .scrolldown i{display:block;width:1px;height:clamp(40px,5vh,70px);margin:12px auto 0;
     background:linear-gradient(to bottom,rgba(182,194,181,.8),rgba(182,194,181,0));
     animation:drop 2.6s ease-in-out infinite}
   @keyframes drop{
@@ -89,6 +107,7 @@
   .hero-hint{position:absolute;left:var(--pad);bottom:34px;z-index:11;
     font-size:.68rem;letter-spacing:.2em;color:#8d9b8c;pointer-events:none}  /* ★ */
 
+
   /* ---------- 공통 큰 제목 ---------- */
   .big{font-family:var(--serif);font-weight:400;letter-spacing:.1em;line-height:1.5;
     font-size:clamp(1.55rem,2.8vw,2.75rem)}
@@ -98,9 +117,18 @@
   /* ---------- 01 소개 3단 ---------- */
   .intro-img{width:100%;height:clamp(150px,11vw,210px);object-fit:cover;
     margin-bottom:26px;filter:saturate(.8) brightness(.95)}
+      /* ★ 모바일 : 인라인 style 로 박힌 3열을 세로 1열로 되돌립니다 */
+  @media(max-width:1100px){
+    #intro .col3{grid-template-columns:1fr !important;gap:30px}
+    #intro .col3 > *{padding:26px 0 0 !important;border-left:none !important;
+      border-top:1px solid var(--jade-line)}
+    #intro .col3 > *:first-child{padding-top:0 !important;border-top:none}
+    #intro .col3 + .col3{margin-top:30px !important}
+    .intro-img{height:clamp(170px,46vw,240px)}
+  }
 
   /* ---------- 02 茶書 카드 ---------- */
-  .arc-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .arc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 
   /* ---------- 03 브라켓 ---------- */
   .jr-wrap{display:grid;
@@ -161,15 +189,13 @@
     .inv{grid-template-columns:1fr;gap:32px;align-items:start}
   }
   @media(max-width:768px){
-    .hero{min-height:86vh}
-    .logomark .lm{font-size:2rem;letter-spacing:.24em;padding:18px 24px;
-      padding-right:calc(24px - .24em)}
+    .hero{min-height:calc(86vh - 50px)}
+    .logomark{--lm-size:1.9rem;--lm-ls:.24em}
     .arc-grid{grid-template-columns:1fr}
     .facts{grid-template-columns:1fr}
     .facts > div{padding:20px 0 0;border-left:none;border-top:1px solid var(--jade-line)}
     .facts > div:first-child{border-top:none;padding-top:22px}
     .inv-acts .btn{width:100%}
-    .hero-hint{display:none}
     .hero-hint{display:none}
   }
   @media (prefers-reduced-motion:reduce){
@@ -286,29 +312,14 @@
         </div>
       </a>
 
-      <a class="card" href="tea-story.html">
-        <div class="card-visual">
-          <span class="card-tag">ARCHIVE 04</span>
-          <svg width="88" height="88" viewBox="0 0 92 92" fill="none" aria-hidden="true"
-               stroke="#e9e4d6" stroke-width="1" opacity=".5">
-            <rect x="18" y="16" width="56" height="60"/><path d="M30 32h32M30 44h32M30 56h20"/>
-          </svg>
-        </div>
-        <div class="card-body">
-          <h3>차 이야기</h3>
-          <div class="card-en">TEA STORIES</div>
-          <p>집행부가 직접 쓰는, 차에 얽힌 짧은 글들입니다.
-             찻자리에서 나눈 이야기를 기록합니다.</p>
-          <span class="card-cta" id="cnt-story">이야기 보기</span>
-        </div>
-      </a>
+
     </div>
   </section>
 
   <!-- ===================== 03 / JOURNAL & SCHEDULE ===================== -->
   <section class="section bg-dark alt dotgrid">
     <div class="bracket">
-      <div class="sec-no">03 &nbsp;/&nbsp; JOURNAL &amp; SCHEDULE</div>
+    <div class="sec-no">03 &nbsp;/&nbsp; STORY &amp; SCHEDULE</div>
       <h2 class="serif" style="font-weight:300;color:var(--ivory);letter-spacing:.08em;
           line-height:1.65;font-size:clamp(1.35rem,2.4vw,2.3rem);
           margin-bottom:clamp(32px,4vw,58px);max-width:24em">
@@ -325,9 +336,9 @@
         <div class="jr-div"></div>
 
         <div>
-          <div class="jr-h"><b>최근 학술지 글</b><span>JOURNAL</span></div>
+          <div class="jr-h"><b>최근 이야기</b><span>STORY</span></div>
           <div id="journalPreview"><p class="jr-msg">불러오는 중…</p></div>
-          <a class="jr-more" href="journal.html">학술지 보기</a>
+          <a class="jr-more" href="journal.html">차마을 · 다바라기 보기</a>
         </div>
 
         <div class="jr-vert">茶禪一味</div>
@@ -433,6 +444,8 @@ const dOnly = v => v ? String(v).slice(0,10) : '';
       else { busy = false; done(); }
     })();
   }
+  
+
   function hit(clientX, clientY){
     if (busy) return;
     const b = cv.getBoundingClientRect();
@@ -508,16 +521,14 @@ const dOnly = v => v ? String(v).slice(0,10) : '';
     if (el) el.textContent = txt;
   };
   try{
-    const [tea, map, ware, story] = await Promise.all([
+    const [tea, map, ware] = await Promise.all([
       HW.sb.from('teas').select('id',       { count:'exact', head:true }),
       HW.sb.from('tea_map').select('id',    { count:'exact', head:true }),
-      HW.sb.from('tea_ware').select('id',   { count:'exact', head:true }),
-      HW.sb.from('tea_stories').select('id',{ count:'exact', head:true }).eq('status','published')
+      HW.sb.from('tea_ware').select('id',   { count:'exact', head:true })
     ]);
     set('cnt-tea',   `${tea.count   || 0}종 · 도감 보기`);
     set('cnt-map',   `${map.count   || 0}곳 · 지도 보기`);
     set('cnt-ware',  `${ware.count  || 0}점 · 사용법 보기`);
-    set('cnt-story', `${story.count || 0}편 · 이야기 보기`);
   }catch(e){ /* 실패 시 기본 문구 유지 */ }
 })();
 
@@ -553,7 +564,7 @@ const dOnly = v => v ? String(v).slice(0,10) : '';
   }
 })();
 
-/* ---------- 6. 최근 학술지 4건 (DB: journal_public) ----------
+/* ---------- 6. 최근 이야기 4건 (DB: journal_public) ----------
    ★ api.js 의 posts() 는 sort_order 를 1순위로 정렬하기 때문에
      "최근 글"이 최신순이 아닐 수 있습니다. (api.js 수정 전 임시 방어)
      여기서는 날짜 기준으로 다시 정렬한 뒤 4건만 보여줍니다. */
@@ -567,7 +578,7 @@ const dOnly = v => v ? String(v).slice(0,10) : '';
     ).slice(0, 4);
 
     if (!rows.length){
-      box.innerHTML = '<p class="jr-msg">아직 게재된 글이 없습니다.</p>';
+      box.innerHTML = '<p class="jr-msg">아직 공개된 이야기가 없습니다.</p>';
       return;
     }
     box.innerHTML = rows.map(p => {
@@ -580,7 +591,7 @@ const dOnly = v => v ? String(v).slice(0,10) : '';
                    data-id="${A(p.id)}">
         <div class="pd"><b>${dd}</b><span>${mm ? mm + '月' : ''}</span></div>
         <div>
-          <div class="pk">${E(p.series_name || '자유 투고')}</div>
+          <div class="pk">${E(p.series_name || '이야기')}</div>
           <div class="pt">${E(p.title)}</div>
           <div class="pm">${E(p.author || '익명')}</div>
         </div></button>`;
@@ -592,7 +603,7 @@ const dOnly = v => v ? String(v).slice(0,10) : '';
       location.href = 'journal-post.html?id=' + encodeURIComponent(b.dataset.id);
     });
   }catch(e){
-    box.innerHTML = '<p class="jr-msg">학술지를 불러오지 못했습니다.</p>';
+    box.innerHTML = '<p class="jr-msg">이야기를 불러오지 못했습니다.</p>';
   }
 })();
 </script>

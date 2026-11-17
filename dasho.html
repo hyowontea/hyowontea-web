@@ -26,8 +26,7 @@
     font-size:.9rem;letter-spacing:.42em;color:var(--fog-2);opacity:.55}
 
   /* ===== 茶書 카드 4열 ===== */
-  .arc-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .card-cnt{font-size:.66rem;letter-spacing:.2em;color:var(--fog-2);margin-top:10px}
+  .arc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 
   @media(max-width:1100px){
     .arc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -47,7 +46,7 @@
     <div class="phead-in">
       <div class="sec-no">ARCHIVE &nbsp;/&nbsp; 茶書</div>
       <h1>효원다회가 기록해 온<br>차와 다구의 모든 것</h1>
-      <p>찻잎 한 종류부터 다구 한 점까지, 동아리가 수집하고 남겨 온 기록을 네 갈래로 나누어 두었습니다.</p>
+      <p>찻잎 한 종류부터 다구 한 점까지, 동아리가 수집하고 남겨 온 기록을 세 갈래로 나누어 두었습니다.</p>
     </div>
     <div class="vert">茶書</div>
   </section>
@@ -57,8 +56,8 @@
     <div class="sec-no">01 &nbsp;/&nbsp; CONTENTS</div>
     <div class="head-split">
       <h2 class="serif" style="font-weight:400;color:var(--ink);letter-spacing:.1em;
-          line-height:1.5;font-size:clamp(1.5rem,2.7vw,2.6rem)">네 갈래의 기록</h2>
-      <p>보고 싶은 쪽을 고르시면 됩니다. 각 항목의 숫자는 현재 등록된 개수입니다.</p>
+          line-height:1.5;font-size:clamp(1.5rem,2.7vw,2.6rem)">세 갈래의 기록</h2>
+      <p>보고 싶은 쪽을 고르시면 됩니다.</p>
     </div>
 
     <div class="card-grid arc-grid">
@@ -76,7 +75,6 @@
           <div class="card-en">TEA DICTIONARY</div>
           <p>소장한 찻잎의 산지와 적정 우림 온도, 개봉 여부를 확인합니다.
              다 마신 차도 기록으로 남겨 보관합니다.</p>
-          <div class="card-cnt" id="cnt-tea">—</div>
           <span class="card-cta">도감 보기</span>
         </div>
       </a>
@@ -95,7 +93,6 @@
           <div class="card-en">TEA MAP</div>
           <p>하동·보성부터 중국 우이산까지, 세계의 다산지(茶産地)와
              그곳 차의 성격을 지역별로 살펴봅니다.</p>
-          <div class="card-cnt" id="cnt-map">—</div>
           <span class="card-cta">지도 보기</span>
         </div>
       </a>
@@ -114,28 +111,11 @@
           <div class="card-en">TEA UTENSILS</div>
           <p>개완·자사호·숙우의 이름과 생김새를 소개하고,
              물 데우기부터 찻물 따르기까지 단계별로 안내합니다.</p>
-          <div class="card-cnt" id="cnt-ware">—</div>
           <span class="card-cta">사용법 보기</span>
         </div>
       </a>
 
-      <a class="card" href="tea-story.html">
-        <div class="card-visual">
-          <span class="card-tag">ARCHIVE 04</span>
-          <svg width="88" height="88" viewBox="0 0 92 92" fill="none"
-               stroke="#e9e4d6" stroke-width="1" opacity=".5">
-            <rect x="18" y="16" width="56" height="60"/><path d="M30 32h32M30 44h32M30 56h20"/>
-          </svg>
-        </div>
-        <div class="card-body">
-          <h3>차 이야기</h3>
-          <div class="card-en">TEA STORIES</div>
-          <p>집행부가 직접 쓰는, 차에 얽힌 짧은 글들입니다.
-             찻자리에서 나눈 이야기를 기록합니다.</p>
-          <div class="card-cnt" id="cnt-story">—</div>
-          <span class="card-cta">이야기 보기</span>
-        </div>
-      </a>
+      <!-- 차 이야기는 '이야기 → 차마을' 로 이사했습니다 -->
     </div>
   </section>
 
@@ -162,25 +142,6 @@
 <script src="assets/js/config.js"></script>
 <script src="assets/js/api.js"></script>
 <script src="assets/js/ui.js"></script>
-<script src="assets/js/glyph.js"></script>
 <script src="assets/js/layout.js"></script>
-<script>
-/* 등록 개수 (DB 연동 유지) */
-(async () => {
-  const set = (id, txt) => { const el = HW.qs('#'+id); if (el) el.textContent = txt; };
-  try{
-    const [tea, map, ware, story] = await Promise.all([
-      HW.sb.from('teas').select('id',       {count:'exact',head:true}),
-      HW.sb.from('tea_map').select('id',    {count:'exact',head:true}),
-      HW.sb.from('tea_ware').select('id',   {count:'exact',head:true}),
-      HW.sb.from('tea_stories').select('id',{count:'exact',head:true}).eq('status','published')
-    ]);
-    set('cnt-tea',   `${tea.count   || 0}종 등록`);
-    set('cnt-map',   `${map.count   || 0}곳 등록`);
-    set('cnt-ware',  `${ware.count  || 0}점 등록`);
-    set('cnt-story', `${story.count || 0}편 공개`);
-  }catch(e){ HW.qsa('.card-cnt').forEach(c => c.style.display = 'none'); }
-})();
-</script>
 </body>
 </html>

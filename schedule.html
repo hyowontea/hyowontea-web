@@ -159,11 +159,20 @@
     .sch-wrap{padding:16px 0 50px}
     .paper{padding:16px 10px;border-left:none;border-right:none}
     .sch-head{padding:0 20px}
-    .day{aspect-ratio:1/1.12;padding:4px 5px}
-    .num{font-size:clamp(.76rem,2.8vw,.88rem)}
-    .bdg{font-size:clamp(.62rem,2.3vw,.72rem);padding-left:4px;border-left-width:2px}
+    .day{aspect-ratio:auto;min-height:clamp(62px,17.5vw,90px);padding:3px}
+    .num{font-size:clamp(.72rem,2.6vw,.86rem);margin-bottom:3px}
+    /* ★ 4글자 이상 보이도록 줄이고, 5글자째부터 다음 줄로 넘깁니다(최대 2줄) */
+    .bdg{font-size:clamp(.54rem,2.35vw,.7rem);letter-spacing:-.01em;
+      padding-left:3px;border-left-width:2px;line-height:1.25;margin-bottom:2px;
+      white-space:normal;word-break:break-all;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .m-num{font-size:2.2rem}
     .upcoming{padding:0 20px}
+  }
+    /* 아주 좁은 화면(360px 이하)에서도 4글자는 지킵니다 */
+  @media(max-width:400px){
+    .day{padding:2px;min-height:60px}
+    .bdg{font-size:.54rem;padding-left:2px;border-left-width:2px}
   }
   @media (prefers-reduced-motion:reduce){
     .day,.up-item{transition:none}

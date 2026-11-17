@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이야기 — 효원다회(曉原茶會)</title>
+<meta name="description" content="효원다회가 펴내는 학술지 차마을과 다바라기를 한자리에 모았습니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     이야기 허브  v3
+     v3 변경점
+     ★ 02 「두 이름의 내력」 섹션 제거
+       - 두 갈래 카드 바로 아래에 투고 바로가기가 옵니다
+       - 쓰이지 않게 된 .jr-ph 스타일과 #sbox 렌더링 코드도 함께 삭제
+       - 남은 섹션 번호 03 → 02
+     ========================================================= */
+
+  /* ---------- 공통 페이지 머리 ---------- */
+  .phead{background:var(--jade-d);padding:clamp(70px,8vw,130px) var(--pad) clamp(46px,5vw,80px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);
+    background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:20px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.8rem,3.4vw,3.2rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:#b6c2b5;font-size:.93rem;line-height:2;margin-top:16px;max-width:var(--read)}
+  .phead .vert{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:2;
+    writing-mode:vertical-rl;text-orientation:upright;font-family:var(--serif);
+    font-size:.9rem;letter-spacing:.42em;color:#8d9b8c;opacity:.7}
+
+  /* ---------- 01 두 갈래 ---------- */
+  .two-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card-cnt{font-size:.66rem;letter-spacing:.2em;color:var(--gold);margin-top:10px}
+
+  .msg{color:var(--sumi);font-size:.88rem;line-height:1.9}
+  .msg-d{color:#8d9b8c;font-size:.88rem;line-height:1.9}
+
+  /* ---------- 02 바로가기 ---------- */
+  .go-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:clamp(14px,1.6vw,26px);margin-top:clamp(26px,3vw,44px)}
+  .go{display:flex;flex-direction:column;justify-content:space-between;
+    min-height:clamp(150px,14vw,196px);padding:clamp(22px,2.4vw,34px);
+    border:1px solid rgba(233,228,214,.3);background:transparent;
+    text-decoration:none;transition:background .28s,border-color .28s}
+  .go:hover{background:rgba(233,228,214,.06);border-color:rgba(233,228,214,.6)}
+  .go .gno{font-size:.66rem;letter-spacing:.24em;color:#8d9b8c}
+  .go b{display:block;font-family:var(--serif);font-weight:500;
+    font-size:clamp(1.05rem,1.5vw,1.35rem);color:var(--ivory);
+    letter-spacing:.1em;line-height:1.5;margin-top:14px}
+  .go p{font-size:.86rem;color:#b6c2b5;line-height:1.95;margin-top:10px}
+  .go .garrow{margin-top:20px;font-size:.76rem;letter-spacing:.18em;color:var(--gold)}
+
+  @media(max-width:1100px){
+    .two-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .phead .vert{display:none}
+  }
+  @media(max-width:768px){
+    .two-grid{grid-template-columns:1fr}
+    .go-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body data-page="journal">
+
+<div id="hw-header"></div>
+
+<main>
+
+  <!-- ===================== 머리 ===================== -->
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">STORY &nbsp;/&nbsp; 茶談</div>
+      <h1>찻잔을 사이에 두고<br>오고 간 이야기들</h1>
+      <p>효원다회가 펴내는 두 학술지, <b style="color:var(--gold);font-weight:400">차마을</b>과
+         <b style="color:var(--gold);font-weight:400">다바라기</b>를 한자리에 모았습니다.</p>
+    </div>
+    <div class="vert">茶談</div>
+  </section>
+
+  <!-- ===================== 01 두 갈래 ===================== -->
+  <section class="section bg-light">
+    <div class="sec-no">01 &nbsp;/&nbsp; CONTENTS</div>
+    <div class="head-split">
+      <h2 class="serif" style="font-weight:400;color:var(--ink);letter-spacing:.1em;
+          line-height:1.5;font-size:clamp(1.5rem,2.7vw,2.6rem)">두 갈래의 이야기</h2>
+      <p>보고 싶은 쪽을 고르시면 됩니다. 각 항목의 숫자는 현재 실려 있는 글의 편수입니다.</p>
+    </div>
+
+    <div class="card-grid two-grid" id="hub">
+      <p class="msg" style="grid-column:1/-1">불러오는 중…</p>
+    </div>
+  </section>
+
+  <!-- ===================== 02 바로가기 ===================== -->
+  <section class="section bg-dark dotgrid">
+    <div class="bracket">
+      <div class="sec-no">02 &nbsp;/&nbsp; SUBMISSION</div>
+      <h2 class="serif" style="font-weight:300;color:var(--ivory);letter-spacing:.08em;
+          line-height:1.7;font-size:clamp(1.25rem,2.2vw,2.1rem);max-width:24em">
+        “한 잔을 마신 이야기는 그 자리에서 식지만,<br>
+         적어 둔 이야기는 다음 사람의 잔에 다시 담깁니다.”
+      </h2>
+      <p class="msg-d" style="margin-top:24px;max-width:var(--read)">
+        회원이 아니어도 글을 보내실 수 있습니다. 보내주신 글은 집행부 검토를 거쳐 학술지에 실립니다.
+      </p>
+
+      <div class="go-grid">
+        <a class="go" href="submit.html">
+          <div>
+            <div class="gno">SUBMIT &nbsp;·&nbsp; 投稿</div>
+            <b>글 투고하기</b>
+            <p>차에 얽힌 이야기를 보내주세요. 로그인은 필요하지 않습니다.</p>
+          </div>
+          <span class="garrow">투고하러 가기 →</span>
+        </a>
+
+        <a class="go" href="my-post.html">
+          <div>
+            <div class="gno">MY POST &nbsp;·&nbsp; 確認</div>
+            <b>내 투고 확인 · 수정</b>
+            <p>심사 상태와 집행부 의견을 확인하고, 대기 중인 글은 고칠 수 있습니다.</p>
+          </div>
+          <span class="garrow">확인하러 가기 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+
+/* 학술지 한 종류로 가는 주소 — slug 가 비어 있으면 내부 번호를 씁니다 */
+const sLink = s => 'journal.html?series=' + encodeURIComponent(s.slug || s.id);
+
+const BOOK = `<svg width="88" height="88" viewBox="0 0 92 92" fill="none" aria-hidden="true"
+    stroke="#e9e4d6" stroke-width="1" opacity=".5">
+    <path d="M14 20h28a8 8 0 0 1 8 8v44a8 8 0 0 0-8-8H14V20Z"/>
+    <path d="M78 20H50a8 8 0 0 0-8 8v44a8 8 0 0 1 8-8h28V20Z"/>
+    <path d="M46 28v44"/></svg>`;
+
+(async () => {
+  const hub = HW.qs('#hub');
+
+  let rows = [];
+  try{
+    rows = await HW.api.series();
+  }catch(e){
+    console.error('[story]', e);
+    hub.innerHTML = '<p class="msg" style="grid-column:1/-1">학술지 정보를 불러오지 못했습니다.</p>';
+    return;
+  }
+
+  if(!rows.length){
+    hub.innerHTML = '<p class="msg" style="grid-column:1/-1">집행부 → <b>이야기 종류</b> 에서 ' +
+                    '차마을 · 다바라기를 등록하면 이 자리에 자동으로 나타납니다.</p>';
+    return;
+  }
+
+  /* ---------- ① 두 갈래 카드 ---------- */
+  hub.innerHTML = rows.map((s,i) => `
+    <a class="card" href="${A(sLink(s))}">
+      <div class="card-visual">
+        ${s.cover_url ? HW.media(s.cover_url, '', '', s.name) : ''}
+        <span class="card-tag">JOURNAL ${String(i+1).padStart(2,'0')}</span>
+        ${s.cover_url ? '' : BOOK}
+      </div>
+      <div class="card-body">
+        <h3>${E(s.name)}</h3>
+        <div class="card-en">${E(s.name_hanja || 'JOURNAL')}</div>
+        <p>${E(s.tagline || s.description || '효원다회가 펴내는 학술지입니다.')}</p>
+        <div class="card-cnt" data-sid="${A(s.id)}">—</div>
+        <span class="card-cta">글 보기</span>
+      </div>
+    </a>`).join('');
+
+  /* ---------- ② 학술지별 편수 ---------- */
+  try{
+    const r = await HW.sb.from('journal_public').select('series_id');
+    const n = {};
+    (r.data || []).forEach(x => {
+      const k = x.series_id ? String(x.series_id) : '_free';
+      n[k] = (n[k] || 0) + 1;
+    });
+    HW.qsa('[data-sid]').forEach(el => {
+      el.textContent = `${n[el.dataset.sid] || 0}편 게재`;
+    });
+  }catch(e){
+    HW.qsa('[data-sid]').forEach(el => el.style.display = 'none');
+  }
+})();
+</script>
+</body>
+</html>

@@ -24,10 +24,10 @@
     { key:'dasho', label:'茶書', sub:'다서', href:'dasho.html', children:[
         { label:'차 도감',     href:'tea.html' },
         { label:'차 지도',     href:'tea-map.html' },
-        { label:'다구 사용법', href:'tea-ware.html' },
-        { label:'차 이야기',   href:'tea-story.html' } ] },
-    { key:'journal', label:'학술지', href:'journal.html', children:[
-        { label:'학술지 보기',  href:'journal.html' },
+        { label:'다구 사용법', href:'tea-ware.html' } ] },
+    { key:'journal', label:'이야기', sub:'茶談', href:'tea-story.html', children:[
+        { label:'차마을',       href:'journal.html?series=chamaeul' },
+        { label:'다바라기',     href:'journal.html?series=dabaragi' },
         { label:'글 투고하기',  href:'submit.html' },
         { label:'내 투고 확인', href:'my-post.html' } ] },
     { key:'admin', label:'집행부', href:'admin.html', cta:true }
@@ -38,7 +38,7 @@
       const act  = m.key === cur ? ' active' : '';
       const sub  = m.sub ? `<span class="sub-hangul">${esc(m.sub)}</span>` : '';
       const drop = m.children
-        ? `<ul class="dropdown-menu">${m.children.map(c =>
+        ? `<ul class="dropdown-menu${m.key === 'journal' ? ' hw-story' : ''}">${m.children.map(c =>
             `<li><a href="${esc(c.href)}">${esc(c.label)}</a></li>`).join('')}</ul>`
         : '';
       return `<li${m.cta ? ' class="nav-cta"' : ''}>`
@@ -51,7 +51,7 @@
     return MENU.map(m => {
       const sub  = m.sub ? `<span class="sub-hangul">${esc(m.sub)}</span>` : '';
       const kids = m.children
-        ? `<ul class="drawer-sub">${m.children.map(c =>
+        ? `<ul class="drawer-sub${m.key === 'journal' ? ' hw-story' : ''}">${m.children.map(c =>
             `<li><a href="${esc(c.href)}">${esc(c.label)}</a></li>`).join('')}</ul>`
         : '';
       return `<li><a href="${esc(m.href)}">${esc(m.label)}${sub}</a>${kids}</li>`;
@@ -61,7 +61,8 @@
   function brandHtml(){
     return `
       <a href="index.html" class="brand-logo">
-        <span class="brand-seal" aria-hidden="true">茶</span>
+        <img src="assets/img/logo-ivory.png" class="brand-mark" alt="" aria-hidden="true"
+             onerror="this.remove()">
         <span class="brand-text">
           <b>曉原茶會</b>
           <i>HYOWON TEA SOCIETY</i>
@@ -150,14 +151,34 @@
         border-top:2px solid var(--jade,#1e3028);
         box-shadow:0 18px 44px rgba(22,37,30,.22);
         display:flex;flex-direction:column;max-height:84vh;
-        opacity:0;transform:translateY(10px);transition:opacity .28s,transform .28s}
-      .hw-pop.in{opacity:1;transform:translateY(0)}
-      .hw-pop-center{left:50%;top:50%;transform:translate(-50%,calc(-50% + 10px))}
-      .hw-pop-center.in{transform:translate(-50%,-50%)}
-      .hw-pop-left{left:clamp(16px,4vw,48px);bottom:clamp(16px,4vh,48px)}
-      .hw-pop-right{right:clamp(16px,4vw,48px);bottom:clamp(16px,4vh,48px)}
+        opacity:0;--hw-dx:0px;--hw-dy:0px;
+        transform:translate(var(--hw-dx),calc(var(--hw-dy) + 10px));
+        transition:opacity .28s,transform .28s,box-shadow .28s}
+      .hw-pop.in{opacity:1;transform:translate(var(--hw-dx),var(--hw-dy))}
+
+      /* ★ 뒤에 깔린 공지 — 제목을 흐리게 해 앞뒤를 구분합니다 */
+      .hw-pop.behind{cursor:pointer;box-shadow:0 12px 30px rgba(22,37,30,.16)}
+      .hw-pop.behind .hw-pop-hd b{color:var(--sumi,#5a6158)}
+      .hw-pop.behind:hover{box-shadow:0 16px 38px rgba(22,37,30,.24)}
+      .hw-pop-n{flex:none;font-size:.68rem;letter-spacing:.12em;
+        color:var(--sumi,#5a6158);white-space:nowrap}
+      /* ★ 세 위치 모두 예전 '오른쪽' 과 같은 높이(화면 아래)에 둡니다 */
+      .hw-pop-center{left:50%;right:auto;top:auto;bottom:clamp(16px,4vh,48px);
+        transform:translate(calc(-50% + var(--hw-dx)),calc(var(--hw-dy) + 10px))}
+      .hw-pop-center.in{transform:translate(calc(-50% + var(--hw-dx)),var(--hw-dy))}
+      .hw-pop-left{left:clamp(16px,4vw,48px);right:auto;top:auto;
+        bottom:clamp(16px,4vh,48px)}
+      .hw-pop-right{right:clamp(16px,4vw,48px);left:auto;top:auto;
+        bottom:clamp(16px,4vh,48px)}
       .hw-pop-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;
         padding:14px 16px;border-bottom:1px solid var(--line,#ddd7c7)}
+              /* ★ 제목줄을 끌어 옮기기 (PC 전용) */
+      @media(min-width:769px){
+        .hw-pop-hd{cursor:grab;user-select:none;touch-action:none}
+        .hw-pop.dragging{transition:none !important;
+          box-shadow:0 26px 64px rgba(22,37,30,.36)}
+        .hw-pop.dragging .hw-pop-hd{cursor:grabbing}
+      }
       .hw-pop-hd b{font-family:var(--serif,serif);font-size:.98rem;font-weight:500;
         color:var(--ink,#1f2622);letter-spacing:.06em;line-height:1.5}
       .hw-pop-x{flex:none;width:30px;height:30px;background:transparent;cursor:pointer;
@@ -183,10 +204,11 @@
       .hw-pop-ft button+button{border-left:1px solid var(--line,#ddd7c7)}
       .hw-pop-ft button:hover{background:var(--cream-2,#eae5d7);color:var(--ink,#1f2622)}
       @media(max-width:768px){
-        .hw-pop,.hw-pop-left,.hw-pop-right{left:16px;right:16px;width:auto;
-          bottom:16px;top:auto;transform:translateY(10px)}
-        .hw-pop.in,.hw-pop-left.in,.hw-pop-right.in{transform:translateY(0)}
-        .hw-pop-center{top:auto}
+        .hw-pop,.hw-pop-left,.hw-pop-right,.hw-pop-center{
+          left:16px;right:16px;width:auto;top:auto;bottom:16px;
+          transform:translate(0,calc(var(--hw-dy) + 10px))}
+        .hw-pop.in,.hw-pop-left.in,.hw-pop-right.in,.hw-pop-center.in{
+          transform:translate(0,var(--hw-dy))}
       }
       @media (prefers-reduced-motion:reduce){ .hw-pop{transition:none} }`;
     document.head.appendChild(st);
@@ -222,6 +244,106 @@
       </div>
     </div>`;
   }
+  /* =========================================================
+     ★ 팝업 끌어 옮기기 (PC 전용)
+       #hw-pop-layer 가 화면 전체를 덮는 fixed 라서
+       안쪽 left/top 값이 곧 화면 좌표가 됩니다.
+     ========================================================= */
+
+  const isMobile = () => window.matchMedia('(max-width:768px)').matches;
+
+  /* 화면 밖으로 나가지 않게 가두면서 자리를 고정합니다 */
+  function pinPopup(el, left, top){
+    const maxL = Math.max(0, window.innerWidth  - el.offsetWidth);
+    const maxT = Math.max(0, window.innerHeight - el.offsetHeight);
+    el.style.left      = Math.min(Math.max(0, left), maxL) + 'px';
+    el.style.top       = Math.min(Math.max(0, top ), maxT) + 'px';
+    el.style.right     = 'auto';
+    el.style.bottom    = 'auto';
+    el.style.margin    = '0';
+    el.style.transform = 'none';
+  }
+
+  
+  function enableDrag(layer){
+    if (isMobile()) return;
+    let cur = null, dx = 0, dy = 0;
+
+    layer.addEventListener('pointerdown', e => {
+      if (e.button) return;                               /* 왼쪽 단추만 */
+      const hd = e.target.closest('.hw-pop-hd');
+      if (!hd || e.target.closest('button,a')) return;    /* 닫기 단추는 제외 */
+      const box = hd.closest('.hw-pop'); if (!box) return;
+
+      const r = box.getBoundingClientRect();
+      dx = e.clientX - r.left;
+      dy = e.clientY - r.top;
+      cur = box;
+      box.classList.add('dragging');
+      pinPopup(box, r.left, r.top);                       /* 현재 자리를 좌표로 고정 */
+      try{ hd.setPointerCapture(e.pointerId); }catch(x){}
+      e.preventDefault();
+    });
+
+    layer.addEventListener('pointermove', e => {
+      if (cur) pinPopup(cur, e.clientX - dx, e.clientY - dy);
+    });
+
+    function end(){
+      if (!cur) return;
+      cur.classList.remove('dragging');
+      cur = null;                     /* 자리를 따로 기억해 두지 않습니다 */
+    }
+    layer.addEventListener('pointerup',     end);
+    layer.addEventListener('pointercancel', end);
+
+
+
+    /* 창 크기가 줄어도 팝업이 화면 밖에 남지 않게 다시 가둡니다 */
+    window.addEventListener('resize', () => {
+      layer.querySelectorAll('.hw-pop').forEach(el => {
+        if (!el.style.left) return;
+        const r = el.getBoundingClientRect();
+        pinPopup(el, r.left, r.top);
+      });
+    });
+  }
+  /* =========================================================
+     ★ 겹친 팝업 계단식 쌓기
+       같은 위치에 여러 개면 뒤쪽을 왼쪽 위로 조금씩 물립니다.
+     ========================================================= */
+  const STACK_STEP = 16;   /* 한 장당 밀어내는 거리(px) — 여기만 고치면 됩니다 */
+  const STACK_MAX  = 4;    /* 이 장수까지만 밀고, 그 뒤는 같은 자리에 둡니다 */
+
+  const posOf = el => el.classList.contains('hw-pop-left')  ? 'left'
+                    : el.classList.contains('hw-pop-right') ? 'right' : 'center';
+
+  function stackPopups(layer){
+    const all    = Array.prototype.slice.call(layer.querySelectorAll('.hw-pop'));
+    const narrow = window.matchMedia('(max-width:768px)').matches;
+
+    /* 위치별 전체 장수를 먼저 셉니다 */
+    const total = {};
+    all.forEach(el => { const p = posOf(el); total[p] = (total[p] || 0) + 1; });
+
+    const seen = {};
+    all.forEach(el => {
+      const p = posOf(el);
+      const i = (seen[p] = (seen[p] || 0) + 1);          /* 1부터 */
+
+      const num = el.querySelector('.hw-pop-n');
+      if (num) num.textContent = total[p] > 1 ? `${i} / ${total[p]}` : '';
+
+      if (el.style.transform === 'none') return;         /* 끌어서 옮긴 것은 건드리지 않습니다 */
+
+      const n = Math.min(i - 1, STACK_MAX);
+      const d = n * STACK_STEP;
+      el.style.setProperty('--hw-dx', narrow ? '0px' : (-d) + 'px');
+      el.style.setProperty('--hw-dy', narrow ? (-n * 10) + 'px' : (-d) + 'px');
+      el.style.zIndex = String(100 - n);                 /* 앞장이 위로 */
+      el.classList.toggle('behind', n > 0);
+    });
+  }
 
   async function showPopups(){
     if (!global.HW.sb) return;
@@ -253,17 +375,27 @@
     layer.innerHTML = list.map(popHtml).join('');
     document.body.appendChild(layer);
 
-    /* 같은 위치에 여러 개가 겹치면 조금씩 밀어 줍니다 */
-    const seen = {};
-    layer.querySelectorAll('.hw-pop').forEach(el => {
-      const pos = el.classList.contains('hw-pop-left') ? 'left'
-                : el.classList.contains('hw-pop-right') ? 'right' : 'center';
-      const n = (seen[pos] = (seen[pos] || 0) + 1) - 1;
-      if (n && window.innerWidth > 768) el.style.marginBottom = (n * 18) + 'px';
-      requestAnimationFrame(() => el.classList.add('in'));
+    /* ★ 겹친 팝업을 계단식으로 쌓습니다 */
+    stackPopups(layer);
+    layer.querySelectorAll('.hw-pop').forEach(el =>
+      requestAnimationFrame(() => el.classList.add('in')));
+
+    /* 창 크기가 바뀌면(가로↔세로 전환 포함) 다시 정렬합니다 */
+    window.addEventListener('resize', () => {
+      if (document.getElementById('hw-pop-layer')) stackPopups(layer);
     });
+    /* ★ 끌기 켜기 (PC 전용) — 뜰 때마다 기본 자리에서 시작합니다 */
+    enableDrag(layer);
 
     layer.addEventListener('click', e => {
+            /* ★ 뒤에 깔린 공지를 누르면 맨 앞으로 끌어올립니다 */
+      const back = e.target.closest('.hw-pop.behind');
+      if (back && !e.target.closest('[data-act],a')){
+        layer.insertBefore(back, layer.firstChild);
+        stackPopups(layer);
+        return;
+      }
+
       const b = e.target.closest('[data-act]'); if (!b) return;
       const box = b.closest('.hw-pop'); if (!box) return;
       if (b.dataset.act === 'today'){
@@ -284,12 +416,36 @@
       document.removeEventListener('keydown', onEsc);
     });
   }
+  /* =========================================================
+     ★ 이야기 메뉴에 (차마을 · 다바라기 …) 를 끼워 넣습니다
+       집행부 →이야기 종류 에 등록한 순서 그대로 들어갑니다.
+     ========================================================= */
+  async function fillSeriesMenu(){
+    if (!global.HW.api || !global.HW.api.series) return;
+
+    let rows = [];
+    try{ rows = await global.HW.api.series(); }catch(e){ return; }
+    if (!rows.length) return;
+
+    const items = rows.map(s =>
+      `<li><a href="journal.html?series=${encodeURIComponent(s.slug || s.id)}"
+        >${esc(s.name)}</a></li>`).join('');
+
+    document.querySelectorAll('.hw-story').forEach(ul => {
+      const a  = ul.querySelector('a[href="tea-story.html"]');
+      const li = a ? a.closest('li') : null;
+      li ? li.insertAdjacentHTML('afterend', items)
+         : ul.insertAdjacentHTML('beforeend', items);
+    });
+  }
 
   async function boot(){
     render();
     await global.HW.initValues();
     fixMail();
-    showPopups();                 /* 실패해도 화면에 영향을 주지 않습니다 */
+    /* ★ 공지 팝업은 첫 화면(index)에서만 띄웁니다.
+       다서·이야기·소개 등 다른 페이지에서는 뜨지 않습니다. */
+    if ((document.body.dataset.page || '') === 'index') showPopups();
   }
   if (document.readyState === 'loading')
        document.addEventListener('DOMContentLoaded', boot);

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>동아리 소개 — 효원다회(曉原茶會)</title>
+<meta name="description" content="부산대학교 전통 차 문화 동아리 효원다회의 소개, 연혁, 회칙 안내입니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+  /* =========================================================
+     동아리 소개  v2
+     v2 변경점
+     ① 05 INVITATION 을 .bg-dark 로 전환 (토큰 정상화)
+     ② 보조 글자 명암비 보정 (--fog-2 → --sumi / #8d9b8c)
+     ③ common.css 가 회칙 아코디언을 박스형으로 덮어쓰는 것에 맞춰 정리
+     ④ 소개 3단 이미지 클래스화
+     ========================================================= */
+
+  /* ---------- 공통 페이지 머리 ---------- */
+  .phead{background:var(--jade-d);padding:clamp(70px,8vw,130px) var(--pad) clamp(46px,5vw,80px);
+    position:relative;overflow:hidden}
+  .phead::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(233,228,214,.055) 1px,transparent 1px);
+    background-size:28px 28px}
+  .phead-in{position:relative;z-index:2}
+  .phead .sec-no{margin-bottom:20px}
+  .phead h1{font-family:var(--serif);font-weight:400;color:var(--ivory);
+    font-size:clamp(1.8rem,3.4vw,3.2rem);letter-spacing:.14em;line-height:1.45}
+  .phead p{color:#b6c2b5;font-size:.93rem;line-height:2;margin-top:16px;max-width:var(--read)}
+  .phead .vert{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);z-index:2;
+    writing-mode:vertical-rl;text-orientation:upright;font-family:var(--serif);
+    font-size:.9rem;letter-spacing:.42em;color:#8d9b8c;opacity:.7}
+
+  /* ---------- 공통 큰 제목 ---------- */
+  .big{font-family:var(--serif);font-weight:400;letter-spacing:.1em;line-height:1.5;
+    font-size:clamp(1.5rem,2.7vw,2.6rem)}
+  .big.on-dark{color:var(--ivory)}
+  .big.on-light{color:var(--ink)}
+
+  .msg-d{color:#8d9b8c;font-size:.88rem;line-height:1.9}   /* 어두운 면 안내문 */
+  .msg-l{color:var(--sumi);font-size:.88rem;line-height:1.9} /* 밝은 면 안내문 */
+
+  /* ---------- 01 소개 3단 ---------- */
+  .intro-img{width:100%;height:clamp(150px,11vw,210px);object-fit:cover;
+    margin-bottom:24px;filter:saturate(.8) brightness(.95)}
+      /* ★ 모바일 : 인라인 style 로 박힌 3열을 세로 1열로 되돌립니다 */
+  @media(max-width:1100px){
+    #intro .col3{grid-template-columns:1fr !important;gap:30px}
+    #intro .col3 > *{padding:26px 0 0 !important;border-left:none !important;
+      border-top:1px solid var(--jade-line)}
+    #intro .col3 > *:first-child{padding-top:0 !important;border-top:none}
+    #intro .col3 + .col3{margin-top:30px !important}
+    .intro-img{height:clamp(170px,46vw,240px)}
+  }
+
+  /* ---------- 02 연혁 ---------- */
+  .tl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+    border-top:1px solid var(--line)}
+  .tl > div{padding:30px clamp(16px,2vw,34px) 34px;border-left:1px solid var(--line)}
+  .tl > div:first-child{padding-left:0;border-left:none}
+  .tl .yr{font-family:var(--serif);font-size:clamp(1.15rem,1.7vw,1.5rem);font-weight:500;
+    color:var(--jade);letter-spacing:.08em;line-height:1.2;margin-bottom:12px;
+    display:flex;align-items:baseline;gap:10px}
+  .tl .ct{font-size:.9rem;color:var(--sumi);line-height:1.85}
+  .tl .major .yr{color:var(--clay)}
+  .tl .major .yr::before{content:'';width:18px;height:1px;background:var(--clay);
+    display:inline-block;margin-right:2px;transform:translateY(-5px)}
+
+  /* ---------- 03 회칙 아코디언 ----------
+     ★ common.css 가 .ch / .ch-head 를 !important 로 박스형으로
+       덮어쓰기 때문에, 여기서는 간격과 본문만 손봅니다. */
+  .ch{margin-bottom:10px}
+  .ch-head{width:100%;text-align:left;background:none;border:none;cursor:pointer;
+    padding:20px 0;font-family:var(--serif);font-size:1.02rem;font-weight:500;
+    color:var(--ink);letter-spacing:.08em;display:flex;justify-content:space-between;
+    align-items:center;gap:14px;transition:color .25s}
+  .ch-head:hover{color:var(--jade)}
+  .ch-head:focus-visible{outline:2px solid var(--jade);outline-offset:-2px}
+  .ch-head i{font-style:normal;font-size:.9rem;color:var(--sumi);flex:none}
+  .ch-body{display:none;padding:0 clamp(16px,2vw,26px) 18px}
+  .ch.open .ch-body{display:block}
+  .art{padding:14px 0;border-top:1px solid var(--line)}
+  .art:first-child{border-top:none}
+  .art b{display:block;font-size:.84rem;letter-spacing:.14em;color:var(--jade);
+    font-weight:500;margin-bottom:7px}
+  .art p{font-size:.92rem;color:var(--sumi);line-height:1.95;white-space:pre-line}
+
+  
+
+    /* ---------- 04 가입 (축소판) ---------- */
+  .section.inv-sec{padding:clamp(44px,5vw,80px) var(--pad)}
+  .inv-sec .sec-no{margin-bottom:16px}
+  .inv-sec .big{font-size:clamp(1.3rem,2.1vw,2rem)}
+
+  .inv{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);
+    gap:clamp(22px,3.4vw,64px);align-items:end}
+  .inv p.lead{color:#b6c2b5;font-size:.88rem;line-height:1.9;margin-top:14px;max-width:var(--read)}
+  .inv-acts{display:flex;flex-direction:column;gap:8px;padding-bottom:4px}
+  .inv-acts .btn{padding:12px 24px;font-size:.78rem}
+  .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    border-top:1px solid var(--jade-line);margin-top:clamp(22px,2.6vw,40px)}
+  .facts > div{padding:18px clamp(12px,1.6vw,26px) 0;border-left:1px solid var(--jade-line)}
+  .facts > div:first-child{padding-left:0;border-left:none}
+  .facts dt{font-size:.66rem;letter-spacing:.26em;color:#8d9b8c;margin-bottom:8px}
+  .facts dd{font-family:var(--serif);font-size:clamp(.9rem,1.05vw,1.08rem);
+    color:var(--ivory);font-weight:400;letter-spacing:.06em;line-height:1.5}
+
+  @media(max-width:1100px){
+    .tl{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .tl > div:nth-child(odd){padding-left:0;border-left:none}
+    .phead .vert{display:none}
+    .inv{grid-template-columns:1fr;gap:32px;align-items:start}
+  }
+  @media(max-width:768px){
+    .tl{grid-template-columns:1fr}
+    .tl > div{padding:24px 0;border-left:none;border-bottom:1px solid var(--line)}
+    .facts{grid-template-columns:1fr}
+    .facts > div{padding:20px 0 0;border-left:none;border-top:1px solid var(--jade-line)}
+    .facts > div:first-child{border-top:none;padding-top:22px}
+    .inv-acts .btn{width:100%}
+  }
+</style>
+</head>
+<body data-page="about">
+
+<div id="hw-header"></div>
+
+<main>
+
+  <!-- ===================== 머리 ===================== -->
+  <section class="phead">
+    <div class="phead-in">
+      <div class="sec-no">ABOUT &nbsp;/&nbsp; 曉原茶會</div>
+      <h1>차를 사이에 두고<br>사람을 만나는 자리</h1>
+      <p>효원다회는 부산대학교 동아리연합회 학술이념분과 소속의 전통 차 문화 동아리입니다.</p>
+    </div>
+    <div class="vert">曉原茶會</div>
+  </section>
+
+  <!-- ===================== 01 소개글 ===================== -->
+  <section class="section bg-dark" id="story">
+    <div class="sec-no">01 &nbsp;/&nbsp; INTRODUCTION</div>
+    <div class="head-split">
+      <h2 class="big on-dark">효원다회 이야기</h2>
+      <p>집행부가 직접 쓴 동아리 소개입니다. 내용은 집행부 페이지에서 언제든 수정할 수 있습니다.</p>
+    </div>
+    <div class="rule"></div>
+    <div id="intro"><p class="msg-d">불러오는 중…</p></div>
+  </section>
+
+  <!-- ===================== 02 연혁 ===================== -->
+  <section class="section bg-light" id="history">
+    <div class="sec-no">02 &nbsp;/&nbsp; HISTORY</div>
+    <div class="head-split">
+      <h2 class="big on-light">효원다회 발자취</h2>
+      <p>창립부터 오늘까지, 동아리가 지나온 시간입니다.</p>
+    </div>
+    <div class="tl" id="tl">
+      <div><div class="ct msg-l">불러오는 중…</div></div>
+    </div>
+  </section>
+
+  <!-- ===================== 03 회칙 ===================== -->
+  <section class="section bg-warm" id="rules">
+    <div class="sec-no">03 &nbsp;/&nbsp; RULES</div>
+    <div class="head-split">
+      <h2 class="big on-light">회칙</h2>
+      <p>장 제목을 누르면 조항이 펼쳐집니다.</p>
+    </div>
+    <div id="rules-box" style="max-width:860px">
+      <p class="msg-l">불러오는 중…</p>
+    </div>
+  </section>
+
+  
+  <!-- ===================== 05 가입 =====================
+       ★ v1 버그 : class="section" + 인라인 배경이라 어두운 면
+         토큰이 적용되지 않아 보조 글자가 묻혔습니다. -->
+  <section class="section bg-dark alt inv-sec" id="join">
+    <div class="sec-no">04 &nbsp;/&nbsp; INVITATION</div>
+
+    <div class="inv">
+      <div>
+        <h2 class="big on-dark">함께 차 한 잔<br>하시겠습니까</h2>
+        <p class="lead">
+          차를 처음 접하는 분도 언제든 환영합니다.
+          다구를 쥐는 법부터 천천히 알려드리니, 빈손으로 오셔도 괜찮습니다.
+        </p>
+      </div>
+      <div class="inv-acts">
+        <a class="btn btn-ghost" data-sv-if="recruit.link" data-sv-attr="href:recruit.link"
+           target="_blank" rel="noopener" href="#">가입 신청하기</a>
+        <a class="btn btn-ghost" href="schedule.html">일정 확인하기</a>
+        <a class="btn btn-ghost" href="dasho.html">茶書 둘러보기</a>
+      </div>
+    </div>
+
+    <dl class="facts">
+      <div><dt>RECRUITMENT</dt><dd data-sv="recruit.period">—</dd></div>
+      <div><dt>MEMBERSHIP FEE</dt><dd data-sv="recruit.fee">—</dd></div>
+      <div><dt>CLUB ROOM</dt><dd data-sv="club.room">—</dd></div>
+    </dl>
+  </section>
+
+</main>
+
+<div id="hw-footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+const E = HW.esc;
+const A = HW.escAttr || HW.esc;
+const NUM = ['一','二','三','四','五','六','七','八','九','十'];
+
+/* =========================================================
+   01 소개글 → 一 二 三 3단
+   ★ v1 버그 두 가지
+     ① intro_sections 에 subtitle 컬럼이 없어
+        `s.subtitle || s.title` 이 제목을 두 번 찍었습니다.
+     ② eyebrow 도 번호줄(첫 단어)과 하단 c-en 에 두 번 나왔습니다.
+     → 번호 + 영문 소제목 한 줄로 정리합니다.
+   ========================================================= */
+(async () => {
+  const box = HW.qs('#intro');
+
+  function col(s, i){
+    const img  = s.image_url ? HW.media(s.image_url, 'intro-img', '', s.title) : '';
+    const body = (s.content || '').replace(/\s+/g, ' ').trim();
+    const en   = (s.eyebrow || '').trim();
+    return `<div>
+      <div class="c-no">
+        <b>${NUM[i] || (i + 1)}.</b>
+        <span>${E(en || ('CHAPTER ' + String(i + 1).padStart(2,'0')))}</span>
+      </div>
+      ${img}
+      <h3>${E(s.title)}</h3>
+      <p>${E(body)}</p>
+    </div>`;
+  }
+
+  try{
+    const rows = await HW.api.intro('about');
+
+    if(!rows.length){
+      box.innerHTML = `<div class="col3" style="grid-template-columns:1fr">
+        <div><div class="c-no"><b>一.</b><span>NOTICE</span></div>
+        <h3>소개글이 아직 없습니다</h3>
+        <p>집행부 → <b>동아리 소개글</b>에서 글을 등록하면 이 자리에 표시됩니다.</p></div></div>`;
+      return;
+    }
+
+    const a = rows.slice(0, 3), b = rows.slice(3);
+    box.innerHTML =
+      `<div class="col3" style="grid-template-columns:repeat(${a.length},minmax(0,1fr))">
+         ${a.map(col).join('')}</div>` +
+      (b.length
+        ? `<div class="col3" style="margin-top:clamp(40px,5vw,72px);
+             grid-template-columns:repeat(${Math.min(b.length,3)},minmax(0,1fr))">
+             ${b.map((s,i) => col(s, i + 3)).join('')}</div>`
+        : '');
+  }catch(e){
+    box.innerHTML = '<p class="msg-d">소개글을 불러오지 못했습니다.</p>';
+  }
+})();
+
+/* =========================================================
+   02 연혁
+   ========================================================= */
+(async () => {
+  const box = HW.qs('#tl');
+  const one = t => `<div><div class="ct msg-l">${E(t)}</div></div>`;
+  try{
+    const rows = await HW.api.history();
+    if(!rows.length){ box.innerHTML = one('등록된 연혁이 없습니다.'); return; }
+
+    box.innerHTML = rows.map(h => `
+      <div class="${h.is_major ? 'major' : ''}">
+        <div class="yr">${E(h.year)}</div>
+        <div class="ct">${E(h.content)}</div>
+      </div>`).join('');
+  }catch(e){
+    box.innerHTML = one('연혁을 불러오지 못했습니다.');
+  }
+})();
+
+/* =========================================================
+   03 회칙
+   ★ 그룹핑을 {} 로 하면 장 이름이 "1","2" 같은 숫자형일 때
+     JS 가 정수 키를 먼저 정렬해 순서가 뒤바뀝니다. Map 을 씁니다.
+   ========================================================= */
+(async () => {
+  const box = HW.qs('#rules-box');
+  try{
+    const rows = await HW.api.rules();
+    if(!rows.length){
+      box.innerHTML = '<p class="msg-l">등록된 회칙이 없습니다.</p>';
+      return;
+    }
+
+    const g = new Map();
+    rows.forEach(x => {
+      const k = x.chapter || '기타';
+      if(!g.has(k)) g.set(k, []);
+      g.get(k).push(x);
+    });
+
+    box.innerHTML = [...g.entries()].map(([ch, list], i) => {
+      const open = i === 0;
+      return `<div class="ch ${open ? 'open' : ''}">
+        <button type="button" class="ch-head"
+                aria-expanded="${open ? 'true' : 'false'}" aria-controls="chb-${i}">
+          <span>${E(ch)}</span><i aria-hidden="true">${open ? '－' : '＋'}</i>
+        </button>
+        <div class="ch-body" id="chb-${i}">${list.map(a => `
+          <div class="art">
+            ${a.article ? `<b>${E(a.article)}</b>` : ''}
+            <p>${HW.nl2br(a.content)}</p>
+          </div>`).join('')}</div>
+      </div>`;
+    }).join('');
+
+    /* 인라인 onclick 제거 → 위임 */
+    box.addEventListener('click', e => {
+      const b = e.target.closest('.ch-head'); if(!b) return;
+      const open = b.parentElement.classList.toggle('open');
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const i = b.querySelector('i'); if(i) i.textContent = open ? '－' : '＋';
+    });
+  }catch(e){
+    box.innerHTML = '<p class="msg-l">회칙을 불러오지 못했습니다.</p>';
+  }
+})();
+
+
+</script>
+</body>
+</html>

@@ -12,15 +12,22 @@
 <style>
   /* =========================================================
      집행부 화면 — 메인과 같은 한지·먹 톤
-     v2 : 보조 글자 명암비 보정 + 포커스 표시
-     v2.1 : ★ 상단바 글자 안 보임(A-1) 수정
+     v3.3  (떠다니는 버튼 제거판)
+     ---------------------------------------------------------
+     v2   : 보조 글자 명암비 보정 + 포커스 표시
+     v2.1 : 상단바 글자 안 보임(A-1) 수정
             common.css 의 어두운 면 토큰 블록에 #dash .ad-top 이 포함되어
-            .ad-top 안에서 --ink 가 아이보리(#e9e4d6) 로 바뀝니다.
-            그 결과 background:var(--ink) / color:var(--paper) 조합이
-            '아이보리 바탕 + 크림 글자'(대비 1.1:1)가 되어
+            .ad-top 안에서 --ink 가 아이보리로 바뀝니다. 그 결과
+            background:var(--ink)/color:var(--paper) 조합이 1.1:1 이 되어
             로고·사이트 보기·로그아웃이 전부 사라졌습니다.
-            → 토큰에 의존하지 않는 고정값(--jade-d / --ivory)으로 바꿉니다.
-              두 토큰은 어두운 면 블록에서 재정의되지 않아 항상 안전합니다.
+            → --jade-d / --ivory 고정값으로 교체
+     v3   : 모바일 서랍 도입 (햄버거)
+     v3.1 : 상단바 찌그러짐 방지 — 햄버거가 화면 밖으로 밀리던 문제
+     v3.2 : 좁은 화면에서 서랍이 왼쪽에 잘려 안 보이던 문제 해결
+            · 옛 .ad-side{position:static} 규칙을 뒤에서 !important 로 무력화
+            · #side 를 <body> 직계로 물리적으로 이동 → 조상 제약 제거
+            · 열림 표시를 #dash 가 아니라 <html> 에
+     v3.3 : ★ 떠다니는 보조 버튼(.ad-fab) 완전 제거
      ========================================================= */
   body{background:var(--paper-2)}
 
@@ -41,36 +48,63 @@
 
   #dash{display:none}
 
-  /* ---------- 상단 ----------
-     ★ A-1 수정 : 아래 규칙들은 --ink / --paper 를 쓰지 않습니다.
-       선택자도 #dash .ad-top 으로 올려 common.css 와 충돌하지 않게 했습니다. */
+  /* =========================================================
+     상단바  (v3.1 : 찌그러짐 방지)
+     ★ 왼쪽 묶음은 '줄어들어도 되는 쪽', 햄버거는 '절대 안 줄어드는 쪽'
+       으로 분리합니다. 예전에는 로고까지 flex:none 이라 공간이 모자라면
+       묶음 전체가 밀려 햄버거가 화면 밖으로 나갔습니다.
+     ========================================================= */
   #dash .ad-top{
-    background:var(--jade-l);            /* index 상단바와 동일 */
+    background:var(--jade-d);            /* 고정 : 먹녹 짙은 면 */
     color:var(--ivory);                  /* 고정 : 아이보리 */
     border-bottom:1px solid rgba(233,228,214,.14);
-    padding:.8rem 26px;display:flex;
-    justify-content:space-between;align-items:center;
+    padding:12px clamp(12px,2.4vw,26px);
+    display:flex;justify-content:space-between;align-items:center;
+    gap:10px;flex-wrap:nowrap;min-width:0;
     position:sticky;top:0;z-index:120;
   }
-  #dash .ad-top b{
-    font-family:var(--serif);letter-spacing:.34em;font-size:.98rem;
-    font-weight:600;color:var(--ivory);
+
+  /* 왼쪽 : 햄버거 + 로고 + 현재 메뉴 — 이 묶음이 '줄어드는 쪽' */
+  #dash .ad-top-l{
+    display:flex;align-items:center;gap:10px;
+    flex:1 1 auto;min-width:0;overflow:hidden;
   }
-  /* 딥그린(#16251e) 위에서 약 5.6:1 */
-  #dash .ad-top .who{font-size:.74rem;color:#9fad9e;letter-spacing:.08em;margin-left:10px}
-  #dash .ad-top a,
-  #dash .ad-top button{
+  #dash .ad-top b{
+    font-family:var(--serif);letter-spacing:.3em;font-size:.96rem;
+    font-weight:600;color:var(--ivory);
+    flex:0 1 auto;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:clip;
+  }
+  #dash .ad-top .who{font-size:.74rem;color:#9fad9e;letter-spacing:.08em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  #dash .ad-cur{display:none}
+
+  /* 오른쪽 : 버튼 두 개 */
+  #dash .ad-top-r{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+  #dash .ad-top-r a,
+  #dash .ad-top-r button{
     color:var(--ivory);font-size:.76rem;font-weight:500;
     letter-spacing:.1em;text-decoration:none;background:transparent;
     border:1px solid rgba(233,228,214,.38);padding:8px 14px;border-radius:0;
-    cursor:pointer;margin-left:8px;font-family:inherit;transition:all .2s;
+    cursor:pointer;font-family:inherit;transition:all .2s;
+    white-space:nowrap;flex:none;line-height:1.5;
   }
-  #dash .ad-top a:hover,
-  #dash .ad-top button:hover{
-    background:var(--ivory);color:var(--jade-l);border-color:var(--ivory);
+  #dash .ad-top-r a:hover,
+  #dash .ad-top-r button:hover{
+    background:var(--ivory);color:var(--jade-d);border-color:var(--ivory);
   }
-  #dash .ad-top a:focus-visible,
-  #dash .ad-top button:focus-visible{outline:2px solid var(--ivory);outline-offset:2px}
+  #dash .ad-top-r a:focus-visible,
+  #dash .ad-top-r button:focus-visible,
+  #dash .ad-burger:focus-visible{outline:2px solid var(--ivory);outline-offset:2px}
+
+  /* ★ 햄버거 — 절대 줄어들지 않고 절대 잘리지 않습니다 */
+  #dash .ad-burger{
+    display:none;flex-direction:column;justify-content:space-between;
+    width:26px;height:16px;flex:0 0 26px;padding:0;margin:0;
+    background:transparent;border:none;cursor:pointer;
+  }
+  #dash .ad-burger span{display:block;width:100%;height:1px;background:var(--ivory);
+    transition:transform .25s,opacity .25s}
 
   /* ---------- 레이아웃 ---------- */
   .ad-body{display:grid;grid-template-columns:208px 1fr;gap:28px;
@@ -80,11 +114,15 @@
   .ad-side h6{font-size:.62rem;letter-spacing:.26em;color:var(--sumi);
     font-weight:600;margin:16px 18px 7px;text-transform:uppercase}
   .ad-side h6:first-child{margin-top:4px}
-  .ad-side button{display:block;width:100%;text-align:left;background:none;border:none;
-    border-left:1px solid transparent;padding:9px 18px;font-size:.86rem;font-weight:500;
-    letter-spacing:.03em;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:all .2s}
-  .ad-side button:hover{background:var(--paper-2);border-left-color:var(--line-2)}
-  .ad-side button.on{background:var(--paper-3);color:var(--ink);
+
+  /* ★ v3.1 : × 버튼(.ad-side-x)을 이 규칙에서 제외합니다.
+     예전에는 width:100% + padding:9px 18px 가 × 에도 걸려 길쭉해졌습니다. */
+  .ad-side button:not(.ad-side-x){display:block;width:100%;text-align:left;background:none;
+    border:none;border-left:1px solid transparent;padding:9px 18px;font-size:.86rem;
+    font-weight:500;letter-spacing:.03em;color:var(--ink-2);cursor:pointer;
+    font-family:inherit;transition:all .2s}
+  .ad-side button:not(.ad-side-x):hover{background:var(--paper-2);border-left-color:var(--line-2)}
+  .ad-side button:not(.ad-side-x).on{background:var(--paper-3);color:var(--ink);
     font-weight:600;border-left-color:var(--ink)}
 
   /* ---------- 패널 ---------- */
@@ -107,7 +145,6 @@
     letter-spacing:.1em;white-space:nowrap;transition:all .2s}
   .upbtn:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
   .upbtn input{display:none}
-  /* ★ 기존 var(--muted) 는 작은 글씨에서 흐렸습니다 */
   .fhint{font-size:.74rem;color:var(--sumi);margin-top:6px;line-height:1.75}
   .fhint b{color:var(--ink)}
 
@@ -136,7 +173,6 @@
   .it h4{font-family:var(--serif);font-size:1.02rem;color:var(--ink);
     font-weight:600;letter-spacing:.04em;margin-bottom:6px;line-height:1.5}
   .it .sub{font-size:.74rem;color:var(--sumi);margin-bottom:9px;letter-spacing:.03em}
-  /* ★ 이 .bd 는 '밝은 면' 이므로 먹색이어야 합니다 (common.css v3.2에서 보호됨) */
   .it .bd{font-size:.83rem;color:var(--ink-2);line-height:1.8;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .it .thumb{width:100%;height:120px;object-fit:cover;margin-bottom:12px;filter:saturate(.92)}
@@ -158,37 +194,191 @@
   table.vt .hi{font-size:.74rem;color:var(--sumi);margin-top:3px;line-height:1.7}
   table.vt .hi.key{color:var(--muted-2)}
 
-  /* ---------- 캘린더 ---------- */
-  .cal-wrap{display:grid;grid-template-columns:1.15fr 1fr;gap:24px;align-items:start}
+    /* ---------- 캘린더 ---------- */
+  /* ★ 왼쪽 : 달력 + 그 날의 일정 (세로로 연달아) · 오른쪽 : 쓰기 */
+  .cal-wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+    gap:24px;align-items:start}
+
+  /* 왼쪽 묶음 — 달력 아래에 일정이 바로 붙습니다 */
+  .cal-left{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+  /* ★ 오른쪽 쓰기 칸은 길쭉하므로, 스크롤해도 따라오게 둡니다 */
+  .sch-write{position:sticky;top:76px}
+
+  /* ★ 폭이 좁아졌으니 한 줄에 하나씩 */
+  #sel-list{display:grid;grid-template-columns:1fr;gap:10px}
+  #sel-list .evrow{margin:0}
   .calhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
   .calhd h3{font-size:1rem;letter-spacing:.1em}
   .cnav{background:transparent;border:1px solid var(--line-2);width:32px;height:32px;
     border-radius:0;cursor:pointer;font-weight:500;color:var(--sumi);font-family:inherit}
   .cnav:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-  .cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
+  /* ★ minmax(0,1fr) : 내용이 길어도 칸이 넓어지지 않습니다 */
+  .cgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;
     text-align:center;background:var(--line);border:1px solid var(--line)}
   .cnm{font-size:.7rem;font-weight:600;letter-spacing:.1em;color:var(--sumi);
     padding:8px 0;background:var(--paper-2)}
   .cd{min-height:60px;border:none;background:var(--paper);cursor:pointer;
-    padding:5px;font-size:.78rem;text-align:left;transition:background .2s}
+    padding:5px;font-size:.78rem;text-align:left;transition:background .2s;
+    min-width:0;overflow:hidden}
   .cd:hover{background:var(--paper-3)}
   .cd.empty{background:var(--paper-2);cursor:default}
   .cd.sel{background:var(--ink);color:var(--paper)}
   .cd .n{font-weight:600;font-size:.74rem}
+  /* ★ 긴 제목은 칸을 늘리지 않고 아래로 줄바꿈합니다 (모바일과 같은 방식) */
   .ev{background:var(--paper-3);color:var(--ink-2);font-size:.62rem;font-weight:500;
-    padding:1px 4px;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+    padding:2px 4px;margin-top:3px;min-width:0;overflow:hidden;
+    white-space:normal;word-break:keep-all;overflow-wrap:anywhere;line-height:1.45}
   .cd.sel .ev{background:rgba(242,238,227,.22);color:var(--paper)}
 
   .evrow{border:1px solid var(--line);padding:12px 14px;margin-bottom:9px;background:var(--paper)}
 
+  /* 기본 상태에서는 서랍 머리를 숨깁니다 (데스크탑) */
+  .ad-side-head{display:none}
+
+  /* =========================================================
+     ★★ 모바일 메뉴 서랍 — 최종본 v3.3 (FAB 없음)
+     반드시 <style> 의 가장 마지막에 둡니다.
+     (CSS 는 같은 우선순위면 '뒤에 쓴 것'이 이깁니다)
+     ========================================================= */
+  .ad-ov{position:fixed;inset:0;background:rgba(22,37,30,.55);backdrop-filter:blur(2px);
+    z-index:999;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+  .ad-ov.open{opacity:1;visibility:visible}
+
   @media(max-width:900px){
-    .ad-body{grid-template-columns:1fr;padding:0 14px;gap:18px}
-    .ad-side{position:static;max-height:none;display:flex;gap:4px;overflow-x:auto;padding:8px}
-    .ad-side h6{display:none}
-    .ad-side button{width:auto;white-space:nowrap;border-left:none;border-bottom:1px solid transparent}
-    .ad-side button.on{border-left:none;border-bottom-color:var(--ink)}
+    .cal-wrap{grid-template-columns:1fr}
+    .sch-write{position:static}        /* ★ 추가 — 좁은 화면에서는 고정 해제 */
+
+    /* ---------- ① 서랍 본체 ----------
+       #side 라는 id 로 직접 잡습니다.
+       JS 가 이 요소를 body 직계로 옮겨도 선택자가 그대로 먹습니다. */
+    #side.ad-side{
+      position:fixed !important;
+      top:0 !important; left:0 !important; right:auto !important; bottom:0 !important;
+      width:min(286px,86vw) !important;
+      height:100% !important; max-height:none !important;
+      margin:0 !important; padding:0 0 28px !important;
+      display:block !important; gap:0 !important;
+      overflow-x:hidden !important; overflow-y:auto !important;
+      -webkit-overflow-scrolling:touch;
+      background:var(--cream,#f2eee3) !important;
+      border:none !important;
+      border-right:1px solid var(--line) !important;
+      border-radius:0 !important;
+      z-index:1000 !important;                 /* 막(999)보다 위 */
+      transform:translate3d(-106%,0,0);
+      visibility:hidden;
+      transition:transform .3s cubic-bezier(.16,1,.3,1), visibility .3s;
+    }
+    /* ★ 열림 : <html> 에 표시합니다 */
+    html.ad-open #side.ad-side{
+      transform:translate3d(0,0,0) !important;
+      visibility:visible !important;
+      box-shadow:0 0 44px rgba(22,37,30,.32) !important;
+    }
+
+    /* ---------- ② 그룹 제목 · 메뉴 버튼 ---------- */
+    #side.ad-side h6{
+      display:block !important;margin:18px 18px 6px !important;
+      font-size:.62rem;letter-spacing:.26em;color:var(--sumi);
+    }
+    #side.ad-side button[data-k]{
+      display:block !important;width:100% !important;
+      white-space:normal !important;text-align:left !important;
+      padding:12px 18px !important;font-size:.92rem !important;
+      background:none !important;border:none !important;
+      border-left:1px solid transparent !important;border-bottom:none !important;
+    }
+    #side.ad-side button[data-k].on{
+      background:var(--paper-3) !important;color:var(--ink) !important;
+      border-left-color:var(--ink) !important;
+    }
+
+    /* ---------- ③ 서랍 머리 (줄바꿈 방지) ---------- */
+    #side .ad-side-head{
+      display:flex !important;align-items:center;justify-content:space-between;
+      gap:10px;flex-wrap:nowrap;
+      position:sticky;top:0;z-index:2;
+      background:var(--jade-d);color:var(--ivory);padding:14px 16px;
+    }
+    #side .ad-side-head span{
+      flex:1 1 auto;min-width:0;
+      font-family:var(--serif);font-size:.86rem;letter-spacing:.12em;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    /* × 는 34×34 정사각형 고정 */
+    #side button.ad-side-x{
+      display:inline-flex !important;align-items:center;justify-content:center;
+      width:34px !important;height:34px !important;flex:0 0 34px;
+      padding:0 !important;margin:0 !important;
+      background:transparent !important;
+      border:1px solid rgba(233,228,214,.4) !important;
+      border-left:1px solid rgba(233,228,214,.4) !important;
+      color:var(--ivory) !important;
+      font-size:1.15rem;line-height:1;font-family:inherit;cursor:pointer;
+    }
+    #side button.ad-side-x:hover{
+      background:var(--ivory) !important;color:var(--jade-d) !important;
+    }
+
+    /* ---------- ④ 여는 버튼 ---------- */
+    #dash .ad-burger{display:flex !important}
+
+    /* 열려 있는 동안 뒤 배경 스크롤 잠금 */
+    html.ad-open,html.ad-open body{overflow:hidden !important}
+
+    /* ---------- ⑤ 본문 ---------- */
+    .ad-body{grid-template-columns:1fr !important;padding:0 14px;gap:18px}
     .cal-wrap{grid-template-columns:1fr}
     .pane{padding:22px 18px 28px}
+
+    #dash .ad-top b{font-size:.88rem;letter-spacing:.2em}
+    #dash .ad-top .who{display:none}
+    #dash .ad-cur{display:inline;font-size:.76rem;color:#9fad9e;letter-spacing:.06em;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  }
+
+  /* 넓은 화면에서는 서랍 장치를 전부 끕니다 */
+  @media(min-width:901px){
+    #dash .ad-burger{display:none !important}
+    .ad-ov{display:none !important}
+    #side .ad-side-head{display:none !important}
+  }
+
+  /* 햄버거 → × 변형 (열림 표시가 <html> 에 있습니다) */
+  html.ad-open #dash .ad-burger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  html.ad-open #dash .ad-burger span:nth-child(2){opacity:0}
+  html.ad-open #dash .ad-burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+  @media(max-width:600px){
+    #dash .ad-top{padding:10px 12px;gap:8px}
+    #dash .ad-top-r a,#dash .ad-top-r button{padding:7px 10px;font-size:.72rem;letter-spacing:.04em}
+    #dash .ad-top-r a .lbl{display:none}
+
+    #dash .list{grid-template-columns:1fr !important}
+
+    .pane{padding:18px 14px 24px}
+    .box{padding:16px 14px}
+
+    .uprow{flex-wrap:wrap}
+    .uprow input{flex:1 1 100%}
+    .uprow .upbtn,.uprow .b{flex:1;text-align:center}
+
+    table.vt,table.vt tbody,table.vt tr,table.vt td{display:block;width:auto}
+    table.vt tr{border-bottom:1px solid var(--line);padding:12px 0}
+    table.vt tr:last-child{border-bottom:none}
+    table.vt td{padding:0;border-bottom:none}
+    table.vt td:first-child{width:auto;margin-bottom:8px}
+
+    #login-box{margin:7vh 16px;padding:34px 22px 26px}
+    .cd{min-height:50px;padding:4px}
+    .ev{font-size:.58rem}
+  }
+
+  /* ★ 아주 좁은 화면(폴더블 커버, 320px 등) : 로고를 접어 햄버거를 지킵니다 */
+  @media(max-width:430px){
+    #dash .ad-top b{display:none}
+    #dash .ad-cur{font-size:.8rem;color:var(--ivory)}
   }
 </style>
 </head>
@@ -212,13 +402,25 @@
 
 <!-- ===================== 대시보드 ===================== -->
 <div id="dash">
+
   <div class="ad-top">
-    <div><b>曉原茶會</b><span class="who" id="whoami"></span></div>
-    <div>
-      <a href="index.html" target="_blank" rel="noopener">사이트 보기 ↗</a>
+    <div class="ad-top-l">
+      <button type="button" class="ad-burger" id="ad-burger"
+              aria-label="메뉴 열기" aria-expanded="false" aria-controls="side">
+        <span></span><span></span><span></span>
+      </button>
+      <b>曉原茶會</b>
+      <span class="who" id="whoami"></span>
+      <span class="ad-cur" id="ad-cur"></span>
+    </div>
+    <div class="ad-top-r">
+      <a href="index.html" target="_blank" rel="noopener"><span class="lbl">사이트 보기</span> ↗</a>
       <button type="button" onclick="doLogout()">로그아웃</button>
     </div>
   </div>
+
+  <!-- 서랍 뒤 어두운 막 -->
+  <div class="ad-ov" id="ad-ov"></div>
 
   <div class="ad-body">
     <nav class="ad-side" id="side"></nav>
@@ -258,24 +460,29 @@
       <section class="pane" id="p-teas"></section>
       <section class="pane" id="p-teamap"></section>
       <section class="pane" id="p-teaware"></section>
-      <section class="pane" id="p-stories"></section>
+      <section class="pane" id="p-posts"></section>
       <section class="pane" id="p-series"></section>
 
       <!-- 일정 -->
       <section class="pane" id="p-schedule">
         <h2>일정 관리</h2>
-        <p class="desc">날짜를 누르면 그 날의 일정이 오른쪽에 나옵니다.</p>
+        <p class="desc">왼쪽 달력에서 날짜를 누르면 <b>바로 아래</b>에 그 날의 일정이 나옵니다.
+           오른쪽 칸에서 새로 쓰거나 고칩니다.</p>
+
         <div class="cal-wrap">
-          <div class="box" style="margin:0">
-            <div class="calhd">
-              <button type="button" class="cnav" onclick="calMove(-1)" aria-label="이전 달">‹</button>
-              <h3 id="cal-title"></h3>
-              <button type="button" class="cnav" onclick="calMove(1)" aria-label="다음 달">›</button>
+
+          <!-- ★ 왼쪽 : 달력 + 그 날의 일정 -->
+          <div class="cal-left">
+            <div class="box" style="margin:0">
+              <div class="calhd">
+                <button type="button" class="cnav" onclick="calMove(-1)" aria-label="이전 달">‹</button>
+                <h3 id="cal-title"></h3>
+                <button type="button" class="cnav" onclick="calMove(1)" aria-label="다음 달">›</button>
+              </div>
+              <div class="cgrid" id="cal-grid"></div>
             </div>
-            <div class="cgrid" id="cal-grid"></div>
-          </div>
-          <div>
-            <div class="box">
+
+            <div class="box" style="margin:0">
               <div style="display:flex;justify-content:space-between;align-items:center;
                    border-bottom:1px solid var(--line-2);padding-bottom:10px;margin-bottom:14px">
                 <b id="sel-date" style="color:var(--ink)">날짜를 선택하세요</b>
@@ -283,34 +490,39 @@
               </div>
               <div id="sel-list"></div>
             </div>
-            <div class="box" style="margin:0">
-              <b id="sch-ttl">일정 추가</b>
-              <form id="sch-form" onsubmit="schSave(event)" style="margin-top:16px">
-                <input type="hidden" id="sch-id">
-                <div class="form-grid">
-                  <div class="field"><label for="sch-date">날짜 *</label><input type="date" id="sch-date" required></div>
-                  <div class="field"><label for="sch-end">종료일 (여러 날)</label><input type="date" id="sch-end"></div>
-                  <div class="field"><label for="sch-time">시작 시간</label><input type="time" id="sch-time"></div>
-                  <div class="field"><label for="sch-kind">구분</label>
-                    <select id="sch-kind">
-                      <option value="normal">일반</option><option value="regular">정기 모임</option>
-                      <option value="special">특별 행사</option><option value="notice">공지</option>
-                      <option value="closed">휴무</option>
-                    </select></div>
-                </div>
-                <div class="field"><label for="sch-title">제목 *</label><input id="sch-title" required placeholder="봄맞이 야외 찻자리"></div>
-                <div class="field"><label for="sch-loc">장소</label><input id="sch-loc" placeholder="동아리방"></div>
-                <div class="field"><label for="sch-desc">설명</label><textarea id="sch-desc" rows="3"></textarea></div>
-                <div class="rowbtns">
-                  <button class="b b-main" style="flex:1">저장</button>
-                  <button type="button" class="b b-gray" id="sch-cancel" style="display:none" onclick="schReset()">취소</button>
-                </div>
-              </form>
-            </div>
           </div>
+
+          <!-- ★ 오른쪽 : 쓰기 · 고치기 -->
+          <div class="box sch-write" style="margin:0">
+            <b id="sch-ttl">일정 추가</b>
+            <form id="sch-form" onsubmit="schSave(event)" style="margin-top:16px">
+              <input type="hidden" id="sch-id">
+              <div class="form-grid">
+                <div class="field"><label for="sch-date">날짜 *</label><input type="date" id="sch-date" required></div>
+                <div class="field"><label for="sch-end">종료일</label><input type="date" id="sch-end">
+                  <div class="fhint">기본은 <b>시작일과 같은 날</b>입니다. 여러 날 이어지는 행사면 마지막 날로 바꾸세요.</div>
+                </div>
+                <div class="field"><label for="sch-time">시작 시간</label><input type="time" id="sch-time"></div>
+                <div class="field"><label for="sch-kind">구분</label>
+                  <select id="sch-kind">
+                    <option value="normal">일반</option><option value="regular">정기 모임</option>
+                    <option value="special">특별 행사</option><option value="notice">공지</option>
+                    <option value="closed">휴무</option>
+                  </select></div>
+              </div>
+              <div class="field"><label for="sch-title">제목 *</label><input id="sch-title" required placeholder="봄맞이 야외 찻자리"></div>
+              <div class="field"><label for="sch-loc">장소</label><input id="sch-loc" placeholder="동아리방"></div>
+              <div class="field"><label for="sch-desc">설명</label><textarea id="sch-desc" rows="3"></textarea></div>
+              <div class="rowbtns">
+                <button class="b b-main" style="flex:1">저장</button>
+                <button type="button" class="b b-gray" id="sch-cancel" style="display:none" onclick="schReset()">취소</button>
+              </div>
+            </form>
+          </div>
+
         </div>
       </section>
-
+      
       <!-- 학술지 심사 -->
       <section class="pane" id="p-journal">
         <h2>투고 심사</h2>
@@ -396,10 +608,15 @@ const MENU = [
   ['페이지', [['intro-index','홈 소개글'],['intro-about','동아리 소개글'],
               ['history','연혁'],['rules','회칙'],['popups','공지 팝업']]],
   ['일정',   [['schedule','일정']]],
-  ['茶書',   [['teas','차 도감'],['teamap','차 지도'],['teaware','다구'],['stories','차 이야기']]],
-  ['학술지', [['journal','투고 심사'],['issues','호 관리'],['series','학술지 종류'],['comments','댓글']]],
+  ['茶書',   [['teas','차 도감'],['teamap','차 지도'],['teaware','다구']]],
+  ['이야기', [['posts','글 쓰기 · 관리'],['journal','투고 심사'],
+              ['issues','호 관리'],['series','이야기 종류'],['comments','댓글']]],
   ['기타',   [['audit','변경 이력']]]
 ];
+
+/* 현재 메뉴 이름 표시용 */
+const LABEL = {};
+MENU.forEach(([, items]) => items.forEach(([k, l]) => { LABEL[k] = l; }));
 
 /* =========================================================
    1. 제네릭 CRUD 정의
@@ -507,37 +724,56 @@ const DEFS = {
              F('usage_steps','사용 순서','steps',{rows:7}),
              F('image_url','대표 사진','media'),
              F('video_url','사용법 영상','video') ],
-       card:r=>({t:r.name, s:`#${r.display_order} · ${r.subtitle||''}`, b:r.description, img:r.image_url,
+    card:r=>({t:r.name, s:`#${r.display_order} · ${r.subtitle||''}`, b:r.description, img:r.image_url,
       /* ★ B-6 : text 컬럼이면 문자열 길이("37단계")가 찍히던 문제 */
       chips:[[ `${parseStepsLike(r.usage_steps).length}단계`,
                parseStepsLike(r.usage_steps).length ? '' : 'gray' ],
              r.video_url ? ['영상','blue'] : null ].filter(Boolean) }) },
 
-  'stories': { table:'tea_stories', name:'차 이야기', desc:'집행부가 직접 쓰는 글입니다.',
-    order:['created_at',false],
-    fields:[ F('title','제목','text',{req:1}),
-             F('author','글쓴이','text',{half:1}),
-             F('status','상태','select',{opts:[['draft','초안'],['published','공개']],def:'draft',half:1}),
+  'posts': { table:'journal_posts', name:'이야기 글',
+    desc:'집행부가 직접 쓰는 글입니다. 차마을(동아리 이야기) · 다바라기(학술지) 중 ' +
+         '어디에 실을지 고르세요. 회원 투고는 「투고 심사」에서 처리합니다.',
+    fixed:{ source:'staff' }, where:['source','staff'], order:['created_at',false],
+    fields:[ F('series_id','실을 곳','select',{opts:[],half:1}),
+             F('kind','글 종류','select',{opts:[['story','이야기'],['news','소식'],
+               ['article','기고'],['essay','수필'],['review','서평'],['notice','공지']],
+               def:'story',half:1}),
+             F('title','제목','text',{req:1}),
+             F('author','글쓴이','text',{def:'효원다회',half:1}),
+             F('status','상태','select',{opts:[['draft','초안'],['published','공개']],
+               def:'draft',half:1}),
+             F('published_at','공개일','date',{half:1}),
+             F('sort_order','표시 순서','number',{def:0,half:1}),
              F('summary','한 줄 요약','text'),
              F('tags','태그 (쉼표 구분)','tags'),
-             F('content','본문','textarea',{rows:8}),
-             F('cover_url','표지','media') ],
-    card:r=>({t:r.title, s:r.author||'', b:r.summary||r.content, img:r.cover_url,
+             F('body','본문','textarea',{rows:10,req:1}),
+             F('image_url','대표 이미지 / 영상','media') ],
+    card:r=>({t:r.title, s:`${SERIES_NAME[r.series_id]||'실을 곳 미지정'} · ${r.author||''}`,
+      b:r.summary||r.body, img:r.image_url,
       chips:[[r.status==='published'?'공개':'초안', r.status==='published'?'':'gray']]}) },
 
-  'series': { table:'journal_series', name:'학술지 종류', desc:'차마을·다바라기 같은 학술지 자체 정보입니다.',
+    'series': { table:'journal_series', name:'이야기 종류',
+    noNew:true, noDel:true,          /* ★ 새로 만들기·삭제 잠금 — 수정만 가능 */
+    desc:'차마을 · 다바라기 두 가지로 고정되어 있습니다. 새로 만들거나 지울 수 없고, ' +
+         '아래 목록에서 수정만 하실 수 있습니다. 여기 적은 이름·소개·이미지가 ' +
+         '이야기 허브의 「두 갈래」 카드와 메뉴에 그대로 나옵니다.',
     order:['sort_order',true],
     fields:[ F('sort_order','표시 순서','number',{def:0,half:1}),
              F('slug','영문 주소(slug)','text',{req:1,ph:'chamaeul',half:1}),
-             F('name','이름','text',{req:1,half:1}),
-             F('name_hanja','한자 이름','text',{half:1}),
-             F('tagline','한 줄 소개','text'),
+             F('name','이름 (카드 제목)','text',{req:1,half:1}),
+             F('name_hanja','한자 이름 (카드 작은 글씨)','text',{half:1}),
+             F('tagline','한 줄 소개 (카드 본문)','text',
+               {ph:'동아리에서 오간 이야기를 모았습니다'}),
              F('since_year','창간 연도','text',{half:1}),
              F('open_submission','자유 투고 허용','bool',{def:true,half:1}),
              F('is_active','사용','bool',{def:true,half:1}),
-             F('description','설명','textarea',{rows:3}),
-             F('cover_url','표지','media') ],
-    card:r=>({t:r.name, s:`${r.slug} · ${r.since_year||''}`, b:r.tagline, img:r.cover_url}) }
+             F('description','설명 (긴 글)','textarea',{rows:3}),
+             F('cover_url','두 갈래 카드 이미지','media',
+               {hint:'이야기 허브 카드 윗부분에 들어가는 그림입니다. 가로로 넓은 사진(약 5:3)이 ' +
+                     '가장 잘 맞습니다. mp4 영상도 됩니다. 비워 두면 기본 책 모양 그림이 나옵니다.'}) ],
+    card:r=>({t:r.name, s:`${r.slug} · ${r.since_year||''}`, b:r.tagline, img:r.cover_url,
+      chips:[ r.cover_url ? ['이미지 있음','blue'] : ['이미지 없음','gray'],
+              r.is_active ? null : ['사용 안 함','gray'] ].filter(Boolean) }) }
 };
 
 /* ★ 날짜 컬럼이 timestamptz 여도 안전하게 YYYY-MM-DD 로 자릅니다 */
@@ -575,29 +811,98 @@ async function doLogin(e){
 }
 async function doLogout(){ await HW.api.logout(); location.reload(); }
 
+/* =========================================================
+   2-1. 모바일 메뉴 서랍  v3.3  (떠다니는 버튼 없음)
+   핵심 : 좁은 화면에서는 #side 를 <body> 직계로 '물리적으로' 옮깁니다.
+          조상(#dash, .ad-body)이 사라지므로 position:fixed 가
+          어떤 경우에도 잘리지 않습니다.
+   ========================================================= */
+const SIDE_MQ  = window.matchMedia('(max-width:900px)');
+const isNarrow = () => SIDE_MQ.matches;
+const $side    = () => document.getElementById('side');
+const $adbody  = () => document.querySelector('.ad-body');
+
+/* 좁으면 body 직계로, 넓으면 원래 자리(.ad-body 첫 칸)로 되돌립니다 */
+function placeSide(){
+  const s = $side(); if(!s) return;
+  if(isNarrow()){
+    if(s.parentElement !== document.body) document.body.appendChild(s);
+    const ov = document.getElementById('ad-ov');
+    if(ov && ov.parentElement !== document.body) document.body.appendChild(ov);
+  }else{
+    const host = $adbody();
+    if(host && s.parentElement !== host) host.insertBefore(s, host.firstChild);
+    sideClose();
+  }
+}
+
+function sideOpen(){
+  if(!isNarrow()) return;
+  placeSide();
+  document.documentElement.classList.add('ad-open');
+  const ov = document.getElementById('ad-ov'); if(ov) ov.classList.add('open');
+  const bg = document.getElementById('ad-burger');
+  if(bg) bg.setAttribute('aria-expanded','true');
+}
+function sideClose(){
+  if(!document.documentElement.classList.contains('ad-open')) return;
+  document.documentElement.classList.remove('ad-open');
+  const ov = document.getElementById('ad-ov'); if(ov) ov.classList.remove('open');
+  const bg = document.getElementById('ad-burger');
+  if(bg) bg.setAttribute('aria-expanded','false');
+}
+function sideToggle(){
+  document.documentElement.classList.contains('ad-open') ? sideClose() : sideOpen();
+}
+
+HW.qs('#ad-burger').addEventListener('click', sideToggle);
+HW.qs('#ad-ov').addEventListener('click', sideClose);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') sideClose(); });
+
+/* 창 크기·가로세로 전환 대응 */
+if(SIDE_MQ.addEventListener) SIDE_MQ.addEventListener('change', placeSide);
+else                         SIDE_MQ.addListener(placeSide);
+window.addEventListener('orientationchange', () => setTimeout(placeSide, 120));
+
+/* =========================================================
+   2-2. 부팅
+   ========================================================= */
 async function boot(){
   HW.qs('#login-box').style.display = 'none';
   HW.qs('#dash').style.display = 'block';
-  HW.qs('#side').innerHTML = MENU.map(([g,items]) =>
-    `<h6>${E(g)}</h6>` + items.map(([k,l]) =>
-      `<button type="button" data-k="${A(k)}">${E(l)}</button>`).join('')).join('');
 
-  /* 사이드 메뉴도 위임 방식 */
+  /* 서랍 머리(모바일 전용) + 메뉴 버튼 */
+  HW.qs('#side').innerHTML =
+    `<div class="ad-side-head">
+       <span>집행부 메뉴</span>
+       <button type="button" class="ad-side-x" aria-label="메뉴 닫기">&times;</button>
+     </div>` +
+    MENU.map(([g,items]) =>
+      `<h6>${E(g)}</h6>` + items.map(([k,l]) =>
+        `<button type="button" data-k="${A(k)}">${E(l)}</button>`).join('')).join('');
+
+  /* 사이드 메뉴 위임 — 메뉴 선택과 × 닫기를 함께 처리합니다 */
   HW.qs('#side').addEventListener('click', e => {
+    if(e.target.closest('.ad-side-x')){ sideClose(); return; }
     const b = e.target.closest('button[data-k]'); if(b) go(b.dataset.k);
   });
 
   Object.keys(DEFS).forEach(buildPane);
   const s = await HW.api.session();
   HW.qs('#whoami').textContent = s ? '집행부' : '';
+  placeSide();          /* ★ 서랍을 올바른 자리로 배치 */
   go('home');
 }
 
 function go(k){
   HW.qsa('.pane').forEach(p => p.classList.remove('on'));
-  HW.qsa('.ad-side button').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+  HW.qsa('.ad-side button[data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === k));
   const p = HW.qs('#p-'+k); if(p) p.classList.add('on');
+
+  const cur = HW.qs('#ad-cur'); if(cur) cur.textContent = LABEL[k] || '';
+  sideClose();                                   /* 메뉴를 고르면 서랍을 닫습니다 */
   window.scrollTo({top:0,behavior:'smooth'});
+
   if (DEFS[k])             loadList(k);
   else if (k==='values')   loadValues();
   else if (k==='schedule') loadSch();
@@ -637,13 +942,11 @@ async function loadStat(){
 
 /* =========================================================
    3. 제네릭 CRUD 엔진
-   ========================================================= */
-/* =========================================================
+   ---------------------------------------------------------
    ★ A-4 / A-5 공통 : DB 컬럼이 jsonb 가 아니라 text 로 만들어져 있으면
      기존 코드는 Array.isArray 가 false → 빈 값으로 처리했습니다.
      - tags  : editRow 에서 .join TypeError → 수정 폼이 안 채워짐
      - steps : 사용 순서 칸이 빈 칸으로 보임 → 저장하면 기존 단계 전멸
-     tea-story.html / tea-ware.html 의 방어 로직과 동일하게 맞춥니다.
    ========================================================= */
 function parseStepsLike(v){
   if (Array.isArray(v)) return v;
@@ -696,20 +999,87 @@ function textToSteps(txt){
                    : { title:l.slice(0,i).trim(), desc:l.slice(i+1).trim() };
     });
 }
+/* =========================================================
+   ★ 표시 순서 자동 번호 매기기
+     · 새 등록 : 마지막 번호 + 1 을 미리 채웁니다
+     · 번호를 직접 고치면 그 자리에 끼우고 나머지를 1씩 밀거나 당깁니다
+   ========================================================= */
+function orderKey(key){
+  const d = DEFS[key]; if(!d) return null;
+  const k = d.order && d.order[0];
+  return (k && /_order$/.test(k) && d.fields.some(f => f.k === k)) ? k : null;
+}
+
+/* 목록을 다시 읽어옵니다 (loadList 와 같은 조건) */
+async function fetchRows(key){
+  const d = DEFS[key];
+  if (key === 'teas') return await HW.api.teas();
+  let q = HW.sb.from(d.table).select('*');
+  if (d.where) q = q.eq(d.where[0], d.where[1]);
+  const r = await q.order(d.order[0], { ascending:d.order[1] });
+  if (r.error) throw new Error(r.error.message);
+  return r.data || [];
+}
+
+/* 새 등록 칸에 다음 번호를 미리 넣습니다 (수정 중일 때는 손대지 않습니다) */
+function syncOrderDefault(key){
+  const ok = orderKey(key); if(!ok) return;
+  const idEl = HW.qs(`#${key}--id`); if(!idEl || idEl.value) return;
+  const el = HW.qs(`#${key}--${ok}`); if(!el) return;
+  el.value = (CACHE[key] || []).length + 1;
+}
+
+/* 저장된 글을 want 번째 자리에 놓고 전체를 1…N 으로 다시 매깁니다 */
+async function reorderRows(key, savedId, want){
+  const ok = orderKey(key); if(!ok || !savedId) return;
+  const d = DEFS[key];
+
+  let rows;
+  try{ rows = await fetchRows(key); }catch(e){ return; }
+
+  const me = rows.find(r => String(r.id) === String(savedId));
+  if(!me) return;
+
+  const others = rows.filter(r => String(r.id) !== String(savedId))
+    .sort((a,b) => (Number(a[ok]) || 0) - (Number(b[ok]) || 0));
+
+  let pos = Number(want);
+  if(!Number.isFinite(pos) || pos < 1) pos = others.length + 1;   /* 비웠으면 맨 뒤 */
+  pos = Math.min(pos, others.length + 1);
+
+  const list = others.slice();
+  list.splice(pos - 1, 0, me);
+
+  for(let i = 0; i < list.length; i++){
+    const n = i + 1;
+    if(Number(list[i][ok]) === n) continue;                        /* 안 바뀌면 건너뜁니다 */
+    const r = await HW.sb.from(d.table).update({ [ok]: n }).eq('id', list[i].id);
+    if(r.error){ console.warn('[order]', r.error.message); break; }
+  }
+}
 
 function buildPane(key){
   const d = DEFS[key];
+  /* ★ noNew : 평소엔 입력칸을 접어 두고, 수정을 누를 때만 펼칩니다 */
   HW.qs('#p-'+key).innerHTML = `
     <h2>${E(d.name)}</h2><p class="desc">${E(d.desc||'')}</p>
-    <div class="box">
-      <b id="${key}-ttl">새 ${E(d.name)} 등록</b>
+    ${d.noNew ? `<div class="box" id="${key}-lock"
+        style="border-left:2px solid var(--clay)">
+        <b style="color:var(--clay)">수정 전용</b>
+        <p style="font-size:.86rem;color:var(--ink-2);margin-top:10px;line-height:1.9">
+          ${E(d.name)}은(는) 새로 만들 수 없습니다.
+          아래 목록에서 <b>수정</b>을 누르면 이 자리에 입력칸이 나타납니다.</p>
+      </div>` : ''}
+    <div class="box" id="${key}-box"${d.noNew ? ' style="display:none"' : ''}>
+      <b id="${key}-ttl">${d.noNew ? E(d.name)+' 수정' : '새 '+E(d.name)+' 등록'}</b>
       <form id="${key}-form" onsubmit="saveRow(event,'${key}')" style="margin-top:16px">
         <input type="hidden" id="${key}--id">
         <div class="form-grid">${d.fields.map(f=>fieldHtml(key,f)).join('')}</div>
         <div class="rowbtns">
           <button class="b b-main" style="flex:1">저장</button>
-          <button type="button" class="b b-gray" id="${key}-cancel" style="display:none"
-                  onclick="resetRow('${key}')">취소</button>
+          <button type="button" class="b b-gray" id="${key}-cancel"
+                  style="display:${d.noNew ? 'block' : 'none'}"
+                  onclick="resetRow('${key}')">${d.noNew ? '닫기' : '취소'}</button>
         </div>
       </form>
     </div>
@@ -772,10 +1142,24 @@ function fieldHtml(key,f){
   return `<div class="field ${cls}"><label for="${id}">${lab}</label>${inner}${hint}</div>`;
 }
 
+/* ★ '이야기 글' 패널의 '실을 곳' 선택지 — journal_series 에서 가져옵니다 */
+let SERIES_NAME = {};
+async function fillSeriesOptions(){
+  try{
+    const ser = await HW.api.series();
+    SERIES_NAME = {};
+    ser.forEach(s => { SERIES_NAME[s.id] = s.name; });
+    const sel = HW.qs('#posts--series_id');
+    if(sel) sel.innerHTML = '<option value="">— 선택 —</option>' +
+      ser.map(s => `<option value="${A(s.id)}">${E(s.name)}</option>`).join('');
+  }catch(e){ HW.errMsg(e); }
+}
+
 const CACHE = {};
 async function loadList(key){
   const d = DEFS[key], box = HW.qs('#'+key+'-list');
   HW.loading(box);
+  if (key === 'posts') await fillSeriesOptions();
   try{
     let rows;
     if (key==='teas'){ rows = await HW.api.teas(); }
@@ -785,7 +1169,9 @@ async function loadList(key){
       q = q.order(d.order[0], {ascending:d.order[1]});
       const r = await q; if(r.error) throw new Error(r.error.message); rows = r.data || [];
     }
+    if (d.after) rows = d.after(rows);
     CACHE[key] = rows;
+    syncOrderDefault(key);                 /* ★ 새 등록 칸에 다음 번호 */
     if (!rows.length) return HW.empty(box, `등록된 ${d.name}이(가) 없습니다.`);
     box.innerHTML = rows.map(r=>{
       const c = d.card(r);
@@ -800,7 +1186,8 @@ async function loadList(key){
           <div class="bd">${E(c.b||'')}</div></div>
         <div class="rowbtns">
           <button type="button" class="b b-blue b-sm" data-act="edit" data-id="${A(r.id)}">수정</button>
-          <button type="button" class="b b-red  b-sm" data-act="del"  data-id="${A(r.id)}">삭제</button>
+          ${d.noDel ? '' :
+            `<button type="button" class="b b-red b-sm" data-act="del" data-id="${A(r.id)}">삭제</button>`}
         </div></div>`;
     }).join('');
 
@@ -829,6 +1216,10 @@ function editRow(key,id){
   });
   HW.qs(`#${key}-ttl`).textContent = `${d.name} 수정`;
   HW.qs(`#${key}-cancel`).style.display = 'block';
+  if (d.noNew){                                   /* ★ 입력칸 펼치기 */
+    const box  = HW.qs(`#${key}-box`);  if(box)  box.style.display  = 'block';
+    const lock = HW.qs(`#${key}-lock`); if(lock) lock.style.display = 'none';
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -840,13 +1231,24 @@ function resetRow(key){
     const el = HW.qs(`#${key}--${f.k}`); if(!el||f.def===undefined) return;
     if (f.t==='bool') el.checked = !!f.def; else el.value = f.def;
   });
+
+  if (d.noNew){                                   /* ★ 다시 접습니다 */
+    const box  = HW.qs(`#${key}-box`);  if(box)  box.style.display  = 'none';
+    const lock = HW.qs(`#${key}-lock`); if(lock) lock.style.display = 'block';
+    HW.qs(`#${key}-ttl`).textContent = `${d.name} 수정`;
+    return;                                        /* 자동 번호도 건드리지 않습니다 */
+  }
+
   HW.qs(`#${key}-ttl`).textContent = `새 ${d.name} 등록`;
   HW.qs(`#${key}-cancel`).style.display = 'none';
+  syncOrderDefault(key);
 }
 
 async function saveRow(e,key){
   e.preventDefault();
   const d = DEFS[key], id = HW.qs(`#${key}--id`).value;
+    if (d.noNew && !id)
+    return HW.toast(`${d.name}은(는) 새로 만들 수 없습니다. 목록에서 수정만 해 주세요`,'warn');
   const btn = e.target.querySelector('button.b-main');
   const data = {}; let cats = null;
   d.fields.forEach(f=>{
@@ -858,20 +1260,30 @@ async function saveRow(e,key){
     else if (f.t==='number') data[f.k] = el.value==='' ? null : Number(el.value);
     else                     data[f.k] = el.value.trim()==='' ? null : el.value;
   });
+  /* ★ 사용자가 적은 순서 번호를 기억해 둡니다 */
+  const okey = orderKey(key);
+  const want = okey ? data[okey] : null;
 
   if (key==='popups' && data.start_at && data.end_at && data.start_at > data.end_at)
     return HW.toast('노출 종료일이 시작일보다 빠릅니다','warn');
 
   if (btn){ btn.disabled = true; btn.textContent = '저장 중…'; }
   try{
+    let savedId = id;
     if (key==='teas'){
       if (data.temp && /^\d+$/.test(data.temp)) data.temp += '℃';
-      await HW.api.saveTea(Object.assign({}, data, {id: id||''}), cats);
+      const res = await HW.api.saveTea(Object.assign({}, data, {id: id||''}), cats);
+      if (!savedId) savedId = (res && (res.id || (Array.isArray(res) && res[0] && res[0].id))) || '';
     } else {
       Object.assign(data, d.fixed||{});
       if (id) data.id = id;
-      await HW.api.save(d.table, data);
+      const rows = await HW.api.save(d.table, data);
+      if (!savedId) savedId = rows && rows[0] && rows[0].id;
     }
+
+    /* ★ 번호를 다시 매깁니다 (나머지 글이 1씩 밀리거나 당겨집니다) */
+    await reorderRows(key, savedId, want);
+
     HW.okMsg(id ? '수정되었습니다' : '저장되었습니다');
     resetRow(key); loadList(key);
   }catch(err){ HW.errMsg(err); }
@@ -879,8 +1291,10 @@ async function saveRow(e,key){
 }
 
 async function delRow(key,id){
+  const d = DEFS[key];
+  if (d.noDel) return HW.toast(`${d.name}은(는) 삭제할 수 없습니다`,'warn');
   if(!confirm('정말 삭제할까요? (변경 이력에서 복원할 수 있습니다)')) return;
-  try{ await HW.api.remove(DEFS[key].table, id); HW.okMsg('삭제되었습니다'); loadList(key); }
+  try{ await HW.api.remove(d.table, id); HW.okMsg('삭제되었습니다'); loadList(key); }
   catch(e){ HW.errMsg(e); }
 }
 
@@ -982,7 +1396,7 @@ function drawCal(){
     const ev = SCH.filter(s=>s.date===key);
     h += `<div class="cd ${key===selD?'sel':''}" data-d="${key}">
             <div class="n">${d}</div>
-            ${ev.map(e=>`<div class="ev">${E(e.title)}</div>`).join('')}
+            ${ev.map(e=>`<div class="ev" title="${A(e.title)}">${E(e.title)}</div>`).join('')}
           </div>`;
   }
   const grid = HW.qs('#cal-grid');
@@ -994,7 +1408,15 @@ function drawCal(){
     });
   }
 }
-function pickDay(k){ selD=k; HW.qs('#sch-date').value=k; drawCal(); drawDay(); }
+function pickDay(k){
+  const prev = HW.qs('#sch-date').value;
+  const end  = HW.qs('#sch-end');
+  selD = k;
+  HW.qs('#sch-date').value = k;
+  /* ★ 종료일이 비었거나 '이전 시작일과 같던' 경우에만 따라옵니다 */
+  if(end && (!end.value || end.value === prev)) end.value = k;
+  drawCal(); drawDay();
+}
 function drawDay(){
   HW.qs('#sel-date').textContent = selD;
   const ev = SCH.filter(s=>s.date===selD), box = HW.qs('#sel-list');
@@ -1027,7 +1449,8 @@ function schNew(){ schReset(); HW.qs('#sch-date').value = selD; HW.qs('#sch-titl
 function schEdit(id){
   const s = SCH.find(x=>String(x.id)===String(id)); if(!s) return;
   HW.qs('#sch-id').value=s.id; HW.qs('#sch-date').value=dOnly(s.date);
-  HW.qs('#sch-end').value=dOnly(s.end_date); HW.qs('#sch-time').value=s.start_time||'';
+  HW.qs('#sch-end').value=dOnly(s.end_date) || dOnly(s.date);
+  HW.qs('#sch-time').value=s.start_time||'';
   HW.qs('#sch-title').value=s.title||''; HW.qs('#sch-loc').value=s.location||'';
   HW.qs('#sch-desc').value=s.description||''; HW.qs('#sch-kind').value=s.kind||'normal';
   HW.qs('#sch-ttl').textContent='일정 수정'; HW.qs('#sch-cancel').style.display='block';
@@ -1035,8 +1458,18 @@ function schEdit(id){
 function schReset(){
   HW.qs('#sch-form').reset(); HW.qs('#sch-id').value='';
   HW.qs('#sch-date').value=selD;
+  HW.qs('#sch-end').value=selD;              /* ★ 종료일 기본 = 당일 */
   HW.qs('#sch-ttl').textContent='일정 추가'; HW.qs('#sch-cancel').style.display='none';
 }
+/* ★ 시작일을 직접 고쳤을 때 — 종료일이 비었거나 더 빠르면 함께 맞춥니다 */
+(function bindSchDate(){
+  const d = HW.qs('#sch-date'), e = HW.qs('#sch-end');
+  if(!d || !e) return;
+  d.addEventListener('change', () => {
+    if(!e.value || e.value < d.value) e.value = d.value;
+  });
+})();
+
 async function schSave(e){
   e.preventDefault();
   const id = HW.qs('#sch-id').value;
@@ -1256,7 +1689,7 @@ async function cmDel(id){
    ========================================================= */
 const TNAME = {site_values:'사이트 값',intro_sections:'소개글',history:'연혁',rules:'회칙',
   popups:'공지 팝업',schedules:'일정',teas:'차',tea_map:'차 지도',tea_ware:'다구',
-  tea_stories:'차 이야기',journal_posts:'학술지 글',journal_issues:'호',journal_series:'학술지',
+  journal_posts:'이야기 글',journal_issues:'호',journal_series:'학술지',
   categories:'카테고리',tea_categories:'차-카테고리'};
 const ANAME = {INSERT:['추가','blue'],UPDATE:['수정',''],DELETE:['삭제','red']};
 
